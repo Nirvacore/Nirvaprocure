@@ -594,6 +594,71 @@ export interface AuditRow {
   diff: unknown;
 }
 // ---------------------------------------------------------------------------
+// Suppliers
+// ---------------------------------------------------------------------------
+export interface SupplierRow {
+  id: string;
+  code: string;
+  name: string;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  category: string | null;
+  tax_id: string | null;
+  is_active: boolean;
+  risk_tier: 'low' | 'medium' | 'high' | 'critical' | null;
+  total_pr_count: number;
+  total_spent_minor: number;
+  created_at: string;
+}
+export const suppliers = {
+  list: (search?: string) => {
+    const qs = search ? `?search=${encodeURIComponent(search)}` : '';
+    return request<SupplierRow[]>('GET', `/suppliers${qs}`);
+  },
+  get: (id: string) => request<SupplierRow>('GET', `/suppliers/${id}`),
+  create: (body: {
+    code: string; name: string;
+    contact_name?: string; contact_email?: string; contact_phone?: string;
+    category?: string; tax_id?: string;
+  }) => request<SupplierRow>('POST', '/suppliers', body),
+  update: (id: string, body: {
+    name?: string; contact_name?: string; contact_email?: string;
+    contact_phone?: string; category?: string; tax_id?: string; is_active?: boolean;
+  }) => request<SupplierRow>('PATCH', `/suppliers/${id}`, body),
+  archive: (id: string) => request<void>('DELETE', `/suppliers/${id}`),
+};
+
+// ---------------------------------------------------------------------------
+// Purchase Orders (PO)
+// ---------------------------------------------------------------------------
+export interface PoRow {
+  id: string;
+  po_number: string;
+  pr_id: string | null;
+  supplier_id: string | null;
+  supplier_name: string | null;
+  status: 'draft' | 'sent' | 'received' | 'cancelled';
+  total_minor: number;
+  currency: string;
+  notes: string | null;
+  issued_by: string;
+  issued_at: string | null;
+  created_at: string;
+}
+export const po = {
+  list: (status?: string) => {
+    const qs = status ? `?status=${status}` : '';
+    return request<PoRow[]>('GET', `/po${qs}`);
+  },
+  get: (id: string) => request<PoRow>('GET', `/po/${id}`),
+  create: (prId: string, supplierId?: string) =>
+    request<PoRow>('POST', '/po', { pr_id: prId, supplier_id: supplierId }),
+  updateStatus: (id: string, status: string) =>
+    request<PoRow>('PATCH', `/po/${id}/status`, { status }),
+};
+
+// ---------------------------------------------------------------------------
 // Supplier risk scores
 // ---------------------------------------------------------------------------
 export type RiskTier = 'low' | 'medium' | 'high' | 'critical';
@@ -690,6 +755,6 @@ export const analytics = {
 
 export const api = {
   auth, pr, approvals, workflows, notifications, ai, finance, people, stock, gov,
-  analytics, portalAdmin, importCsv, budgets, webhooks, audit,
+  analytics, portalAdmin, importCsv, budgets, webhooks, audit, suppliers, po,
 };
 export default api;

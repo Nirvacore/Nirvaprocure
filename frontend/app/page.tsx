@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 import Link from 'next/link';
 import { Plus, Inbox, List, MessageCircle, CheckCircle2, Clock, Banknote } from 'lucide-react';
 import { useT } from '@/lib/i18n/provider';
@@ -96,7 +97,7 @@ export default function HomePage() {
 
 function Stat({
   label, value, accent, labelColor = 'text-gray-600', valueColor = 'text-gray-900', icon: Icon,
-}: { label: string; value: string; accent: string; labelColor?: string; valueColor?: string; icon?: any }) {
+}: { label: string; value: string; accent: string; labelColor?: string; valueColor?: string; icon?: React.ComponentType<{ className?: string }> }) {
   return (
     <div className={`p-4 rounded-xl ${accent}`}>
       <div className={`text-sm mb-1 flex items-center gap-1.5 ${labelColor}`}>

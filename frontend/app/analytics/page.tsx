@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle, ArrowLeft, Banknote, Bot, Building2, CheckCircle2,
   Clock, FileText, Loader2, RefreshCw, ShieldAlert, Timer, Trophy,
@@ -265,7 +265,7 @@ export default function AnalyticsPage() {
 
 function StatCard({
   label, value, icon: Icon, accent,
-}: { label: string; value: string; icon: any; accent: string }) {
+}: { label: string; value: string; icon: React.ComponentType<{ className?: string }>; accent: string }) {
   return (
     <div className="card !p-4">
       <div className={`w-10 h-10 rounded-xl ${accent} flex items-center justify-center mb-3`}>

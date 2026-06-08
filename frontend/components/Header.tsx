@@ -45,6 +45,8 @@ export function Header() {
               <InboxBadge />
             </span>
           </NavLink>
+          <NavLink href="/suppliers">{t('nav.suppliers')}</NavLink>
+          <NavLink href="/po">{t('nav.po')}</NavLink>
         </nav>
 
         <div className="flex-1" />
