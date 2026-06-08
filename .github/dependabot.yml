@@ -1,0 +1,67 @@
+# Dependabot configuration — closes ISO 27001 A.8.8 (technical vulnerability
+# management). One ecosystem per directory, grouped to keep PR noise sane.
+#
+# Strategy:
+#   - Daily security updates (zero-day patches go in immediately)
+#   - Weekly minor/patch groups so the team doesn't drown in PR review
+#   - Major updates: separate PR per package so blast radius is visible
+#   - GitHub Actions tracked separately — workflow security matters
+version: 2
+updates:
+  # Backend — Nest, pg, AI SDKs
+  - package-ecosystem: npm
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Bangkok
+    open-pull-requests-limit: 5
+    groups:
+      backend-minor:
+        update-types: [minor, patch]
+    labels: [dependencies, backend]
+    commit-message:
+      prefix: backend
+      include: scope
+
+  # Frontend — Next.js, React, Tailwind
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Bangkok
+    open-pull-requests-limit: 5
+    groups:
+      frontend-minor:
+        update-types: [minor, patch]
+    labels: [dependencies, frontend]
+    commit-message:
+      prefix: frontend
+      include: scope
+
+  # GitHub Actions — supply-chain security on the CI pipeline itself
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    labels: [dependencies, ci]
+    commit-message:
+      prefix: ci
+
+  # Docker base images — security patches for the runtime
+  - package-ecosystem: docker
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+    labels: [dependencies, docker]
+  - package-ecosystem: docker
+    directory: /frontend
+    schedule:
+      interval: weekly
+      day: monday
+    labels: [dependencies, docker]

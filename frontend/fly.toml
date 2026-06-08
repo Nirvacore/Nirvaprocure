@@ -1,0 +1,49 @@
+# Fly.io app definition for the NIRVAPROCURE web frontend.
+#
+# Bring-up:
+#   flyctl launch --no-deploy --copy-config
+#   flyctl secrets set \
+#     NEXT_PUBLIC_API_BASE_URL=https://nirva-backend.fly.dev/v1\
+#     NEXT_PUBLIC_SENTRY_DSN=...      # optional
+#   flyctl deploy
+
+app            = "nirva-web"
+primary_region = "sin"
+kill_signal    = "SIGINT"
+kill_timeout   = "5s"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT     = "8080"
+
+[http_service]
+  internal_port       = 8080
+  force_https         = true
+  auto_stop_machines  = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes           = ["app"]
+
+  [http_service.concurrency]
+    type       = "requests"
+    soft_limit = 200
+    hard_limit = 400
+
+  # Next.js serves /_next/health-check as a 200; using `/` would risk hitting
+  # an authed redirect path. Static asset health is fine for the LB.
+  [[http_service.checks]]
+    grace_period = "20s"
+    interval     = "15s"
+    method       = "get"
+    path         = "/_next/static/health"
+    protocol     = "http"
+    timeout      = "5s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1

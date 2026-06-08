@@ -1,0 +1,128 @@
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Pool } from 'pg';
+import { PG_POOL } from '../../common/db/db.module';
+import { withOrg } from '../../common/db/with-org';
+import { OpenAiProvider } from '../ai/openai.provider';
+import type { CurrentUser } from '../../common/auth/current-user.decorator';
+
+export type ProcurementKind = 'goods' | 'services' | 'construction';
+
+export interface ToRBrief {
+  procurement_kind: ProcurementKind;
+  budget_minor: number;
+  currency: string;
+  scope: string;                 // free-text scope of work
+  deliverables: string[];
+  qualifications?: string[];     // vendor must-haves
+  timeline?: { start?: string; end?: string };
+  evaluation_method?: 'lowest_price' | 'most_advantageous';
+}
+
+/**
+ * NirvaGov — Thai government TOR (เอกสารกำหนดราคากลาง / ขอบเขตงาน).
+ *
+ * Workflow:
+ *   1. Procurement officer fills in a structured brief.
+ *   2. Service composes the brief into the chosen template and asks an AI
+ *      to expand into proper Thai government prose.
+ *   3. Returns a draft + a compliance checklist (e.g. must have ราคากลาง,
+ *      must specify วิธีการจัดซื้อจัดจ้าง). UI shows red/green flags.
+ *
+ * The "real" template library and rule checks live in tor_templates +
+ * code: production should ship a curated set after legal review.
+ */
+@Injectable()
+export class GovService {
+  constructor(
+    @Inject(PG_POOL) private readonly pool: Pool,
+    private readonly openai: OpenAiProvider,
+  ) {}
+
+  listTemplates(user: CurrentUser) {
+    return withOrg(this.pool, user.orgId, async (c) => {
+      const r = await c.query(
+        `SELECT id, name, procurement_kind, is_official
+         FROM tor_templates WHERE deleted_at IS NULL ORDER BY name`,
+      );
+      return r.rows;
+    });
+  }
+
+  async createDraft(
+    user: CurrentUser,
+    body: { title: string; brief: ToRBrief; template_id?: string },
+  ) {
+    const checklist = this.runChecklist(body.brief);
+    const aiBody = await this.generateBody(body.title, body.brief);
+
+    return withOrg(this.pool, user.orgId, async (c) => {
+      const r = await c.query(
+        `INSERT INTO tor_drafts
+           (org_id, template_id, title, brief_json, body_markdown, compliance_checklist, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         RETURNING id, title, status, body_markdown, compliance_checklist, created_at`,
+        [
+          user.orgId, body.template_id ?? null, body.title,
+          JSON.stringify(body.brief), aiBody, JSON.stringify(checklist), user.userId,
+        ],
+      );
+      return r.rows[0];
+    });
+  }
+
+  getDraft(user: CurrentUser, id: string) {
+    return withOrg(this.pool, user.orgId, async (c) => {
+      const r = await c.query(
+        `SELECT * FROM tor_drafts WHERE id = $1`, [id],
+      );
+      if (r.rowCount === 0) throw new NotFoundException();
+      return r.rows[0];
+    });
+  }
+
+  // -----------------------------------------------------------------------
+  // Internals
+  // -----------------------------------------------------------------------
+
+  private runChecklist(brief: ToRBrief): Record<string, 'passed' | 'failed' | 'na'> {
+    return {
+      // Mandatory fields per Thai government procurement regs (simplified).
+      has_scope:              brief.scope?.trim().length > 30          ? 'passed' : 'failed',
+      has_budget:             brief.budget_minor > 0                    ? 'passed' : 'failed',
+      has_deliverables:       (brief.deliverables?.length ?? 0) > 0     ? 'passed' : 'failed',
+      has_evaluation_method:  brief.evaluation_method                   ? 'passed' : 'failed',
+      has_timeline:           !!(brief.timeline?.start && brief.timeline?.end) ? 'passed' : 'failed',
+      // Construction projects MUST list qualified vendor criteria.
+      has_qualifications:     brief.procurement_kind === 'construction'
+        ? ((brief.qualifications?.length ?? 0) > 0 ? 'passed' : 'failed')
+        : 'na',
+    };
+  }
+
+  private async generateBody(title: string, brief: ToRBrief): Promise<string> {
+    // Long context prompt → use Claude when available; OpenAI is fine for
+    // this length. The provider abstracts that choice.
+    const system = [
+      `You are a Thai government procurement specialist. Draft a formal TOR`,
+      `(เอกสารขอบเขตของงาน) in Thai based on the brief below.`,
+      ``,
+      `Required sections, in this order:`,
+      `  ๑. ความเป็นมา`,
+      `  ๒. วัตถุประสงค์`,
+      `  ๓. คุณสมบัติของผู้ยื่นข้อเสนอ`,
+      `  ๔. ขอบเขตของงาน (พร้อมรายละเอียดของงานที่ส่งมอบ)`,
+      `  ๕. ระยะเวลาดำเนินการ`,
+      `  ๖. ราคากลาง / วงเงินงบประมาณ`,
+      `  ๗. เกณฑ์การพิจารณา`,
+      `  ๘. เงื่อนไขอื่นๆ`,
+      ``,
+      `Write in formal Thai (ใช้คำราชการ). Output Markdown only.`,
+    ].join('\n');
+
+    const user = JSON.stringify({ title, brief }, null, 2);
+    return this.openai.chat(
+      [{ role: 'system', content: system }, { role: 'user', content: user }],
+      { model: 'gpt-4o-mini', maxTokens: 2000 },
+    );
+  }
+}

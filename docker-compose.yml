@@ -1,0 +1,65 @@
+# One-command bring-up for the full NIRVAPROCURE dev stack.
+#
+#   docker compose up --build
+#
+# Services:
+#   db        Postgres 16, seeded with phase1_schema.sql + seed.sql
+#   backend   NestJS API on :3000
+#   web       Next.js on :3001 (proxy → backend via NEXT_PUBLIC_API_BASE_URL)
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nirva
+      POSTGRES_PASSWORD: nirva
+      POSTGRES_DB: nirvaprocure
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/phase1_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nirva -d nirvaprocure"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgres://nirva:nirva@db:5432/nirvaprocure
+      JWT_SECRET: dev-secret-do-not-use-in-prod
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/v1/health || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      PORT: 3001
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:3000/v1
+    ports:
+      - "3001:3001"
+
+volumes:
+  pgdata:

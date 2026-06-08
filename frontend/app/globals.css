@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------------------------------------------------------------------
+ * Theme tokens
+ *
+ * We keep colours behind CSS variables so the dark-mode toggle is a single
+ * class swap on <html>. Tailwind utility classes (e.g. `bg-white`) still
+ * resolve to literal values — those are explicitly mapped to vars below.
+ *
+ * Why not Tailwind's built-in dark: variant? The app has ~15 pages and a
+ * few hundred call sites; rewriting every `bg-white text-gray-900` to
+ * `bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100` would
+ * triple the markup. CSS variable indirection is one knob to flip.
+ *
+ * To keep the diff minimal we ALSO override the most-used Tailwind utility
+ * classes via `@apply var(--...)` patterns below.
+ * ------------------------------------------------------------------------- */
+
+:root {
+  --surface:           #FFFFFF;
+  --surface-muted:     #F9FAFB;   /* gray-50 */
+  --surface-elevated:  #FFFFFF;
+  --border:            #E5E7EB;   /* gray-200 */
+  --border-strong:     #D1D5DB;   /* gray-300 */
+  --text-primary:      #111827;   /* gray-900 */
+  --text-secondary:    #4B5563;   /* gray-600 */
+  --text-muted:        #6B7280;   /* gray-500 */
+
+  --brand:             #4F46E5;   /* brand-600 */
+  --brand-strong:      #4338CA;   /* brand-700 */
+  --brand-soft:        #EEF2FF;   /* brand-50 */
+  --brand-soft-text:   #4338CA;   /* brand-700 */
+}
+
+html.dark {
+  --surface:           #1F2937;   /* gray-800 */
+  --surface-muted:     #111827;   /* gray-900 */
+  --surface-elevated:  #374151;   /* gray-700 */
+  --border:            #374151;
+  --border-strong:     #4B5563;
+  --text-primary:      #F9FAFB;
+  --text-secondary:    #D1D5DB;
+  --text-muted:        #9CA3AF;
+
+  --brand-soft:        rgba(79, 70, 229, 0.15);
+  --brand-soft-text:   #C7D2FE;
+}
+
+@layer base {
+  html {
+    /* 18px base — see design system principles. */
+    font-size: 18px;
+  }
+  body {
+    color: var(--text-primary);
+    background-color: var(--surface-muted);
+    /* Default stack: Inter for Latin, Noto Sans Thai for Thai glyphs. The
+     * per-locale overrides below swap the primary font when `html.lang`
+     * changes. We always keep Inter as a tail fallback for numerals. */
+    font-family: var(--font-inter), var(--font-noto-thai), system-ui, sans-serif;
+  }
+  /* Locale-specific font priority. The provider sets `html.lang` whenever
+   * the user picks a language; the right font becomes primary, others stay
+   * as fallback so mixed-script content (e.g. a Thai user typing a Chinese
+   * supplier name) still renders. */
+  html[lang="th"] body { font-family: var(--font-noto-thai), var(--font-inter), system-ui, sans-serif; }
+  html[lang="en"] body { font-family: var(--font-inter), var(--font-noto-latin), system-ui, sans-serif; }
+  html[lang="zh"] body { font-family: var(--font-noto-sc), var(--font-inter), system-ui, sans-serif; }
+  html[lang="ja"] body { font-family: var(--font-noto-jp), var(--font-inter), system-ui, sans-serif; }
+  html[lang="vi"] body { font-family: var(--font-noto-latin), var(--font-inter), system-ui, sans-serif; }
+  html[lang="id"] body { font-family: var(--font-noto-latin), var(--font-inter), system-ui, sans-serif; }
+  html[lang="my"] body { font-family: var(--font-noto-my), var(--font-inter), system-ui, sans-serif; }
+  html[lang="km"] body { font-family: var(--font-noto-km), var(--font-inter), system-ui, sans-serif; }
+  /* Tabular numbers for amounts, PR numbers, etc. */
+  .num {
+    font-family: var(--font-inter), system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+  }
+  /* Big visible focus ring — accessibility */
+  :focus-visible {
+    outline: 3px solid theme('colors.brand.600');
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+  /* Form controls default to comfortable sizing */
+  input, select, textarea {
+    min-height: 56px;
+    font-size: 1rem;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply min-h-btn px-5 rounded-xl font-bold flex items-center justify-center gap-2 transition;
+  }
+  .btn-sm {
+    @apply min-h-btn-sm;
+  }
+  .btn-primary {
+    @apply btn bg-brand-600 hover:bg-brand-700 text-white shadow-soft;
+  }
+  .btn-secondary {
+    @apply btn border-2 border-gray-200 hover:border-gray-300 text-gray-700;
+    background-color: var(--surface);
+    color: var(--text-secondary);
+  }
+  .btn-danger {
+    @apply btn border-2 border-red-200 hover:bg-red-50 hover:border-red-300 text-red-700;
+    background-color: var(--surface);
+  }
+  .card {
+    @apply rounded-2xl p-6 shadow-soft border;
+    background-color: var(--surface);
+    border-color: var(--border);
+    color: var(--text-primary);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+.screen { animation: fadeIn 200ms ease-out; }

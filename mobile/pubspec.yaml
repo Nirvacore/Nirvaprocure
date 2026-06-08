@@ -1,0 +1,30 @@
+name: nirvaprocure
+description: NIRVAPROCURE mobile companion app.
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  dio: ^5.5.0                    # HTTP client with interceptors → auth refresh
+  go_router: ^14.2.0             # declarative routing
+  flutter_secure_storage: ^9.2.2 # encrypted token storage (Keychain/Keystore)
+  google_fonts: ^6.2.1           # Noto Sans Thai + Inter to match the web UI
+  intl: ^0.19.0                  # Thai number/date formatting
+  collection: ^1.18.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/

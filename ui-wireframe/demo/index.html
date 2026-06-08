@@ -1,0 +1,1208 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NIRVAPROCURE — Demo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans Thai"', 'Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50:  '#EEF2FF',
+              100: '#E0E7FF',
+              500: '#6366F1',
+              600: '#4F46E5',
+              700: '#4338CA',
+            },
+          },
+          boxShadow: {
+            soft: '0 1px 2px rgba(17,24,39,0.04), 0 4px 12px rgba(17,24,39,0.06)',
+            lift: '0 4px 6px rgba(17,24,39,0.05), 0 12px 24px rgba(17,24,39,0.08)',
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    html { font-size: 18px; }
+    body { font-family: 'Noto Sans Thai', Inter, system-ui, sans-serif; color: #111827; }
+    .num { font-family: 'Inter', system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+    /* Big interactive elements */
+    button, .btn { min-height: 56px; }
+    .btn-sm { min-height: 44px; }
+    input, select, textarea { min-height: 56px; font-size: 1rem; }
+    /* Focus rings — visible! */
+    :focus-visible { outline: 3px solid #4F46E5; outline-offset: 2px; border-radius: 8px; }
+    /* Smooth screen swaps */
+    .screen { animation: fadeIn 200ms ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    /* Toast */
+    .toast { animation: slideUp 200ms ease-out; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- ============================================================== -->
+  <!-- App shell                                                       -->
+  <!-- ============================================================== -->
+  <div class="min-h-screen flex flex-col">
+
+    <!-- Top bar -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3 sm:gap-6">
+        <button onclick="go('home')" class="btn-sm flex items-center gap-2 sm:gap-3 font-bold text-base sm:text-xl text-gray-900 -ml-1 px-1 rounded-lg flex-shrink-0">
+          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-brand-600 flex items-center justify-center text-white">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+          </div>
+          <span class="hidden xs:inline sm:inline">NIRVAPROCURE</span>
+        </button>
+
+        <nav class="hidden md:flex items-center gap-1 ml-4 whitespace-nowrap">
+          <button onclick="go('home')" data-nav="home"
+            class="btn-sm px-4 py-2 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-100 whitespace-nowrap">หน้าหลัก</button>
+          <button onclick="go('list')" data-nav="list"
+            class="btn-sm px-4 py-2 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-100 whitespace-nowrap">ใบขอซื้อ</button>
+          <button onclick="go('inbox')" data-nav="inbox"
+            class="btn-sm px-4 py-2 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-100 flex items-center gap-2 whitespace-nowrap">
+            รออนุมัติ
+            <span id="inbox-badge" class="num bg-red-100 text-red-700 text-sm font-bold px-2 py-0.5 rounded-full">3</span>
+          </button>
+        </nav>
+
+        <div class="flex-1"></div>
+
+        <button class="btn-sm px-4 rounded-full bg-gray-100 hover:bg-gray-200 text-sm font-medium" onclick="toggleLang()">
+          <span id="lang-label">EN</span>
+        </button>
+
+        <button onclick="go('settings')" class="btn-sm w-11 h-11 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center flex-shrink-0" aria-label="ตั้งค่า">
+          <i data-lucide="settings" class="w-5 h-5"></i>
+        </button>
+
+        <div class="flex items-center gap-3 sm:pl-3 sm:border-l border-gray-200 whitespace-nowrap flex-shrink-0">
+          <div class="w-10 h-10 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center flex-shrink-0">ส</div>
+          <div class="hidden lg:block leading-tight">
+            <div class="font-semibold text-sm">สุดา จันทร์</div>
+            <div class="text-xs text-gray-500">ฝ่ายการเงิน</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main content -->
+    <main id="main" class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-24 md:pb-8"></main>
+
+    <!-- Mobile bottom nav -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 grid grid-cols-3 px-2 pt-2 pb-3 shadow-lift">
+      <button onclick="go('home')" data-nav="home" class="flex flex-col items-center gap-1 py-2 rounded-xl">
+        <i data-lucide="home" class="w-6 h-6 text-gray-600"></i>
+        <span class="text-xs font-medium text-gray-700">หน้าหลัก</span>
+      </button>
+      <button onclick="go('list')" data-nav="list" class="flex flex-col items-center gap-1 py-2 rounded-xl">
+        <i data-lucide="list" class="w-6 h-6 text-gray-600"></i>
+        <span class="text-xs font-medium text-gray-700">ใบขอซื้อ</span>
+      </button>
+      <button onclick="go('inbox')" data-nav="inbox" class="flex flex-col items-center gap-1 py-2 rounded-xl relative">
+        <i data-lucide="inbox" class="w-6 h-6 text-gray-600"></i>
+        <span class="text-xs font-medium text-gray-700">รออนุมัติ</span>
+        <span id="inbox-badge-mobile" class="num absolute top-1 right-4 sm:right-8 bg-red-600 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">3</span>
+      </button>
+    </nav>
+
+    <!-- Toast container -->
+    <div id="toast-root" class="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none"></div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- Screens                                                         -->
+  <!-- ============================================================== -->
+
+  <!-- HOME -->
+  <template id="screen-home">
+    <section class="screen space-y-8">
+      <div class="space-y-1">
+        <p class="text-base text-gray-500">สวัสดีครับ คุณสุดา</p>
+        <h1 class="text-3xl md:text-4xl font-bold">วันนี้อยากทำอะไรครับ?</h1>
+      </div>
+
+      <!-- Big primary actions -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <button onclick="go('create')" class="text-left bg-white rounded-2xl p-6 shadow-soft hover:shadow-lift transition border border-gray-200 hover:border-brand-300 group">
+          <div class="w-14 h-14 rounded-2xl bg-brand-100 text-brand-700 flex items-center justify-center mb-4 group-hover:scale-105 transition">
+            <i data-lucide="plus" class="w-7 h-7"></i>
+          </div>
+          <div class="text-xl font-bold mb-1">ขอซื้อใหม่</div>
+          <div class="text-base text-gray-600">วางลิงก์ Shopee, Lazada หรือพิมพ์เอง</div>
+        </button>
+
+        <button onclick="go('inbox')" class="text-left bg-white rounded-2xl p-6 shadow-soft hover:shadow-lift transition border border-gray-200 hover:border-amber-300 group">
+          <div class="w-14 h-14 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mb-4 group-hover:scale-105 transition">
+            <i data-lucide="inbox" class="w-7 h-7"></i>
+          </div>
+          <div class="text-xl font-bold mb-1 flex items-center gap-2">
+            รออนุมัติ
+            <span class="num text-sm bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded-full">3</span>
+          </div>
+          <div class="text-base text-gray-600">ดูใบที่ต้องตัดสินใจ</div>
+        </button>
+
+        <button onclick="go('list')" class="text-left bg-white rounded-2xl p-6 shadow-soft hover:shadow-lift transition border border-gray-200 hover:border-gray-300 group">
+          <div class="w-14 h-14 rounded-2xl bg-gray-100 text-gray-700 flex items-center justify-center mb-4 group-hover:scale-105 transition">
+            <i data-lucide="list" class="w-7 h-7"></i>
+          </div>
+          <div class="text-xl font-bold mb-1">ใบขอของฉัน</div>
+          <div class="text-base text-gray-600">ดูสถานะใบที่ส่งไปแล้ว</div>
+        </button>
+
+        <button onclick="go('line')" class="text-left bg-white rounded-2xl p-6 shadow-soft hover:shadow-lift transition border border-gray-200 hover:border-green-300 group">
+          <div class="w-14 h-14 rounded-2xl bg-green-100 text-green-700 flex items-center justify-center mb-4 group-hover:scale-105 transition">
+            <i data-lucide="message-circle" class="w-7 h-7"></i>
+          </div>
+          <div class="text-xl font-bold mb-1 flex items-center gap-2">
+            แจ้งเตือน LINE
+            <span class="text-xs bg-green-100 text-green-800 font-bold px-2 py-0.5 rounded-full">เปิดอยู่</span>
+          </div>
+          <div class="text-base text-gray-600">อนุมัติได้จากแชตได้เลย</div>
+        </button>
+      </div>
+
+      <!-- This month summary -->
+      <div class="bg-white rounded-2xl p-6 shadow-soft border border-gray-200">
+        <div class="flex items-center justify-between mb-5">
+          <h2 class="text-xl font-bold">สรุปเดือนนี้</h2>
+          <span class="text-sm text-gray-500">พฤษภาคม 2569</span>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="p-4 rounded-xl bg-gray-50">
+            <div class="text-sm text-gray-600 mb-1">ใบขอทั้งหมด</div>
+            <div class="num text-2xl font-bold">12</div>
+          </div>
+          <div class="p-4 rounded-xl bg-green-50">
+            <div class="text-sm text-green-700 mb-1 flex items-center gap-1.5">
+              <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+              อนุมัติแล้ว
+            </div>
+            <div class="num text-2xl font-bold text-green-800">8</div>
+          </div>
+          <div class="p-4 rounded-xl bg-amber-50">
+            <div class="text-sm text-amber-700 mb-1 flex items-center gap-1.5">
+              <i data-lucide="clock" class="w-4 h-4"></i>
+              รออนุมัติ
+            </div>
+            <div class="num text-2xl font-bold text-amber-800">3</div>
+          </div>
+          <div class="p-4 rounded-xl bg-brand-50">
+            <div class="text-sm text-brand-700 mb-1 flex items-center gap-1.5">
+              <i data-lucide="banknote" class="w-4 h-4"></i>
+              ใช้ไปแล้ว
+            </div>
+            <div class="num text-2xl font-bold text-brand-700">฿ 48,290</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </template>
+
+  <!-- CREATE PR -->
+  <template id="screen-create">
+    <section class="screen space-y-8 max-w-3xl mx-auto">
+      <button onclick="go('home')" class="btn-sm flex items-center gap-2 text-gray-600 hover:text-gray-900 -ml-2 px-2 rounded-lg">
+        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        <span>กลับ</span>
+      </button>
+
+      <div>
+        <h1 class="text-3xl font-bold mb-2">ขอซื้อของใหม่</h1>
+        <p class="text-base text-gray-600">วางลิงก์สินค้าจาก Shopee, Lazada หรือพิมพ์รายการเอง</p>
+      </div>
+
+      <!-- Big paste-a-link hero -->
+      <div class="bg-gradient-to-br from-brand-50 to-indigo-50 rounded-2xl p-6 border-2 border-brand-200">
+        <label class="flex items-center gap-2 font-semibold mb-3 text-brand-800">
+          <i data-lucide="link" class="w-5 h-5"></i>
+          วางลิงก์สินค้าตรงนี้
+        </label>
+        <div class="flex gap-3">
+          <input id="paste-url" type="url" placeholder="https://shopee.co.th/..." class="flex-1 px-4 rounded-xl border-2 border-white bg-white shadow-soft focus:border-brand-500 outline-none text-base" />
+          <button onclick="parseLink()" class="px-6 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold shadow-soft flex items-center gap-2">
+            <i data-lucide="wand-2" class="w-5 h-5"></i>
+            ดึงข้อมูล
+          </button>
+        </div>
+        <div id="parse-status" class="hidden mt-3 text-base text-brand-700 font-medium flex items-center gap-2">
+          <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
+          กำลังดึงข้อมูลจาก Shopee...
+        </div>
+        <div class="mt-4 flex flex-wrap gap-2 text-sm text-brand-700">
+          <span class="px-2.5 py-1 bg-white rounded-full flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5"></i> Shopee</span>
+          <span class="px-2.5 py-1 bg-white rounded-full flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5"></i> Lazada</span>
+          <span class="px-2.5 py-1 bg-white rounded-full flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5"></i> Makro</span>
+          <span class="px-2.5 py-1 bg-white rounded-full flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5"></i> Alibaba</span>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div class="space-y-6 bg-white rounded-2xl p-6 shadow-soft border border-gray-200">
+        <div>
+          <label class="block font-semibold mb-2 text-base">เรื่อง <span class="text-red-600">*</span></label>
+          <input id="pr-title" type="text" placeholder="เช่น หมึกเครื่องพิมพ์ ชั้น 5" class="w-full px-4 rounded-xl border-2 border-gray-200 focus:border-brand-500 outline-none" />
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-2 text-base">แผนก</label>
+          <select id="pr-dept" class="w-full px-4 rounded-xl border-2 border-gray-200 focus:border-brand-500 outline-none bg-white">
+            <option>ฝ่ายการเงิน</option>
+            <option>ฝ่ายไอที</option>
+            <option>ฝ่ายการตลาด</option>
+            <option>ฝ่ายธุรการ</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-2 text-base">เหตุผล</label>
+          <textarea id="pr-reason" rows="3" placeholder="ทำไมต้องซื้อ ใช้ทำอะไร" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-brand-500 outline-none resize-none"></textarea>
+        </div>
+
+        <!-- Items -->
+        <div>
+          <label class="block font-semibold mb-3 text-base">รายการสินค้า</label>
+          <div id="items-list" class="space-y-3"></div>
+          <button onclick="addManualItem()" class="btn-sm mt-3 w-full rounded-xl border-2 border-dashed border-gray-300 hover:border-brand-400 hover:bg-brand-50 text-gray-600 hover:text-brand-700 font-medium flex items-center justify-center gap-2">
+            <i data-lucide="plus" class="w-5 h-5"></i>
+            เพิ่มรายการ
+          </button>
+        </div>
+
+        <!-- Total -->
+        <div class="border-t border-gray-200 pt-5 flex items-center justify-between">
+          <span class="text-base text-gray-600">ยอดรวมทั้งหมด</span>
+          <span id="total" class="num text-3xl font-bold">฿ 0.00</span>
+        </div>
+      </div>
+
+      <!-- Big action buttons, sticky on mobile -->
+      <div class="flex flex-col-reverse sm:flex-row gap-3">
+        <button onclick="go('home')" class="flex-1 rounded-xl bg-white border-2 border-gray-200 hover:border-gray-300 font-bold text-gray-700">
+          บันทึกร่าง
+        </button>
+        <button onclick="submitPr()" class="flex-1 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold shadow-soft flex items-center justify-center gap-2">
+          <i data-lucide="send" class="w-5 h-5"></i>
+          ส่งให้หัวหน้าอนุมัติ
+        </button>
+      </div>
+    </section>
+  </template>
+
+  <!-- INBOX -->
+  <template id="screen-inbox">
+    <section class="screen space-y-6">
+      <div class="flex items-end justify-between">
+        <div>
+          <h1 class="text-3xl font-bold mb-1">รออนุมัติ</h1>
+          <p class="text-base text-gray-600">มี <strong id="inbox-count" class="num text-gray-900">0</strong> ใบรอคุณตัดสินใจ</p>
+        </div>
+      </div>
+
+      <div id="inbox-list" class="space-y-4"></div>
+
+      <div class="pt-6 border-t border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-500 mb-3">ตัดสินใจไปแล้วในสัปดาห์นี้</h2>
+        <div class="space-y-2">
+          <div class="bg-white rounded-xl p-4 border border-gray-200 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-green-100 text-green-700 flex items-center justify-center"><i data-lucide="check" class="w-5 h-5"></i></div>
+            <div class="flex-1">
+              <div class="font-semibold">ถุงมือแล็บ x 200 คู่</div>
+              <div class="text-sm text-gray-500">ปอ น. · เมื่อวาน 14:30</div>
+            </div>
+            <span class="text-sm font-medium text-green-700">อนุมัติแล้ว</span>
+          </div>
+          <div class="bg-white rounded-xl p-4 border border-gray-200 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-red-100 text-red-700 flex items-center justify-center"><i data-lucide="x" class="w-5 h-5"></i></div>
+            <div class="flex-1">
+              <div class="font-semibold">สินค้าตัวอย่าง Q2</div>
+              <div class="text-sm text-gray-500">จิ๋ม ส. · 2 วันที่แล้ว</div>
+            </div>
+            <span class="text-sm font-medium text-red-700">ไม่อนุมัติ</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </template>
+
+  <!-- PR LIST -->
+  <template id="screen-list">
+    <section class="screen space-y-6">
+      <div class="flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <h1 class="text-3xl font-bold mb-1">ใบขอของฉัน</h1>
+          <p class="text-base text-gray-600">รายการทั้งหมดที่คุณส่งไป</p>
+        </div>
+        <button onclick="go('create')" class="rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 shadow-soft flex items-center gap-2">
+          <i data-lucide="plus" class="w-5 h-5"></i>
+          ขอซื้อใหม่
+        </button>
+      </div>
+
+      <!-- Filter chips -->
+      <div id="filter-chips" class="flex flex-wrap gap-2"></div>
+
+      <div id="list-rows" class="space-y-3"></div>
+    </section>
+  </template>
+
+  <!-- SETTINGS / WORKFLOW BUILDER -->
+  <template id="screen-settings">
+    <section class="screen space-y-6 max-w-4xl mx-auto">
+      <button onclick="go('home')" class="btn-sm flex items-center gap-2 text-gray-600 hover:text-gray-900 -ml-2 px-2 rounded-lg">
+        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        <span>กลับ</span>
+      </button>
+
+      <div>
+        <h1 class="text-3xl font-bold mb-1">ตั้งค่า</h1>
+        <p class="text-base text-gray-600">จัดการกฎการอนุมัติ ผู้ใช้ และแผนก</p>
+      </div>
+
+      <!-- Settings tabs -->
+      <div class="flex gap-1 border-b border-gray-200 overflow-x-auto">
+        <button onclick="setSettingsTab('workflows')" data-tab="workflows" class="btn-sm px-5 font-semibold text-gray-600 border-b-2 border-transparent whitespace-nowrap">
+          <span class="flex items-center gap-2">
+            <i data-lucide="git-branch" class="w-5 h-5"></i>
+            กฎการอนุมัติ
+          </span>
+        </button>
+        <button onclick="setSettingsTab('users')" data-tab="users" class="btn-sm px-5 font-semibold text-gray-600 border-b-2 border-transparent whitespace-nowrap">
+          <span class="flex items-center gap-2">
+            <i data-lucide="users" class="w-5 h-5"></i>
+            ผู้ใช้
+          </span>
+        </button>
+        <button onclick="setSettingsTab('departments')" data-tab="departments" class="btn-sm px-5 font-semibold text-gray-600 border-b-2 border-transparent whitespace-nowrap">
+          <span class="flex items-center gap-2">
+            <i data-lucide="building-2" class="w-5 h-5"></i>
+            แผนก
+          </span>
+        </button>
+      </div>
+
+      <div id="settings-body"></div>
+    </section>
+  </template>
+
+  <!-- LINE PREVIEW -->
+  <template id="screen-line">
+    <section class="screen space-y-6 max-w-3xl mx-auto">
+      <button onclick="go('home')" class="btn-sm flex items-center gap-2 text-gray-600 hover:text-gray-900 -ml-2 px-2 rounded-lg">
+        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        <span>กลับ</span>
+      </button>
+
+      <div>
+        <h1 class="text-3xl font-bold mb-2 flex items-center gap-3">
+          <span class="w-10 h-10 rounded-xl bg-green-500 text-white flex items-center justify-center text-xl font-black">L</span>
+          แจ้งเตือนผ่าน LINE
+        </h1>
+        <p class="text-base text-gray-600">หัวหน้าได้รับแจ้งเตือนทันทีที่ส่งใบขอ ไม่ต้องเปิด NIRVAPROCURE ก็อนุมัติได้</p>
+      </div>
+
+      <!-- Phone frame with LINE message -->
+      <div class="bg-gradient-to-b from-gray-100 to-gray-200 rounded-3xl p-6 sm:p-8">
+        <div class="mx-auto max-w-sm bg-gray-50 rounded-[28px] shadow-lift overflow-hidden border-8 border-gray-800">
+          <!-- LINE header -->
+          <div class="bg-[#06C755] text-white px-4 py-3 flex items-center gap-3">
+            <i data-lucide="chevron-left" class="w-5 h-5"></i>
+            <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center font-black text-lg">N</div>
+            <div class="flex-1 leading-tight">
+              <div class="font-semibold">NIRVAPROCURE</div>
+              <div class="text-xs opacity-80">Official Account</div>
+            </div>
+            <i data-lucide="phone" class="w-5 h-5"></i>
+            <i data-lucide="menu" class="w-5 h-5"></i>
+          </div>
+          <!-- Chat area -->
+          <div class="p-4 space-y-3 min-h-[400px] bg-[#7E91A5]">
+            <div class="text-center text-white/80 text-xs">วันนี้ 10:22</div>
+
+            <!-- Flex message bubble -->
+            <div class="flex items-start gap-2">
+              <div class="w-8 h-8 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center text-sm flex-shrink-0">N</div>
+              <div class="bg-white rounded-2xl overflow-hidden shadow-soft max-w-[280px]">
+                <!-- Hero band -->
+                <div class="px-4 py-3 bg-brand-600 text-white">
+                  <div class="text-xs opacity-90 mb-0.5">ใบขอใหม่รอคุณอนุมัติ</div>
+                  <div class="font-bold leading-tight">หมึกเครื่องพิมพ์ ชั้น 5</div>
+                </div>
+                <!-- Body -->
+                <div class="p-4 space-y-2.5 text-sm">
+                  <div class="flex justify-between gap-3">
+                    <span class="text-gray-500">เลขที่</span>
+                    <span class="num font-semibold">PR-2026-0042</span>
+                  </div>
+                  <div class="flex justify-between gap-3">
+                    <span class="text-gray-500">ผู้ขอ</span>
+                    <span class="font-semibold">สุดา จันทร์</span>
+                  </div>
+                  <div class="flex justify-between gap-3">
+                    <span class="text-gray-500">แผนก</span>
+                    <span class="font-semibold">การเงิน</span>
+                  </div>
+                  <div class="flex justify-between gap-3 pt-2 border-t border-gray-100">
+                    <span class="text-gray-500">ยอดรวม</span>
+                    <span class="num font-bold text-lg">฿ 8,089.20</span>
+                  </div>
+                </div>
+                <!-- Buttons -->
+                <div class="border-t border-gray-100 grid grid-cols-2">
+                  <button class="btn-sm py-3 text-green-700 font-bold border-r border-gray-100 flex items-center justify-center gap-1.5 hover:bg-green-50">
+                    <i data-lucide="check" class="w-4 h-4"></i>
+                    อนุมัติ
+                  </button>
+                  <button class="btn-sm py-3 text-red-700 font-bold flex items-center justify-center gap-1.5 hover:bg-red-50">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                    ไม่อนุมัติ
+                  </button>
+                </div>
+                <button class="btn-sm w-full py-3 border-t border-gray-100 text-brand-700 font-medium text-sm flex items-center justify-center gap-1.5 hover:bg-brand-50">
+                  ดูรายละเอียดเต็ม
+                  <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="text-center text-white/80 text-xs pt-2">อ่านแล้ว · 10:23</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings card -->
+      <div class="bg-white rounded-2xl p-6 shadow-soft border border-gray-200 space-y-4">
+        <h2 class="text-lg font-bold flex items-center gap-2">
+          <i data-lucide="bell" class="w-5 h-5 text-gray-400"></i>
+          ตั้งค่าการแจ้งเตือน
+        </h2>
+        <div class="space-y-3">
+          <label class="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 cursor-pointer">
+            <input type="checkbox" checked class="mt-1 w-5 h-5 rounded text-brand-600">
+            <div class="flex-1">
+              <div class="font-semibold">มีใบขอใหม่ให้อนุมัติ</div>
+              <div class="text-sm text-gray-600">แจ้งทันทีเมื่อมีใบเข้าคิว</div>
+            </div>
+          </label>
+          <label class="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 cursor-pointer">
+            <input type="checkbox" checked class="mt-1 w-5 h-5 rounded text-brand-600">
+            <div class="flex-1">
+              <div class="font-semibold">ใบขอของฉันถูกอนุมัติ/ไม่อนุมัติ</div>
+              <div class="text-sm text-gray-600">รู้ผลทันทีที่หัวหน้าตัดสินใจ</div>
+            </div>
+          </label>
+          <label class="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 cursor-pointer">
+            <input type="checkbox" class="mt-1 w-5 h-5 rounded text-brand-600">
+            <div class="flex-1">
+              <div class="font-semibold">สรุปประจำวัน</div>
+              <div class="text-sm text-gray-600">ส่งทุกเย็น 18:00 น.</div>
+            </div>
+          </label>
+        </div>
+        <button onclick="testLine()" class="btn-sm w-full rounded-xl bg-[#06C755] hover:bg-[#05B649] text-white font-bold flex items-center justify-center gap-2">
+          <i data-lucide="send" class="w-5 h-5"></i>
+          ส่งทดสอบไปที่ LINE
+        </button>
+      </div>
+    </section>
+  </template>
+
+  <!-- PR DETAIL -->
+  <template id="screen-detail">
+    <section class="screen space-y-6 max-w-3xl mx-auto">
+      <button onclick="go('list')" class="btn-sm flex items-center gap-2 text-gray-600 hover:text-gray-900 -ml-2 px-2 rounded-lg">
+        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        <span>กลับ</span>
+      </button>
+
+      <!-- Header card -->
+      <div class="bg-white rounded-2xl p-6 shadow-soft border border-gray-200">
+        <div class="flex items-start justify-between gap-4 mb-4 flex-wrap">
+          <div>
+            <div class="num text-sm text-gray-500 mb-1">PR-2026-0042</div>
+            <h1 class="text-2xl font-bold mb-1">หมึกเครื่องพิมพ์ ชั้น 5</h1>
+            <p class="text-base text-gray-600">สุดา จันทร์ · ฝ่ายการเงิน · วันนี้ 10:21</p>
+          </div>
+          <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100 text-amber-800 font-semibold">
+            <i data-lucide="clock" class="w-4 h-4"></i>
+            รออนุมัติ
+          </span>
+        </div>
+
+        <!-- Items -->
+        <div class="border-t border-gray-200 pt-5 space-y-3">
+          <div class="flex items-start gap-4 p-4 rounded-xl bg-gray-50">
+            <div class="w-12 h-12 rounded-lg bg-white border border-gray-200 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="package" class="w-6 h-6 text-gray-500"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold">HP 65A Black Toner Cartridge</div>
+              <div class="text-sm text-gray-600 flex items-center gap-2 mt-1">
+                <span class="inline-flex items-center gap-1 text-orange-700 font-medium">🛒 Shopee</span>
+                <span>·</span>
+                <span>HP Authorized Store</span>
+              </div>
+              <div class="num text-sm text-gray-500 mt-1">4 ชิ้น × ฿ 1,890.00</div>
+            </div>
+            <div class="num font-bold text-lg">฿ 7,560.00</div>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-200 mt-5 pt-5 flex items-center justify-between">
+          <span class="text-base text-gray-600">ยอดรวม</span>
+          <span class="num text-2xl font-bold">฿ 7,560.00</span>
+        </div>
+      </div>
+
+      <!-- Reason -->
+      <div class="bg-white rounded-2xl p-6 shadow-soft border border-gray-200">
+        <h3 class="font-bold text-lg mb-2 flex items-center gap-2">
+          <i data-lucide="message-square" class="w-5 h-5 text-gray-400"></i>
+          เหตุผล
+        </h3>
+        <p class="text-base text-gray-700 leading-relaxed">
+          เติมหมึกเครื่องพิมพ์ชั้น 5 ของฝ่ายการเงิน ตลับปัจจุบันใกล้หมด สัปดาห์หน้าต้องพิมพ์รายงาน Q1
+        </p>
+      </div>
+
+      <!-- Approval trail -->
+      <div class="bg-white rounded-2xl p-6 shadow-soft border border-gray-200">
+        <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+          <i data-lucide="git-branch" class="w-5 h-5 text-gray-400"></i>
+          ขั้นตอนการอนุมัติ
+        </h3>
+        <ol class="space-y-4">
+          <li class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-full bg-green-100 text-green-700 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="check" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="font-semibold">ส่งใบขอ</div>
+              <div class="text-sm text-gray-500">สุดา จันทร์ · วันนี้ 10:21</div>
+            </div>
+          </li>
+          <li class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0 animate-pulse">
+              <i data-lucide="clock" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="font-semibold">รอ ปอ นวลรัตน์ (หัวหน้าฝ่าย) อนุมัติ</div>
+              <div class="text-sm text-amber-700 font-medium">กำลังรออยู่</div>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+  </template>
+
+  <!-- ============================================================== -->
+  <!-- Script                                                          -->
+  <!-- ============================================================== -->
+  <script>
+    // ---- State ----
+    const state = {
+      screen: 'home',
+      filter: 'all',
+      settingsTab: 'workflows',
+      workflows: [
+        {
+          id: 'wf-1', name: 'ใบขอทั่วไป (น้อยกว่า 50,000 ฿)', active: true,
+          rule: 'ยอดน้อยกว่า ฿ 50,000',
+          steps: [
+            { kind: 'role',    label: 'หัวหน้าฝ่ายของผู้ขอ', sla: 24 },
+          ],
+        },
+        {
+          id: 'wf-2', name: 'ใบขอกลาง (50,000 - 200,000 ฿)', active: true,
+          rule: 'ยอด ฿ 50,000 - 200,000',
+          steps: [
+            { kind: 'role',    label: 'หัวหน้าฝ่ายของผู้ขอ', sla: 24 },
+            { kind: 'user',    label: 'ฝ่ายการเงิน (คุณวิภา)', sla: 48 },
+          ],
+        },
+        {
+          id: 'wf-3', name: 'ใบขอใหญ่ (มากกว่า 200,000 ฿)', active: true,
+          rule: 'ยอดมากกว่า ฿ 200,000',
+          steps: [
+            { kind: 'role',    label: 'หัวหน้าฝ่ายของผู้ขอ', sla: 24 },
+            { kind: 'user',    label: 'ฝ่ายการเงิน (คุณวิภา)', sla: 48 },
+            { kind: 'user',    label: 'CFO (คุณสมชาย)',        sla: 72 },
+          ],
+        },
+      ],
+      users: [
+        { name: 'สุดา จันทร์',   email: 'suda@nirva.co.th',  dept: 'การเงิน', role: 'ผู้ขอ',     active: true },
+        { name: 'ปอ นวลรัตน์',   email: 'por@nirva.co.th',   dept: 'การเงิน', role: 'หัวหน้า',   active: true },
+        { name: 'วิภา ศรีสุข',    email: 'wipa@nirva.co.th',  dept: 'การเงิน', role: 'ฝ่ายการเงิน', active: true },
+        { name: 'สมชาย ใจดี',    email: 'somchai@nirva.co.th', dept: 'บริหาร', role: 'CFO',     active: true },
+        { name: 'จิ๋ม สุภาพร',    email: 'jim@nirva.co.th',   dept: 'การตลาด', role: 'ผู้ขอ',     active: true },
+        { name: 'พงษ์ ตันติ',     email: 'pong@nirva.co.th',  dept: 'ไอที',    role: 'ผู้ขอ',     active: false },
+      ],
+      departments: [
+        { name: 'การเงิน',  costCenter: 'CC-100', head: 'ปอ นวลรัตน์',  members: 5 },
+        { name: 'การตลาด',  costCenter: 'CC-200', head: 'จิ๋ม สุภาพร',  members: 8 },
+        { name: 'ไอที',     costCenter: 'CC-300', head: 'พงษ์ ตันติ',   members: 4 },
+        { name: 'บริหาร',   costCenter: 'CC-001', head: 'สมชาย ใจดี',   members: 2 },
+      ],
+      items: [],
+      inbox: [
+        {
+          id: 'ai-1', pr: 'PR-2026-0042',
+          title: 'หมึกเครื่องพิมพ์ ชั้น 5',
+          requester: 'สุดา จ.', dept: 'ฝ่ายการเงิน',
+          total: 8089, items: 1, src: 'shopee',
+          age: 'วันนี้ 10:21', urgent: false,
+        },
+        {
+          id: 'ai-2', pr: 'PR-2026-0037',
+          title: 'สินค้าตัวอย่างแคมเปญ Q2',
+          requester: 'จิ๋ม ส.', dept: 'ฝ่ายการตลาด',
+          total: 24500, items: 6, src: 'lazada',
+          age: 'เมื่อวาน', urgent: false,
+        },
+        {
+          id: 'ai-3', pr: 'PR-2026-0036',
+          title: 'SSD Server x 2',
+          requester: 'ปอ น.', dept: 'ฝ่ายไอที',
+          total: 8400, items: 2, src: 'manual',
+          age: '3 วันที่แล้ว', urgent: true,
+        },
+      ],
+      list: [
+        { pr: 'PR-2026-0042', title: 'หมึกเครื่องพิมพ์ ชั้น 5', status: 'pending', total: 8089, src: 'shopee', date: 'วันนี้' },
+        { pr: 'PR-2026-0041', title: 'ถุงมือแล็บ x 200 คู่',     status: 'approved', total: 1890, src: 'makro',  date: 'เมื่อวาน' },
+        { pr: 'PR-2026-0040', title: 'สินค้าตัวอย่าง Q2',          status: 'rejected', total: 0,    src: 'lazada', date: '2 วัน' },
+        { pr: 'PR-2026-0039', title: 'SSD Server x 2',           status: 'draft',    total: 8400, src: 'manual', date: '3 วัน' },
+        { pr: 'PR-2026-0038', title: 'ของกินทีม Q1',              status: 'approved', total: 2500, src: 'manual', date: '5 วัน' },
+      ],
+    };
+    const LANG = { active: 'th' };
+
+    // ---- Routing ----
+    function go(name) {
+      state.screen = name;
+      render();
+    }
+    function render() {
+      const tpl = document.getElementById(`screen-${state.screen}`);
+      const main = document.getElementById('main');
+      main.innerHTML = '';
+      main.appendChild(tpl.content.cloneNode(true));
+      window.scrollTo(0, 0);
+      // Highlight nav
+      document.querySelectorAll('[data-nav]').forEach(b => {
+        const active = (b.dataset.nav === state.screen) ||
+                       (state.screen === 'create' && b.dataset.nav === 'list') ||
+                       (state.screen === 'detail' && b.dataset.nav === 'list');
+        b.classList.toggle('bg-brand-50', active);
+        b.classList.toggle('text-brand-700', active);
+      });
+      // Hydrate per-screen
+      if (state.screen === 'create') renderItems();
+      if (state.screen === 'inbox') renderInbox();
+      if (state.screen === 'list') { renderFilterChips(); renderList(); }
+      if (state.screen === 'settings') renderSettings();
+      updateInboxBadges();
+      // Refresh icons
+      lucide.createIcons();
+    }
+    function updateInboxBadges() {
+      const n = state.inbox.length;
+      const desktop = document.getElementById('inbox-badge');
+      const mobile = document.getElementById('inbox-badge-mobile');
+      if (desktop) {
+        desktop.textContent = n;
+        desktop.style.display = n === 0 ? 'none' : '';
+      }
+      if (mobile) {
+        mobile.textContent = n;
+        mobile.style.display = n === 0 ? 'none' : '';
+      }
+    }
+
+    // ---- Create PR ----
+    function parseLink() {
+      const url = document.getElementById('paste-url').value.trim();
+      if (!url) { toast('วางลิงก์ก่อนนะครับ', 'warn'); return; }
+      const status = document.getElementById('parse-status');
+      status.classList.remove('hidden');
+      setTimeout(() => {
+        status.classList.add('hidden');
+        const isShopee = /shopee/i.test(url);
+        state.items.push({
+          desc: isShopee ? 'HP 65A Black Toner Cartridge' : 'สินค้าใหม่จากลิงก์',
+          qty: 4,
+          price: 1890,
+          src: isShopee ? 'shopee' : 'lazada',
+          supplier: isShopee ? 'HP Authorized Store' : 'ร้านในมาร์เก็ตเพลส',
+        });
+        renderItems();
+        document.getElementById('paste-url').value = '';
+        toast('ดึงข้อมูลเรียบร้อย', 'ok');
+      }, 900);
+    }
+    function addManualItem() {
+      state.items.push({ desc: '', qty: 1, price: 0, src: 'manual', supplier: '' });
+      renderItems();
+    }
+    function removeItem(i) {
+      state.items.splice(i, 1);
+      renderItems();
+    }
+    function updateItem(i, field, val) {
+      state.items[i][field] = field === 'desc' || field === 'supplier' ? val : Number(val) || 0;
+      updateTotal();
+    }
+    function renderItems() {
+      const root = document.getElementById('items-list');
+      if (!root) return;
+      if (state.items.length === 0) {
+        root.innerHTML = `
+          <div class="p-6 rounded-xl bg-gray-50 border-2 border-dashed border-gray-200 text-center text-gray-500">
+            <div class="text-base">ยังไม่มีรายการ</div>
+            <div class="text-sm mt-1">วางลิงก์ด้านบนหรือกดเพิ่มรายการ</div>
+          </div>`;
+        updateTotal();
+        lucide.createIcons();
+        return;
+      }
+      root.innerHTML = state.items.map((it, i) => `
+        <div class="p-4 rounded-xl bg-gray-50 border border-gray-200 space-y-3">
+          <div class="flex items-start gap-3">
+            ${it.src === 'shopee' ? '<span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-orange-100 text-orange-800 text-xs font-bold flex-shrink-0">🛒 Shopee</span>' :
+              it.src === 'lazada' ? '<span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-100 text-blue-800 text-xs font-bold flex-shrink-0">🛍️ Lazada</span>' :
+              it.src === 'makro'  ? '<span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-yellow-100 text-yellow-800 text-xs font-bold flex-shrink-0">🛒 Makro</span>' :
+              '<span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-200 text-gray-700 text-xs font-bold flex-shrink-0">พิมพ์เอง</span>'}
+            <input type="text" value="${escapeHtml(it.desc)}" placeholder="ชื่อสินค้า"
+              oninput="updateItem(${i}, 'desc', this.value)"
+              class="flex-1 px-3 rounded-lg border-2 border-white focus:border-brand-500 outline-none bg-white" />
+            <button onclick="removeItem(${i})" class="btn-sm w-11 h-11 rounded-lg bg-white hover:bg-red-50 hover:text-red-600 border border-gray-200 flex items-center justify-center flex-shrink-0" aria-label="ลบรายการ">
+              <i data-lucide="trash-2" class="w-5 h-5"></i>
+            </button>
+          </div>
+          ${it.supplier ? `<div class="text-sm text-gray-600 pl-1">ร้านค้า: <strong>${escapeHtml(it.supplier)}</strong></div>` : ''}
+          <div class="grid grid-cols-3 gap-3">
+            <label class="block">
+              <span class="text-xs text-gray-600 font-medium">จำนวน</span>
+              <input type="number" min="1" value="${it.qty}" oninput="updateItem(${i}, 'qty', this.value)"
+                class="num w-full px-3 rounded-lg border-2 border-white bg-white focus:border-brand-500 outline-none" />
+            </label>
+            <label class="block">
+              <span class="text-xs text-gray-600 font-medium">ราคา/หน่วย</span>
+              <input type="number" min="0" value="${it.price}" oninput="updateItem(${i}, 'price', this.value)"
+                class="num w-full px-3 rounded-lg border-2 border-white bg-white focus:border-brand-500 outline-none" />
+            </label>
+            <label class="block">
+              <span class="text-xs text-gray-600 font-medium">รวม</span>
+              <div class="num h-14 px-3 rounded-lg bg-white border-2 border-white flex items-center font-bold">฿ ${fmt(it.qty * it.price)}</div>
+            </label>
+          </div>
+        </div>
+      `).join('');
+      updateTotal();
+      lucide.createIcons();
+    }
+    function updateTotal() {
+      const t = state.items.reduce((s, it) => s + (it.qty * it.price), 0);
+      const el = document.getElementById('total');
+      if (el) el.textContent = '฿ ' + fmt(t);
+    }
+    function submitPr() {
+      if (state.items.length === 0) { toast('เพิ่มรายการก่อนนะครับ', 'warn'); return; }
+      if (!document.getElementById('pr-title').value.trim()) { toast('ใส่ชื่อเรื่องด้วยนะครับ', 'warn'); return; }
+      toast('ส่งให้หัวหน้าอนุมัติแล้ว ✓ จะได้รับแจ้งทาง LINE เมื่อมีผล', 'ok');
+      state.items = [];
+      setTimeout(() => go('home'), 700);
+    }
+
+    // ---- Inbox ----
+    function renderInbox() {
+      const root = document.getElementById('inbox-list');
+      updateInboxBadges();
+      const count = document.getElementById('inbox-count');
+      if (count) count.textContent = state.inbox.length;
+      if (state.inbox.length === 0) {
+        root.innerHTML = `
+          <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-10 text-center border border-green-200">
+            <div class="text-5xl mb-3">🎉</div>
+            <div class="text-2xl font-bold mb-1 text-green-900">เคลียร์หมดแล้ว!</div>
+            <div class="text-base text-green-800 mb-5">ไม่มีใบไหนรอคุณอนุมัติแล้ว พักได้เลย</div>
+            <button onclick="go('home')" class="btn-sm rounded-xl bg-white border-2 border-green-300 hover:bg-green-50 text-green-800 font-bold px-5 inline-flex items-center gap-2">
+              <i data-lucide="home" class="w-5 h-5"></i>
+              กลับหน้าหลัก
+            </button>
+          </div>`;
+        lucide.createIcons();
+        return;
+      }
+      root.innerHTML = state.inbox.map(it => `
+        <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-soft border ${it.urgent ? 'border-amber-300' : 'border-gray-200'}">
+          ${it.urgent ? `
+            <div class="flex items-center gap-2 text-amber-800 font-semibold text-sm mb-3 -mt-1">
+              <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+              รอนานเกิน 48 ชั่วโมง
+            </div>` : ''}
+          <div class="flex items-start gap-3 sm:gap-4 mb-4">
+            <div class="w-12 h-12 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold flex-shrink-0">
+              ${it.requester[0]}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="num text-xs text-gray-500 mb-0.5">${it.pr}</div>
+              <div class="text-lg sm:text-xl font-bold mb-1 leading-snug">${it.title}</div>
+              <div class="text-sm sm:text-base text-gray-600">
+                ${it.requester} · ${it.dept}<br class="sm:hidden">
+                <span class="hidden sm:inline"> · </span>${it.age}
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
+            <div class="text-sm text-gray-500">${it.items} รายการ · ${srcLabel(it.src)}</div>
+            <div class="num text-2xl font-bold">฿ ${fmt(it.total)}</div>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button onclick="decide('${it.id}', 'approved')" class="flex-1 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold flex items-center justify-center gap-2 shadow-soft">
+              <i data-lucide="check" class="w-5 h-5"></i>
+              อนุมัติ
+            </button>
+            <button onclick="decide('${it.id}', 'rejected')" class="flex-1 rounded-xl bg-white border-2 border-red-200 hover:bg-red-50 hover:border-red-300 text-red-700 font-bold flex items-center justify-center gap-2">
+              <i data-lucide="x" class="w-5 h-5"></i>
+              ไม่อนุมัติ
+            </button>
+            <button onclick="go('detail')" class="btn-sm rounded-xl bg-white border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-bold px-5 flex items-center justify-center gap-2">
+              <i data-lucide="eye" class="w-5 h-5"></i>
+              ดูรายละเอียด
+            </button>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+    function decide(id, decision) {
+      const idx = state.inbox.findIndex(i => i.id === id);
+      if (idx === -1) return;
+      const removed = state.inbox.splice(idx, 1)[0];
+      renderInbox();
+      const label = decision === 'approved' ? 'อนุมัติแล้ว' : 'ไม่อนุมัติแล้ว';
+      toastUndo(`${removed.title} · ${label}`, () => {
+        state.inbox.splice(idx, 0, removed);
+        renderInbox();
+      });
+    }
+
+    // ---- List ----
+    const FILTERS = [
+      { key: 'all',      label: 'ทั้งหมด' },
+      { key: 'pending',  label: 'รออนุมัติ' },
+      { key: 'approved', label: 'อนุมัติแล้ว' },
+      { key: 'draft',    label: 'ร่าง' },
+      { key: 'rejected', label: 'ไม่อนุมัติ' },
+    ];
+    function renderFilterChips() {
+      const root = document.getElementById('filter-chips');
+      if (!root) return;
+      root.innerHTML = FILTERS.map(f => {
+        const active = f.key === state.filter;
+        return `<button onclick="setFilter('${f.key}')" class="btn-sm px-4 rounded-full text-sm font-medium ${
+          active ? 'bg-brand-600 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+        }">${f.label}</button>`;
+      }).join('');
+    }
+    function setFilter(key) {
+      state.filter = key;
+      renderFilterChips();
+      renderList();
+    }
+    function renderList() {
+      const root = document.getElementById('list-rows');
+      const rows = state.filter === 'all' ? state.list : state.list.filter(r => r.status === state.filter);
+      if (rows.length === 0) {
+        const f = FILTERS.find(x => x.key === state.filter);
+        root.innerHTML = `
+          <div class="bg-white rounded-2xl p-10 text-center border border-gray-200">
+            <div class="w-16 h-16 rounded-full bg-gray-100 mx-auto mb-4 flex items-center justify-center">
+              <i data-lucide="search-x" class="w-8 h-8 text-gray-400"></i>
+            </div>
+            <div class="text-xl font-bold mb-1">ยังไม่มีใบในหมวด "${f.label}"</div>
+            <div class="text-base text-gray-600 mb-4">ลองเลือกหมวดอื่น หรือกดเริ่มใบขอใหม่</div>
+            <button onclick="go('create')" class="btn-sm rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold px-5 inline-flex items-center gap-2">
+              <i data-lucide="plus" class="w-5 h-5"></i>
+              ขอซื้อใหม่
+            </button>
+          </div>`;
+        lucide.createIcons();
+        return;
+      }
+      root.innerHTML = rows.map(r => {
+        const s = statusPill(r.status);
+        return `
+          <button onclick="go('detail')" class="w-full text-left bg-white rounded-2xl p-5 shadow-soft border border-gray-200 hover:border-brand-300 hover:shadow-lift transition group">
+            <div class="flex items-start gap-3">
+              <div class="flex-1 min-w-0">
+                <div class="num text-xs text-gray-500 mb-0.5">${r.pr}</div>
+                <div class="text-lg font-bold mb-1 leading-snug">${r.title}</div>
+                <div class="text-sm text-gray-600 flex items-center gap-2 flex-wrap">
+                  ${srcBadge(r.src)}
+                  <span>·</span>
+                  <span>${r.date}</span>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400 group-hover:text-brand-600 transition flex-shrink-0 mt-1"></i>
+            </div>
+            <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${s.bg} ${s.text} font-semibold text-sm whitespace-nowrap">
+                <i data-lucide="${s.icon}" class="w-4 h-4"></i>
+                ${s.label}
+              </span>
+              <div class="num text-xl font-bold">${r.total ? '฿ ' + fmt(r.total) : '—'}</div>
+            </div>
+          </button>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    // ---- Helpers ----
+    function statusPill(s) {
+      return {
+        pending:  { bg: 'bg-amber-100',  text: 'text-amber-800',  icon: 'clock',         label: 'รออนุมัติ' },
+        approved: { bg: 'bg-green-100',  text: 'text-green-800',  icon: 'check-circle-2',label: 'อนุมัติแล้ว' },
+        rejected: { bg: 'bg-red-100',    text: 'text-red-800',    icon: 'x-circle',      label: 'ไม่อนุมัติ' },
+        draft:    { bg: 'bg-gray-100',   text: 'text-gray-700',   icon: 'pencil',        label: 'ร่าง' },
+      }[s];
+    }
+    function srcLabel(s) {
+      return { shopee: 'Shopee', lazada: 'Lazada', makro: 'Makro', alibaba: 'Alibaba', manual: 'พิมพ์เอง' }[s] || s;
+    }
+    function srcBadge(s) {
+      const m = { shopee: '🛒 Shopee', lazada: '🛍️ Lazada', makro: '🛒 Makro', alibaba: '📦 Alibaba', manual: '✍️ พิมพ์เอง' };
+      return `<span class="font-medium">${m[s] || s}</span>`;
+    }
+    function fmt(n) {
+      return Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function escapeHtml(s) {
+      return String(s || '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+    }
+
+    // ---- Toast ----
+    function toast(msg, kind = 'ok') {
+      const root = document.getElementById('toast-root');
+      const t = document.createElement('div');
+      const palette = {
+        ok:   'bg-gray-900 text-white',
+        warn: 'bg-amber-500 text-white',
+        err:  'bg-red-600 text-white',
+      }[kind];
+      t.className = `toast pointer-events-auto mb-3 px-5 py-3 rounded-xl ${palette} shadow-lift flex items-center gap-3 max-w-md`;
+      t.innerHTML = `<span class="font-medium">${msg}</span>`;
+      root.appendChild(t);
+      setTimeout(() => t.remove(), 2400);
+    }
+    function toastUndo(msg, undoFn) {
+      const root = document.getElementById('toast-root');
+      const t = document.createElement('div');
+      t.className = 'toast pointer-events-auto mb-3 px-5 py-3 rounded-xl bg-gray-900 text-white shadow-lift flex items-center gap-4 max-w-md';
+      t.innerHTML = `<span class="font-medium flex-1">${msg}</span>`;
+      const btn = document.createElement('button');
+      btn.className = 'btn-sm px-4 rounded-lg bg-white text-gray-900 font-bold';
+      btn.textContent = 'ย้อนกลับ';
+      btn.onclick = () => { undoFn(); t.remove(); };
+      t.appendChild(btn);
+      root.appendChild(t);
+      setTimeout(() => t.remove(), 5000);
+    }
+
+    // ---- Settings ----
+    function setSettingsTab(key) {
+      state.settingsTab = key;
+      renderSettings();
+    }
+    function renderSettings() {
+      // Highlight active tab
+      document.querySelectorAll('[data-tab]').forEach(b => {
+        const active = b.dataset.tab === state.settingsTab;
+        b.classList.toggle('text-brand-700', active);
+        b.classList.toggle('border-brand-600', active);
+        b.classList.toggle('text-gray-600', !active);
+        b.classList.toggle('border-transparent', !active);
+      });
+      const body = document.getElementById('settings-body');
+      if (state.settingsTab === 'workflows') body.innerHTML = workflowsHTML();
+      else if (state.settingsTab === 'users')      body.innerHTML = usersHTML();
+      else if (state.settingsTab === 'departments')body.innerHTML = departmentsHTML();
+      lucide.createIcons();
+    }
+    function workflowsHTML() {
+      const cards = state.workflows.map((wf, idx) => `
+        <div class="bg-white rounded-2xl p-6 shadow-soft border border-gray-200">
+          <div class="flex items-start justify-between gap-4 mb-4 flex-wrap">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="num text-xs text-gray-500">กฎที่ ${idx + 1}</span>
+                ${wf.active
+                  ? '<span class="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">เปิดใช้งาน</span>'
+                  : '<span class="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">ปิด</span>'}
+              </div>
+              <h3 class="text-lg font-bold mb-1 leading-snug">${wf.name}</h3>
+              <p class="text-sm text-gray-600 flex items-center gap-1.5">
+                <i data-lucide="filter" class="w-4 h-4"></i>
+                เงื่อนไข: <strong class="text-gray-800 font-semibold">${wf.rule}</strong>
+              </p>
+            </div>
+            <button class="btn-sm rounded-lg bg-white border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold px-4 flex items-center gap-2 whitespace-nowrap">
+              <i data-lucide="pencil" class="w-4 h-4"></i>
+              แก้ไข
+            </button>
+          </div>
+          <div class="border-t border-gray-100 pt-4">
+            <div class="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide">ขั้นตอนการอนุมัติ</div>
+            <ol class="space-y-2">
+              ${wf.steps.map((s, i) => `
+                <li class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition group">
+                  <div class="num w-8 h-8 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center flex-shrink-0 text-sm">${i + 1}</div>
+                  <div class="flex-1 min-w-0">
+                    <div class="font-semibold">${s.label}</div>
+                    <div class="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
+                      <span class="inline-flex items-center gap-1">
+                        <i data-lucide="${s.kind === 'user' ? 'user' : 'users'}" class="w-3.5 h-3.5"></i>
+                        ${s.kind === 'user' ? 'ผู้อนุมัติคนเฉพาะ' : 'ตามตำแหน่ง'}
+                      </span>
+                      ${s.sla ? `<span>·</span><span class="inline-flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i>เตือนถ้าเกิน ${s.sla} ชม.</span>` : ''}
+                    </div>
+                  </div>
+                  ${i < wf.steps.length - 1 ? '<i data-lucide="arrow-down" class="w-4 h-4 text-gray-400"></i>' : ''}
+                  <button class="btn-sm w-9 h-9 rounded-lg hover:bg-white text-gray-400 hover:text-gray-700 flex items-center justify-center" aria-label="ลบขั้นตอน">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                  </button>
+                </li>
+              `).join('')}
+              <li>
+                <button class="btn-sm w-full rounded-xl border-2 border-dashed border-gray-300 hover:border-brand-400 hover:bg-brand-50 text-gray-600 hover:text-brand-700 font-medium flex items-center justify-center gap-2">
+                  <i data-lucide="plus" class="w-5 h-5"></i>
+                  เพิ่มขั้นตอน
+                </button>
+              </li>
+            </ol>
+          </div>
+        </div>
+      `).join('');
+      return `
+        <div class="space-y-4">
+          <div class="bg-brand-50 border border-brand-200 rounded-2xl p-4 flex items-start gap-3">
+            <i data-lucide="lightbulb" class="w-5 h-5 text-brand-700 flex-shrink-0 mt-0.5"></i>
+            <div class="text-sm text-brand-900">
+              <strong>กฎทำงานแบบ "เจอเงื่อนไขไหนใช้กฎนั้นก่อน"</strong> — ระบบจะตรวจกฎจากบนลงล่าง ใช้กฎแรกที่ตรงเงื่อนไข
+            </div>
+          </div>
+          ${cards}
+          <button class="btn-sm w-full rounded-2xl border-2 border-dashed border-gray-300 hover:border-brand-400 hover:bg-brand-50 text-gray-600 hover:text-brand-700 font-bold flex items-center justify-center gap-2 py-5">
+            <i data-lucide="plus" class="w-5 h-5"></i>
+            สร้างกฎใหม่
+          </button>
+        </div>
+      `;
+    }
+    function usersHTML() {
+      return `
+        <div class="bg-white rounded-2xl shadow-soft border border-gray-200 overflow-hidden">
+          <div class="p-5 border-b border-gray-200 flex items-center gap-3 flex-wrap">
+            <div class="flex-1 min-w-0 flex items-center gap-2 bg-gray-50 rounded-xl px-3">
+              <i data-lucide="search" class="w-5 h-5 text-gray-400"></i>
+              <input type="text" placeholder="ค้นหาชื่อหรืออีเมล" class="flex-1 bg-transparent border-none outline-none focus:outline-none" style="min-height:44px" />
+            </div>
+            <button class="btn-sm rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold px-5 flex items-center gap-2">
+              <i data-lucide="user-plus" class="w-5 h-5"></i>
+              เพิ่มผู้ใช้
+            </button>
+          </div>
+          <div class="divide-y divide-gray-100">
+            ${state.users.map(u => `
+              <div class="p-4 sm:p-5 flex items-center gap-4 hover:bg-gray-50 transition">
+                <div class="w-11 h-11 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center flex-shrink-0">${u.name[0]}</div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-semibold flex items-center gap-2 flex-wrap">
+                    ${u.name}
+                    ${u.active ? '' : '<span class="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">ปิดใช้งาน</span>'}
+                  </div>
+                  <div class="text-sm text-gray-500 truncate">${u.email}</div>
+                </div>
+                <div class="hidden sm:block text-sm">
+                  <div class="font-semibold">${u.role}</div>
+                  <div class="text-gray-500">${u.dept}</div>
+                </div>
+                <button class="btn-sm w-10 h-10 rounded-lg hover:bg-gray-100 text-gray-500 flex items-center justify-center" aria-label="แก้ไข">
+                  <i data-lucide="more-vertical" class="w-5 h-5"></i>
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+    function departmentsHTML() {
+      return `
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          ${state.departments.map(d => `
+            <div class="bg-white rounded-2xl p-5 shadow-soft border border-gray-200">
+              <div class="flex items-start justify-between gap-3 mb-3">
+                <div>
+                  <div class="text-xl font-bold mb-0.5">${d.name}</div>
+                  <div class="num text-xs text-gray-500">${d.costCenter}</div>
+                </div>
+                <button class="btn-sm w-10 h-10 rounded-lg hover:bg-gray-100 text-gray-500 flex items-center justify-center" aria-label="แก้ไข">
+                  <i data-lucide="pencil" class="w-4 h-4"></i>
+                </button>
+              </div>
+              <div class="space-y-2 text-sm">
+                <div class="flex items-center gap-2 text-gray-600">
+                  <i data-lucide="user-check" class="w-4 h-4 text-gray-400"></i>
+                  หัวหน้า: <strong class="text-gray-900 font-semibold">${d.head}</strong>
+                </div>
+                <div class="flex items-center gap-2 text-gray-600">
+                  <i data-lucide="users" class="w-4 h-4 text-gray-400"></i>
+                  <strong class="num text-gray-900 font-semibold">${d.members}</strong> คน
+                </div>
+              </div>
+            </div>
+          `).join('')}
+          <button class="bg-white rounded-2xl p-5 border-2 border-dashed border-gray-300 hover:border-brand-400 hover:bg-brand-50 text-gray-600 hover:text-brand-700 font-bold flex items-center justify-center gap-2 min-h-[140px]">
+            <i data-lucide="plus" class="w-5 h-5"></i>
+            เพิ่มแผนกใหม่
+          </button>
+        </div>
+      `;
+    }
+
+    // ---- LINE test ----
+    function testLine() {
+      toast('กำลังส่งทดสอบ...', 'ok');
+      setTimeout(() => toast('ส่งสำเร็จ ✓ เช็คที่ LINE Official Account', 'ok'), 800);
+    }
+
+    // ---- Lang ----
+    function toggleLang() {
+      LANG.active = LANG.active === 'th' ? 'en' : 'th';
+      document.getElementById('lang-label').textContent = LANG.active === 'th' ? 'EN' : 'ไทย';
+      toast(LANG.active === 'th' ? 'ภาษาไทย' : 'English', 'ok');
+    }
+
+    // ---- Boot ----
+    render();
+  </script>
+</body>
+</html>
