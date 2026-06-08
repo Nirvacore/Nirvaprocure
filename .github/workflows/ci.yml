@@ -149,14 +149,14 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
 
       - name: Build backend image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: backend
           push: ${{ secrets.DOCKERHUB_USERNAME != '' }}
           tags: ${{ secrets.DOCKERHUB_USERNAME || 'local' }}/nirvaprocure-backend:${{ github.sha }}
 
       - name: Build frontend image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: frontend
           push: ${{ secrets.DOCKERHUB_USERNAME != '' }}
