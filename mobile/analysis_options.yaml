@@ -2,7 +2,17 @@ include: package:flutter_lints/flutter.yaml
 
 linter:
   rules:
-    avoid_print: false
+    # Disallow debug prints leaking to production
+    avoid_print: true
+
+    # Const discipline — keeps rebuild cost minimal
     prefer_const_constructors: true
     prefer_const_constructors_in_immutables: true
+    prefer_const_declarations: true
     prefer_final_locals: true
+    prefer_final_fields: true
+
+    # Style consistency
+    use_super_parameters: true
+    sized_box_for_whitespace: true
+    avoid_unnecessary_containers: true
