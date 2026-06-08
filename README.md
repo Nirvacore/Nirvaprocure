@@ -4,9 +4,8 @@
 
 Marketplace integration (Shopee/Lazada/Makro/Alibaba) · LINE approval flow · Flutter mobile · 8-locale i18n · PDPA-ready
 
-<!-- badges — replace USERNAME/nirvaprocure once GitHub repo is created -->
-<!-- ![CI](https://github.com/USERNAME/nirvaprocure/actions/workflows/ci.yml/badge.svg) -->
-<!-- ![Mobile CI](https://github.com/USERNAME/nirvaprocure/actions/workflows/mobile-ci.yml/badge.svg) -->
+![CI](https://github.com/Nirvacore/Nirvaprocure/actions/workflows/ci.yml/badge.svg)
+![Mobile CI](https://github.com/Nirvacore/Nirvaprocure/actions/workflows/mobile-ci.yml/badge.svg)
 
 ---
 
