@@ -37,6 +37,15 @@ updates:
     groups:
       frontend-minor:
         update-types: [minor, patch]
+    # Major version bumps for core framework packages need manual review.
+    # Next.js and React major releases can have significant breaking changes.
+    ignore:
+      - dependency-name: next
+        update-types: [version-update:semver-major]
+      - dependency-name: react
+        update-types: [version-update:semver-major]
+      - dependency-name: react-dom
+        update-types: [version-update:semver-major]
     labels: [dependencies, frontend]
     commit-message:
       prefix: frontend
