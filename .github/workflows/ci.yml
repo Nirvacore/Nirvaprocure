@@ -94,10 +94,29 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Apply schema and seed
+      - name: Apply all schemas and seed
         run: |
-          PGPASSWORD=nirva psql -h localhost -U nirva -d nirvaprocure_test -f ../database/phase1_schema.sql
-          PGPASSWORD=nirva psql -h localhost -U nirva -d nirvaprocure_test -f ../database/seed.sql
+          PG="PGPASSWORD=nirva psql -h localhost -U nirva -d nirvaprocure_test"
+          eval "$PG -f ../database/phase1_schema.sql"
+          eval "$PG -f ../database/phase2_stock_schema.sql"
+          eval "$PG -f ../database/phase2_gov_schema.sql"
+          eval "$PG -f ../database/phase4_2fa_schema.sql"
+          eval "$PG -f ../database/phase4_portal_schema.sql"
+          eval "$PG -f ../database/phase5_anomaly_schema.sql"
+          eval "$PG -f ../database/phase5_budget_schema.sql"
+          eval "$PG -f ../database/phase5_comments_schema.sql"
+          eval "$PG -f ../database/phase5_incentives_schema.sql"
+          eval "$PG -f ../database/phase5_webhooks_schema.sql"
+          eval "$PG -f ../database/phase6_affiliate_schema.sql"
+          eval "$PG -f ../database/phase6_ai_runs_schema.sql"
+          eval "$PG -f ../database/phase6_line_binding_schema.sql"
+          eval "$PG -f ../database/phase6_locale_schema.sql"
+          eval "$PG -f ../database/phase6_pdpa_consent_schema.sql"
+          eval "$PG -f ../database/phase6_supplier_risk_schema.sql"
+          eval "$PG -f ../database/phase7_attachments_schema.sql"
+          eval "$PG -f ../database/phase7_fcm_schema.sql"
+          eval "$PG -f ../database/phase7_po_schema.sql"
+          eval "$PG -f ../database/seed.sql"
 
       - name: Build
         run: npx nest build
