@@ -7,7 +7,7 @@ import {
   XCircle, Receipt,
 } from 'lucide-react';
 import { useT } from '@/lib/i18n/provider';
-import { suppliers as suppliersApi, type SupplierRow } from '@/lib/api';
+import { suppliers as suppliersApi, supplierRisk, type SupplierRow, type SupplierRiskRow } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
 import { Loading } from '@/components/Loading';
@@ -52,6 +52,13 @@ const MOCK_SUPPLIERS: SupplierRow[] = [
   { id: 'sup-2', code: 'SUP-002', name: 'บริษัท แม็คโคร จำกัด',           contact_name: 'คุณสมชาย', contact_email: 'b2b@makro.co.th',   contact_phone: '02-222-3333', category: 'อาหาร', tax_id: '0105555000002', is_active: true, risk_tier: 'low',    total_pr_count: 28, total_spent_minor: 540000_00, created_at: '2026-01-05' },
   { id: 'sup-3', code: 'SUP-003', name: 'ร้านเครื่องเขียนสยาม',             contact_name: null,        contact_email: null,               contact_phone: '02-333-4444', category: 'สำนักงาน', tax_id: null, is_active: true, risk_tier: 'medium', total_pr_count:  5, total_spent_minor:  24000_00, created_at: '2026-02-01' },
   { id: 'sup-4', code: 'SUP-004', name: 'Global Tech Import Co.',          contact_name: 'David',     contact_email: 'david@globaltech.com', contact_phone: null,           category: 'IT', tax_id: '0105555000004', is_active: false, risk_tier: 'high',   total_pr_count:  3, total_spent_minor: 840000_00, created_at: '2026-03-15' },
+];
+
+const MOCK_RISKS: SupplierRiskRow[] = [
+  { supplier_id: 'sup-1', supplier_name: 'HP Authorized Store Thailand', score: 18, tier: 'low',    factors: { spend_minor: 180000_00, spend_pct: 12, price_cov: 8,  rejection_rate: 2,  has_coi: false, anomaly_count_90d: 0 }, computed_at: '2026-06-01' },
+  { supplier_id: 'sup-2', supplier_name: 'บริษัท แม็คโคร จำกัด',           score: 22, tier: 'low',    factors: { spend_minor: 540000_00, spend_pct: 28, price_cov: 11, rejection_rate: 4,  has_coi: false, anomaly_count_90d: 0 }, computed_at: '2026-06-01' },
+  { supplier_id: 'sup-3', supplier_name: 'ร้านเครื่องเขียนสยาม',             score: 48, tier: 'medium', factors: { spend_minor:  24000_00, spend_pct: 5,  price_cov: 22, rejection_rate: 8,  has_coi: false, anomaly_count_90d: 1 }, computed_at: '2026-06-01' },
+  { supplier_id: 'sup-4', supplier_name: 'Global Tech Import Co.',          score: 76, tier: 'high',   factors: { spend_minor: 840000_00, spend_pct: 35, price_cov: 31, rejection_rate: 18, has_coi: true,  anomaly_count_90d: 2 }, computed_at: '2026-06-01' },
 ];
 
 type EditableFieldKey = 'name' | 'category' | 'tax_id' | 'contact_name' | 'contact_email' | 'contact_phone';
@@ -119,6 +126,61 @@ function InlineField({
           {value || '—'}
         </button>
       )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Risk detail panel
+// ---------------------------------------------------------------------------
+function RiskPanel({ supplierId }: { supplierId: string }) {
+  const { t } = useT();
+  const { data: risks } = useResource(
+    () => withMockFallback(
+      () => supplierRisk.list(),
+      MOCK_RISKS,
+    ),
+  );
+  const row = risks?.find(r => r.supplier_id === supplierId);
+  if (!row) return null;
+
+  const tierKey = `risk.tier.${row.tier}` as Parameters<typeof t>[0];
+  const barColor = row.tier === 'critical' || row.tier === 'high'
+    ? 'bg-red-500'
+    : row.tier === 'medium' ? 'bg-amber-500' : 'bg-green-500';
+
+  return (
+    <div className="card">
+      <h3 className="font-bold text-lg mb-1">{t('risk.heading')}</h3>
+      <p className="text-sm text-gray-500 mb-4">{t('risk.sub')}</p>
+      <div className="flex items-center gap-4 mb-4">
+        <div className="num text-3xl font-bold">{row.score}</div>
+        <div className="flex-1">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-sm font-medium">{t('risk.score')}</span>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100">{t(tierKey)}</span>
+          </div>
+          <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+            <div className={`h-full rounded-full ${barColor}`} style={{ width: `${row.score}%` }} />
+          </div>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <RiskFactor label={t('risk.factor.spend')} value={`${row.factors.spend_pct}%`} warn={row.factors.spend_pct > 30} />
+        <RiskFactor label={t('risk.factor.volatility')} value={`${row.factors.price_cov}%`} warn={row.factors.price_cov > 20} />
+        <RiskFactor label={t('risk.factor.rejection')} value={`${row.factors.rejection_rate}%`} warn={row.factors.rejection_rate > 10} />
+        <RiskFactor label={t('risk.factor.coi')} value={row.factors.has_coi ? '⚠' : '—'} warn={row.factors.has_coi} />
+        <RiskFactor label={t('risk.factor.anomalies')} value={String(row.factors.anomaly_count_90d)} warn={row.factors.anomaly_count_90d > 0} />
+      </div>
+    </div>
+  );
+}
+
+function RiskFactor({ label, value, warn }: { label: string; value: string; warn: boolean }) {
+  return (
+    <div className={`rounded-lg px-3 py-2 text-sm ${warn ? 'bg-amber-50 border border-amber-200' : 'bg-gray-50 border border-gray-100'}`}>
+      <div className={`text-xs ${warn ? 'text-amber-700' : 'text-gray-500'}`}>{label}</div>
+      <div className={`num font-bold ${warn ? 'text-amber-900' : 'text-gray-800'}`}>{value}</div>
     </div>
   );
 }
@@ -254,6 +316,8 @@ function DetailBody({
           </p>
         )}
       </div>
+
+      <RiskPanel supplierId={supplier.id} />
 
       <div className="card">
         <h3 className="font-bold text-lg mb-4 flex items-center gap-2">

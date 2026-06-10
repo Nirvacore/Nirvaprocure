@@ -46,6 +46,37 @@ function pctTextColor(pct: number): string {
 }
 
 // ---------------------------------------------------------------------------
+// Summary row
+// ---------------------------------------------------------------------------
+function BudgetSummary({ rows }: { rows: BudgetRow[] }) {
+  const { t, locale } = useT();
+  const totalBudget = rows.reduce((s, r) => s + r.amount_minor, 0);
+  const totalSpent  = rows.reduce((s, r) => s + r.spent_minor, 0);
+  const overCount   = rows.filter(r => r.spent_minor > r.amount_minor).length;
+
+  const fmt = (n: number) =>
+    new Intl.NumberFormat(locale, { style: 'currency', currency: 'THB', maximumFractionDigits: 0 })
+      .format(n / 100);
+
+  return (
+    <div className="grid grid-cols-3 gap-3 mb-6">
+      <div className="card py-4 px-4 bg-blue-50 border-blue-100">
+        <div className="text-xs text-blue-600 font-medium mb-1">{t('budget.total')}</div>
+        <div className="num text-xl font-bold text-blue-800">{fmt(totalBudget)}</div>
+      </div>
+      <div className="card py-4 px-4 bg-violet-50 border-violet-100">
+        <div className="text-xs text-violet-600 font-medium mb-1">{t('budget.spent')}</div>
+        <div className="num text-xl font-bold text-violet-800">{fmt(totalSpent)}</div>
+      </div>
+      <div className={`card py-4 px-4 ${overCount > 0 ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}`}>
+        <div className={`text-xs font-medium mb-1 ${overCount > 0 ? 'text-red-600' : 'text-green-600'}`}>{t('budget.over')}</div>
+        <div className={`num text-xl font-bold ${overCount > 0 ? 'text-red-800' : 'text-green-800'}`}>{overCount}</div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Budget card
 // ---------------------------------------------------------------------------
 function BudgetCard({ row, onEdit }: { row: BudgetRow; onEdit: (row: BudgetRow) => void }) {
@@ -270,6 +301,10 @@ export default function BudgetPage() {
       </div>
 
       {error && <div className="mb-4"><ErrorBanner message={error} /></div>}
+
+      {!loading && rows.length > 0 && (
+        <BudgetSummary rows={rows} />
+      )}
 
       {loading ? (
         <Loading />
