@@ -122,12 +122,10 @@ function DetailBody({
             <dt className="text-sm text-gray-500">{t('po.issued_at')}</dt>
             <dd className="text-sm font-medium">{fmtDate(po.issued_at)}</dd>
           </div>
-          {po.notes && (
-            <div>
-              <dt className="text-sm text-gray-500 mb-1">{t('detail.reason')}</dt>
-              <dd className="text-sm text-gray-700 leading-relaxed">{po.notes}</dd>
-            </div>
-          )}
+          <div>
+            <dt className="text-sm text-gray-500 mb-1">{t('po.notes')}</dt>
+            <dd className="text-sm text-gray-700 leading-relaxed">{po.notes || '—'}</dd>
+          </div>
         </dl>
       </div>
 
@@ -139,7 +137,7 @@ function DetailBody({
             disabled={updating}
             onClick={() => void changeStatus('sent')}
           >
-            {updating ? '…' : 'ส่ง PO'}
+            {updating ? '…' : t('po.send')}
           </button>
         )}
         {status === 'sent' && (
@@ -149,7 +147,7 @@ function DetailBody({
             disabled={updating}
             onClick={() => void changeStatus('received')}
           >
-            {updating ? '…' : 'ยืนยันรับของ'}
+            {updating ? '…' : t('po.receive')}
           </button>
         )}
         {status === 'cancelled' && (

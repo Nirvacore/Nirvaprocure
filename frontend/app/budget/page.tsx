@@ -48,7 +48,7 @@ function pctTextColor(pct: number): string {
 // ---------------------------------------------------------------------------
 // Budget card
 // ---------------------------------------------------------------------------
-function BudgetCard({ row }: { row: BudgetRow }) {
+function BudgetCard({ row, onEdit }: { row: BudgetRow; onEdit: (row: BudgetRow) => void }) {
   const { t, locale } = useT();
   const pct = row.amount_minor > 0
     ? Math.round((row.spent_minor / row.amount_minor) * 100)
@@ -59,7 +59,7 @@ function BudgetCard({ row }: { row: BudgetRow }) {
       .format(n / 100);
 
   return (
-    <div className="card">
+    <button type="button" className="card text-left w-full hover:border-brand-300 transition-colors" onClick={() => onEdit(row)}>
       <div className="flex items-center justify-between gap-3 mb-3">
         <h3 className="font-semibold text-gray-900">{row.department_name}</h3>
         <div className="flex items-center gap-2">
@@ -96,7 +96,7 @@ function BudgetCard({ row }: { row: BudgetRow }) {
           <div className="num font-semibold">{fmt(row.remaining_minor)}</div>
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -119,6 +119,12 @@ function UpsertModal({ month, existing, onClose, onSaved }: UpsertModalProps) {
   const [softBlock, setSoftBlock] = useState(existing?.soft_block ?? false);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');
+
+  useEffect(() => {
+    setDepartmentId(existing?.department_id ?? DEPARTMENTS[0].id);
+    setAmountBaht(existing ? String(existing.amount_minor / 100) : '');
+    setSoftBlock(existing?.soft_block ?? false);
+  }, [existing]);
 
   const save = async () => {
     const baht = parseFloat(amountBaht.replace(/,/g, ''));
@@ -156,6 +162,7 @@ function UpsertModal({ month, existing, onClose, onSaved }: UpsertModalProps) {
             <select
               className="input mt-1"
               value={departmentId}
+              disabled={!!existing}
               onChange={e => setDepartmentId(e.target.value)}
             >
               {DEPARTMENTS.map(d => (
@@ -208,6 +215,7 @@ export default function BudgetPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [editing, setEditing] = useState<BudgetRow | undefined>();
 
   const load = useCallback(async (m: string) => {
     setLoading(true);
@@ -235,6 +243,7 @@ export default function BudgetPage() {
       return [...prev, row];
     });
     setShowModal(false);
+    setEditing(undefined);
   };
 
   return (
@@ -244,7 +253,7 @@ export default function BudgetPage() {
           <Wallet className="w-7 h-7 text-brand-600" />
           {t('budget.title')}
         </h1>
-        <button className="btn-primary flex items-center gap-1.5" onClick={() => setShowModal(true)}>
+        <button className="btn-primary flex items-center gap-1.5" onClick={() => { setEditing(undefined); setShowModal(true); }}>
           <Plus className="w-4 h-4" />
           {t('budget.add')}
         </button>
@@ -271,14 +280,21 @@ export default function BudgetPage() {
         </div>
       ) : (
         <div className="grid gap-4">
-          {rows.map(row => <BudgetCard key={row.id} row={row} />)}
+          {rows.map(row => (
+            <BudgetCard
+              key={row.id}
+              row={row}
+              onEdit={r => { setEditing(r); setShowModal(true); }}
+            />
+          ))}
         </div>
       )}
 
       {showModal && (
         <UpsertModal
           month={month}
-          onClose={() => setShowModal(false)}
+          existing={editing}
+          onClose={() => { setShowModal(false); setEditing(undefined); }}
           onSaved={handleSaved}
         />
       )}

@@ -258,7 +258,7 @@ function DetailBody({
       <div className="card">
         <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
           <Receipt className="w-5 h-5 text-gray-400" />
-          {t('suppliers.spend')}
+          {t('suppliers.history')}
         </h3>
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="p-4 rounded-xl bg-gray-50">
@@ -266,7 +266,7 @@ function DetailBody({
             <div className="num text-2xl font-bold mt-1">{fmt(supplier.total_spent_minor)}</div>
           </div>
           <div className="p-4 rounded-xl bg-gray-50">
-            <div className="text-sm text-gray-500">{t('suppliers.pr_count').replace('{n}', '')}</div>
+            <div className="text-sm text-gray-500">{t('suppliers.pr_count_label')}</div>
             <div className="num text-2xl font-bold mt-1">
               {t('suppliers.pr_count').replace('{n}', String(supplier.total_pr_count))}
             </div>
@@ -281,7 +281,7 @@ function DetailBody({
           onClick={() => setShowConfirm(true)}
           disabled={archiving}
         >
-          {t('common.delete')}
+          {t('suppliers.archive')}
         </button>
       </div>
 
@@ -289,14 +289,14 @@ function DetailBody({
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-lift w-full max-w-sm p-6">
             <p className="text-base text-gray-800 mb-6">
-              {t('common.delete')} — {supplier.name}?
+              {t('suppliers.archive.confirm')} ({supplier.name})
             </p>
             <div className="flex justify-end gap-3">
               <button className="btn-ghost" onClick={() => setShowConfirm(false)} disabled={archiving}>
                 {t('common.cancel')}
               </button>
               <button className="btn-danger" onClick={() => void archive()} disabled={archiving}>
-                {archiving ? '…' : t('common.delete')}
+                {archiving ? '…' : t('suppliers.archive')}
               </button>
             </div>
           </div>
