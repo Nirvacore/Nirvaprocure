@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, List, Inbox, Building2, FileText } from 'lucide-react';
+import { Home, List, Inbox, Building2, Wallet } from 'lucide-react';
 import clsx from 'clsx';
 import { InboxBadge } from './InboxBadge';
 import { useT } from '@/lib/i18n/provider';
@@ -12,7 +12,7 @@ const items: { href: string; labelKey: TranslationKey; icon: typeof Home }[] = [
   { href: '/pr',         labelKey: 'nav.pr',        icon: List },
   { href: '/approvals',  labelKey: 'nav.approvals', icon: Inbox },
   { href: '/suppliers',  labelKey: 'nav.suppliers', icon: Building2 },
-  { href: '/po',         labelKey: 'nav.po',        icon: FileText },
+  { href: '/budget',     labelKey: 'nav.budget',    icon: Wallet },
 ];
 
 export function MobileNav() {
