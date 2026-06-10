@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.ts";
 
 /* ---------------------------------------------------------------------------
  * Theme tokens
@@ -80,7 +79,7 @@ html.dark {
   }
   /* Big visible focus ring — accessibility */
   :focus-visible {
-    outline: 3px solid theme('colors.brand.600');
+    outline: 3px solid var(--brand);
     outline-offset: 2px;
     border-radius: 8px;
   }
@@ -99,16 +98,28 @@ html.dark {
     @apply min-h-btn-sm;
   }
   .btn-primary {
-    @apply btn bg-brand-600 hover:bg-brand-700 text-white shadow-soft;
+    @apply min-h-btn px-5 rounded-xl font-bold flex items-center justify-center gap-2 transition bg-brand-600 hover:bg-brand-700 text-white shadow-soft;
   }
   .btn-secondary {
-    @apply btn border-2 border-gray-200 hover:border-gray-300 text-gray-700;
+    @apply min-h-btn px-5 rounded-xl font-bold flex items-center justify-center gap-2 transition border-2 border-gray-200 hover:border-gray-300 text-gray-700;
     background-color: var(--surface);
     color: var(--text-secondary);
   }
   .btn-danger {
-    @apply btn border-2 border-red-200 hover:bg-red-50 hover:border-red-300 text-red-700;
+    @apply min-h-btn px-5 rounded-xl font-bold flex items-center justify-center gap-2 transition border-2 border-red-200 hover:bg-red-50 hover:border-red-300 text-red-700;
     background-color: var(--surface);
+  }
+  .btn-ghost {
+    @apply min-h-btn-sm px-4 rounded-xl font-semibold text-gray-600 hover:bg-gray-100 flex items-center justify-center gap-2 transition;
+    background-color: transparent;
+  }
+  .input {
+    @apply w-full px-4 rounded-xl border-2 border-gray-200 focus:border-brand-500 outline-none;
+    background-color: var(--surface);
+    color: var(--text-primary);
+  }
+  .label {
+    @apply block text-sm font-semibold text-gray-700;
   }
   .card {
     @apply rounded-2xl p-6 shadow-soft border;
