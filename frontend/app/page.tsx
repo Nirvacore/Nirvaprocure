@@ -3,7 +3,7 @@ import React from 'react';
 import Link from 'next/link';
 import {
   Plus, Inbox, List, MessageCircle, CheckCircle2, Clock, Banknote,
-  Wallet, Building2, FileText, Package,
+  Wallet, Building2, FileText, Package, Truck,
 } from 'lucide-react';
 import { useT } from '@/lib/i18n/provider';
 import { useAuth } from '@/components/AuthProvider';
@@ -84,6 +84,7 @@ export default function HomePage() {
     { href: '/suppliers', icon: Building2, title: t('home.action.suppliers'), subtitle: t('home.action.suppliers.sub'), accent: 'bg-emerald-100 text-emerald-700', hover: 'hover:border-emerald-300' },
     { href: '/po',        icon: FileText,  title: t('home.action.po'),        subtitle: t('home.action.po.sub'),        accent: 'bg-cyan-100 text-cyan-700',    hover: 'hover:border-cyan-300' },
     { href: '/stock',     icon: Package,   title: t('home.action.stock'),     subtitle: t('home.action.stock.sub'),     accent: 'bg-sky-100 text-sky-700',      hover: 'hover:border-sky-300' },
+    { href: '/receive',   icon: Truck,     title: t('home.action.receive'),   subtitle: t('home.action.receive.sub'),   accent: 'bg-lime-100 text-lime-700',    hover: 'hover:border-lime-300' },
   ];
 
   return (
@@ -118,7 +119,7 @@ export default function HomePage() {
 
       <div>
         <h2 className="text-lg font-bold mb-4">{t('home.quick')}</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
           {quickLinks.map((a) => {
             const Icon = a.icon;
             return (
