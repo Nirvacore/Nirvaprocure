@@ -1,5 +1,5 @@
 'use client';
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft, Truck, CheckCircle2, ChevronDown, ChevronUp, Package,
@@ -78,28 +78,17 @@ function ApprovedPrCard({
   const [expanded, setExpanded] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [detail, setDetail] = useState<ApiPrDetail | null>(null);
-  const [loadingDetail, setLoadingDetail] = useState(false);
 
-  const loadDetail = useCallback(async () => {
-    if (detail) return;
-    setLoadingDetail(true);
-    try {
-      const d = await withMockFallback(
+  const { data: detail, loading: loadingDetail } = useResource(
+    () => {
+      if (!expanded) return Promise.resolve(null);
+      return withMockFallback(
         () => prApi.get(pr.id),
         MOCK_DETAILS[pr.id] ?? MOCK_DETAILS['2'],
       );
-      setDetail(d);
-    } finally {
-      setLoadingDetail(false);
-    }
-  }, [detail, pr.id]);
-
-  const toggle = () => {
-    const next = !expanded;
-    setExpanded(next);
-    if (next) void loadDetail();
-  };
+    },
+    [expanded, pr.id],
+  );
 
   const confirmReceive = async () => {
     if (!detail) return;
@@ -121,7 +110,6 @@ function ApprovedPrCard({
       toast(t('gr.toast.success').replace('{pr}', pr.pr_number), 'ok');
       setShowConfirm(false);
       setExpanded(false);
-      setDetail(null);
       onReceived();
     } catch {
       toast(t('gr.toast.fail'), 'err');
@@ -136,7 +124,7 @@ function ApprovedPrCard({
         <button
           type="button"
           className="w-full flex items-center gap-3 p-5 text-left hover:bg-green-50/50 transition-colors"
-          onClick={toggle}
+          onClick={() => setExpanded(v => !v)}
         >
           <div className="w-11 h-11 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
             <Truck className="w-5 h-5 text-green-700" />
@@ -214,7 +202,7 @@ function ApprovedPrCard({
 // ---------------------------------------------------------------------------
 export default function ReceivePage() {
   const { t } = useT();
-  const [localRows, setLocalRows] = useState<PrSummary[] | null>(null);
+  const [excludedIds, setExcludedIds] = useState<Set<string>>(new Set());
 
   const { data, loading, error, refresh } = useResource(
     () => withMockFallback(
@@ -226,10 +214,10 @@ export default function ReceivePage() {
     ),
   );
 
-  const rows = localRows ?? data ?? [];
+  const rows = (data ?? []).filter(r => !excludedIds.has(r.id));
 
   const handleReceived = (id: string) => {
-    setLocalRows(prev => (prev ?? data ?? []).filter(r => r.id !== id));
+    setExcludedIds(prev => new Set(prev).add(id));
     void refresh();
   };
 
