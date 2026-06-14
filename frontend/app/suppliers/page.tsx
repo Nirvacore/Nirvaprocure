@@ -1,8 +1,10 @@
 'use client';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Building2, Search, Plus, AlertTriangle, CheckCircle2, XCircle, ShieldAlert } from 'lucide-react';
 import { useT } from '@/lib/i18n/provider';
 import { suppliers as suppliersApi, type SupplierRow } from '@/lib/api';
+import { useResource } from '@/lib/use-resource';
+import { withMockFallback } from '@/lib/api-with-fallback';
 import { Loading } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
 import Link from 'next/link';
@@ -204,47 +206,37 @@ const MOCK_SUPPLIERS: SupplierRow[] = [
 // ---------------------------------------------------------------------------
 export default function SuppliersPage() {
   const { t } = useT();
-  const [rows, setRows]       = useState<SupplierRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState('');
-  const [query, setQuery]     = useState('');
-  const [showAdd, setShowAdd] = useState(false);
+  const [query, setQuery]           = useState('');
+  const [debouncedQuery, setDebounced] = useState('');
+  const [showAdd, setShowAdd]       = useState(false);
 
-  const load = useCallback(async (search?: string) => {
-    setLoading(true);
-    setError('');
-    try {
-      const data = await suppliersApi.list(search);
-      setRows(data);
-    } catch {
-      // Offline / backend not running → show mock data
-      const q = (search ?? '').toLowerCase();
-      setRows(q
-        ? MOCK_SUPPLIERS.filter(s =>
-            s.name.toLowerCase().includes(q) ||
-            s.code.toLowerCase().includes(q) ||
-            (s.contact_email ?? '').toLowerCase().includes(q))
-        : MOCK_SUPPLIERS);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { void load(); }, [load]);
-
-  // Debounced search
+  // Debounce search input
   useEffect(() => {
-    const id = setTimeout(() => { void load(query || undefined); }, 300);
+    const id = setTimeout(() => setDebounced(query), 300);
     return () => clearTimeout(id);
-  }, [query, load]);
+  }, [query]);
 
-  const handleCreated = (row: SupplierRow) => {
-    setRows(prev => [row, ...prev]);
-    setShowAdd(false);
-  };
+  const { data, loading, error, refresh } = useResource(
+    () => withMockFallback(
+      () => suppliersApi.list(debouncedQuery || undefined),
+      debouncedQuery
+        ? MOCK_SUPPLIERS.filter(s =>
+            s.name.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
+            s.code.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
+            (s.contact_email ?? '').toLowerCase().includes(debouncedQuery.toLowerCase()))
+        : MOCK_SUPPLIERS,
+    ),
+    [debouncedQuery],
+  );
 
+  const rows     = data ?? [];
   const active   = rows.filter(r => r.is_active);
   const inactive = rows.filter(r => !r.is_active);
+
+  const handleCreated = (row: SupplierRow) => {
+    void refresh();
+    setShowAdd(false);
+  };
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-8 pb-24 md:pb-8">
@@ -269,7 +261,7 @@ export default function SuppliersPage() {
         />
       </div>
 
-      {error && <div className="mb-4"><ErrorBanner message={error} /></div>}
+      {error && <div className="mb-4"><ErrorBanner message={error.message} /></div>}
 
       {loading ? (
         <Loading />

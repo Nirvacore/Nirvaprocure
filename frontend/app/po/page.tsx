@@ -1,8 +1,10 @@
 'use client';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { FileText, Search, Clock, CheckCircle2, Send, XCircle } from 'lucide-react';
 import { useT } from '@/lib/i18n/provider';
 import { po as poApi, type PoRow } from '@/lib/api';
+import { useResource } from '@/lib/use-resource';
+import { withMockFallback } from '@/lib/api-with-fallback';
 import { Loading } from '@/components/Loading';
 import Link from 'next/link';
 
@@ -97,26 +99,18 @@ const FILTERS: { key: string; labelKey: string }[] = [
 // ---------------------------------------------------------------------------
 export default function PoListPage() {
   const { t } = useT();
-  const [rows, setRows]       = useState<PoRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter]   = useState('');
-  const [query, setQuery]     = useState('');
+  const [filter, setFilter] = useState('');
+  const [query, setQuery]   = useState('');
 
-  const load = useCallback(async (status?: string) => {
-    setLoading(true);
-    try {
-      const data = await poApi.list(status || undefined);
-      setRows(data);
-    } catch {
-      // Offline / backend not running → mock
-      setRows(status ? MOCK_POS.filter(p => p.status === status) : MOCK_POS);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const { data, loading } = useResource(
+    () => withMockFallback(
+      () => poApi.list(filter || undefined),
+      filter ? MOCK_POS.filter(p => p.status === filter) : MOCK_POS,
+    ),
+    [filter],
+  );
 
-  useEffect(() => { void load(filter || undefined); }, [load, filter]);
-
+  const rows = data ?? [];
   const filtered = query
     ? rows.filter(r =>
         r.po_number.toLowerCase().includes(query.toLowerCase()) ||
