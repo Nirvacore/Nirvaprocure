@@ -118,6 +118,39 @@ jobs:
           eval "$PG -f ../database/phase7_po_schema.sql"
           eval "$PG -f ../database/seed.sql"
 
+      - name: RLS enforcement check
+        run: |
+          echo "Scanning for pool.query in request-scoped services (must use withOrg)..."
+          # Allow-listed files that intentionally use raw pool.query:
+          #   - Background jobs (scan all orgs): reorder-scan.job.ts, anomaly-scan.job.ts
+          #   - Auth (pre-login, no org context): auth.controller.ts, google-oauth.service.ts, totp.service.ts
+          #   - Health check (SELECT 1): health.controller.ts
+          #   - FCM (user-scoped tokens, not org-scoped): fcm.service.ts
+          #   - LINE webhooks (user-scoped lookups): line-webhook.controller.ts, line.notifier.ts
+          #   - Portal (token-auth, explicit org_id filter): portal.service.ts
+          #   - Webhook emit/deliver (called from background): webhooks.service.ts
+          #   - Budget check (called from background jobs): budget.service.ts
+          #   - Anomaly record/coi (background operations): anomaly.service.ts
+          #   - Supplier risk compute (background): supplier-risk.service.ts
+          #   - Savings recompute (cron): savings.service.ts
+          #   - AI cost tracking (no org data): openai.provider.ts
+          #   - Affiliate internals (fire-and-forget): affiliate.service.ts (loadConfig, recordClick only)
+          ALLOWLIST="reorder-scan.job.ts|anomaly-scan.job.ts|auth.controller.ts|google-oauth.service.ts|totp.service.ts|health.controller.ts|fcm.service.ts|line-webhook.controller.ts|line.notifier.ts|portal.service.ts|notifications.controller.ts|webhooks.service.ts|budget.service.ts|anomaly.service.ts|supplier-risk.service.ts|savings.service.ts|openai.provider.ts|affiliate.service.ts|with-org.ts|db.module.ts"
+          VIOLATIONS=$(grep -rn 'pool\.query\|this\.pool\.query' src/modules/ src/common/ \
+            --include='*.ts' \
+            | grep -v 'withOrg' \
+            | grep -vE "$ALLOWLIST" \
+            || true)
+          if [ -n "$VIOLATIONS" ]; then
+            echo "❌ RLS VIOLATION — pool.query used outside withOrg in non-allowlisted files:"
+            echo "$VIOLATIONS"
+            echo ""
+            echo "Fix: wrap the query with withOrg(this.pool, orgId, async (c) => { ... })"
+            echo "If this is intentional (background job, pre-auth), add the file to the allowlist above."
+            exit 1
+          fi
+          echo "✅ No RLS violations found"
+
       - name: Build
         run: npx nest build
 
