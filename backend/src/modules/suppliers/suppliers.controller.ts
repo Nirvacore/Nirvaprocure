@@ -1,8 +1,9 @@
 import {
-  Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query,
+  Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, ParseUUIDPipe, Patch, Post, Query,
 } from '@nestjs/common';
 import { IsBoolean, IsEmail, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { SuppliersService } from './suppliers.service';
+import { SupplierRiskService } from '../anomaly/supplier-risk.service';
 import { CurrentUser } from '../../common/auth/current-user.decorator';
 import type { CurrentUser as CU } from '../../common/auth/current-user.decorator';
 
@@ -28,11 +29,21 @@ class UpdateDto {
 
 @Controller('suppliers')
 export class SuppliersController {
-  constructor(private readonly svc: SuppliersService) {}
+  constructor(
+    private readonly svc: SuppliersService,
+    private readonly risk: SupplierRiskService,
+  ) {}
 
   @Get()
   list(@CurrentUser() user: CU, @Query('search') search?: string) {
     return this.svc.list(user, search);
+  }
+
+  @Get(':id/risk-score')
+  async riskScore(@CurrentUser() user: CU, @Param('id', new ParseUUIDPipe()) id: string) {
+    const score = await this.risk.getForSupplier(user, id);
+    if (!score) throw new NotFoundException('No risk score computed yet for this supplier');
+    return score;
   }
 
   @Get(':id')

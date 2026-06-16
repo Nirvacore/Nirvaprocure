@@ -81,6 +81,29 @@ export class SupplierRiskService {
     });
   }
 
+  /** Risk score for a single supplier. Returns null if not yet scored. */
+  getForSupplier(user: CurrentUser, supplierId: string): Promise<SupplierRiskRow | null> {
+    return withOrg(this.pool, user.orgId, async (c) => {
+      const r = await c.query<Omit<SupplierRiskRow, 'factors'> & { factors: string }>(
+        `SELECT srs.supplier_id, s.name AS supplier_name,
+                srs.score, srs.tier, srs.factors, srs.computed_at
+           FROM supplier_risk_scores srs
+           JOIN suppliers s ON s.id = srs.supplier_id
+          WHERE srs.org_id = $1 AND srs.supplier_id = $2`,
+        [user.orgId, supplierId],
+      );
+      if (r.rowCount === 0) return null;
+      const row = r.rows[0];
+      return {
+        ...row,
+        score: Number(row.score),
+        factors: typeof row.factors === 'string'
+          ? JSON.parse(row.factors)
+          : row.factors,
+      } as SupplierRiskRow;
+    });
+  }
+
   // -------------------------------------------------------------------------
   // Compute
   // -------------------------------------------------------------------------
