@@ -1,24 +1,34 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Pool } from 'pg';
 import { PG_POOL } from '../../common/db/db.module';
+import * as admin from 'firebase-admin';
 
-/**
- * NirvaFCM — Firebase Cloud Messaging push notifications.
- *
- * In production this calls the Firebase Admin SDK. In dev/staging it logs
- * the payload and stores a record in the notifications table.
- *
- * Device tokens are registered per user via POST /notifications/fcm/token.
- */
 @Injectable()
-export class FcmService {
+export class FcmService implements OnModuleInit {
   private readonly logger = new Logger(FcmService.name);
+  private fbInitialized = false;
 
   constructor(@Inject(PG_POOL) private readonly pool: Pool) {}
 
-  /**
-   * Register (upsert) a device token for a user.
-   */
+  onModuleInit() {
+    const creds = process.env.FIREBASE_SERVICE_ACCOUNT;
+    if (!creds) {
+      this.logger.warn('FIREBASE_SERVICE_ACCOUNT not set — FCM runs in dev/stub mode');
+      return;
+    }
+    try {
+      if (!admin.apps.length) {
+        admin.initializeApp({
+          credential: admin.credential.cert(JSON.parse(creds)),
+        });
+      }
+      this.fbInitialized = true;
+      this.logger.log('Firebase Admin SDK initialized');
+    } catch (e: any) {
+      this.logger.error(`Firebase init failed: ${e.message} — falling back to stub mode`);
+    }
+  }
+
   async registerToken(userId: string, token: string, platform: string): Promise<void> {
     await this.pool.query(
       `INSERT INTO fcm_tokens (user_id, token, platform)
@@ -29,16 +39,10 @@ export class FcmService {
     this.logger.log(`FCM token registered for user ${userId} (${platform})`);
   }
 
-  /**
-   * Remove a specific token (e.g. on logout).
-   */
   async removeToken(token: string): Promise<void> {
     await this.pool.query(`DELETE FROM fcm_tokens WHERE token = $1`, [token]);
   }
 
-  /**
-   * Send push notification to a user (all their registered devices).
-   */
   async sendToUser(
     userId: string,
     notification: { title: string; body: string; data?: Record<string, string> },
@@ -58,8 +62,10 @@ export class FcmService {
         await this.sendToToken(row.token, notification);
         sent++;
       } catch (e: any) {
-        // Invalid/expired token — clean up
-        if (e.code === 'messaging/registration-token-not-registered') {
+        if (
+          e.code === 'messaging/registration-token-not-registered' ||
+          e.code === 'messaging/invalid-registration-token'
+        ) {
           await this.removeToken(row.token);
           this.logger.warn(`Removed expired FCM token for user ${userId}`);
         } else {
@@ -70,17 +76,20 @@ export class FcmService {
     return sent;
   }
 
-  /**
-   * Send push notification to a specific token.
-   * In production, replace with firebase-admin SDK call.
-   */
   private async sendToToken(
     token: string,
     notification: { title: string; body: string; data?: Record<string, string> },
   ): Promise<void> {
-    // TODO: integrate firebase-admin in production
-    // const message = { token, notification, data: notification.data };
-    // await getMessaging().send(message);
-    this.logger.log(`[FCM-DEV] Push → ${token.slice(0, 12)}... | ${notification.title}`);
+    if (!this.fbInitialized) {
+      this.logger.log(`[FCM-DEV] Push → ${token.slice(0, 12)}... | ${notification.title}`);
+      return;
+    }
+    await admin.messaging().send({
+      token,
+      notification: { title: notification.title, body: notification.body },
+      data: notification.data,
+      android: { priority: 'high' },
+      apns: { payload: { aps: { sound: 'default', badge: 1 } } },
+    });
   }
 }
