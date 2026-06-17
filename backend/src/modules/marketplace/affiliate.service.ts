@@ -137,16 +137,16 @@ export class AffiliateService {
 
   /** Monthly affiliate click count per platform for this org. */
   async clickStats(user: CurrentUser): Promise<{ platform: string; clicks: number }[]> {
-    const rows = await this.pool.query<{ platform: string; clicks: string }>(
-      `SELECT platform, COUNT(*)::text AS clicks
-         FROM affiliate_clicks
-        WHERE org_id = $1
-          AND created_at >= date_trunc('month', now())
-        GROUP BY platform
-        ORDER BY clicks DESC`,
-      [user.orgId],
-    );
-    return rows.rows.map((r) => ({ platform: r.platform, clicks: Number(r.clicks) }));
+    return withOrg(this.pool, user.orgId, async (c) => {
+      const rows = await c.query<{ platform: string; clicks: string }>(
+        `SELECT platform, COUNT(*)::text AS clicks
+           FROM affiliate_clicks
+          WHERE created_at >= date_trunc('month', now())
+          GROUP BY platform
+          ORDER BY clicks DESC`,
+      );
+      return rows.rows.map((r) => ({ platform: r.platform, clicks: Number(r.clicks) }));
+    });
   }
 
   // ── Internals ──────────────────────────────────────────────────────────────
