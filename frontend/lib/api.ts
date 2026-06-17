@@ -299,7 +299,20 @@ export const workflows = {
 // ---------------------------------------------------------------------------
 // Notifications
 // ---------------------------------------------------------------------------
+export interface AppNotification {
+  id: string;
+  type: string;
+  title: string;
+  body?: string | null;
+  created_at: string;
+  read_at?: string | null;
+  ref_id?: string | null;
+}
 export const notifications = {
+  list: () => request<AppNotification[]>('GET', '/notifications'),
+  lineStatus: () => request<{ linked: boolean }>('GET', '/notifications/line/status'),
+  markRead: (id: string) => request<void>('PATCH', `/notifications/${id}/read`),
+  markAllRead: () => request<void>('PATCH', '/notifications/read-all'),
   lineTest: () => request<{ queued: boolean }>('POST', '/notifications/line/test'),
 };
 

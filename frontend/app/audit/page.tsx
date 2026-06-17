@@ -2,7 +2,9 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, Shield, ChevronDown, ChevronUp } from 'lucide-react';
-import { audit as auditApi, type AuditRow, ApiError } from '@/lib/api';
+import { audit as auditApi, type AuditRow } from '@/lib/api';
+import { useResource } from '@/lib/use-resource';
+import { withMockFallback } from '@/lib/api-with-fallback';
 import { SkeletonRows } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
 import { useT } from '@/lib/i18n/provider';
@@ -15,6 +17,18 @@ const ENTITY_FILTERS: { key: string | null; labelKey: TranslationKey }[] = [
   { key: 'workflow',          labelKey: 'audit.filter.workflow' },
 ];
 
+type AuditPage = { data: AuditRow[]; next_cursor: string | null };
+
+const MOCK_AUDIT: AuditPage = {
+  data: [
+    { id: 1, action: 'pr.create', entity_type: 'purchase_request', entity_id: '1', actor_user_id: 'u1', actor_name: 'สุดา จันทร์', created_at: '2026-06-07T10:21:00Z', diff: { title: 'หมึกเครื่องพิมพ์ ชั้น 5' } },
+    { id: 2, action: 'pr.submit', entity_type: 'purchase_request', entity_id: '1', actor_user_id: 'u1', actor_name: 'สุดา จันทร์', created_at: '2026-06-07T10:22:00Z', diff: null },
+    { id: 3, action: 'approval.decide', entity_type: 'approval_instance', entity_id: 'ai-1', actor_user_id: 'u2', actor_name: 'ปอ นวลรัตน์', created_at: '2026-06-07T14:00:00Z', diff: { decision: 'approved' } },
+    { id: 4, action: 'workflow.update', entity_type: 'workflow', entity_id: 'wf-1', actor_user_id: 'u3', actor_name: 'Admin', created_at: '2026-06-06T09:00:00Z', diff: { min_amount_minor: 50000 } },
+  ],
+  next_cursor: null,
+};
+
 /**
  * Read-only audit log viewer. Cursor-paginated; one row per audit_log entry.
  * Each row expands inline to show the JSON diff (useful for proving "what
@@ -22,32 +36,37 @@ const ENTITY_FILTERS: { key: string | null; labelKey: TranslationKey }[] = [
  */
 export default function AuditPage() {
   const { t } = useT();
-  const [rows, setRows]     = useState<AuditRow[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [entity, setEntity] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [more, setMore]       = useState(false);
-  const [error, setError]     = useState<string | null>(null);
+  const [entity, setEntity]       = useState<string | null>(null);
+  const [cursor, setCursor]       = useState<string | null>(null);
+  const [accumulated, setAccumulated] = useState<AuditRow[]>([]);
 
-  async function load(append: boolean) {
-    append ? setMore(true) : setLoading(true);
-    setError(null);
-    try {
-      const page = await auditApi.list({
+  useEffect(() => {
+    setCursor(null);
+    setAccumulated([]);
+  }, [entity]);
+
+  const { data: page, loading, error, refresh } = useResource(
+    () => withMockFallback(
+      () => auditApi.list({
         entity_type: entity ?? undefined,
-        cursor: append ? (cursor ?? undefined) : undefined,
+        cursor: cursor ?? undefined,
         limit: 50,
-      });
-      setRows((prev) => (append ? [...prev, ...page.data] : page.data));
-      setCursor(page.next_cursor);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('audit.err.load'));
-    } finally {
-      append ? setMore(false) : setLoading(false);
-    }
-  }
+      }),
+      entity
+        ? { ...MOCK_AUDIT, data: MOCK_AUDIT.data.filter(r => r.entity_type === entity) }
+        : MOCK_AUDIT,
+    ),
+    [entity, cursor],
+  );
 
-  useEffect(() => { void load(false); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [entity]);
+  useEffect(() => {
+    if (!page) return;
+    setAccumulated(prev => (cursor ? [...prev, ...page.data] : page.data));
+  }, [page, cursor]);
+
+  const nextCursor = page?.next_cursor ?? null;
+  const loadingMore = loading && cursor !== null;
+  const initialLoading = loading && cursor === null && accumulated.length === 0;
 
   return (
     <section className="screen space-y-6">
@@ -80,27 +99,27 @@ export default function AuditPage() {
         ))}
       </div>
 
-      {error && <ErrorBanner message={error} onRetry={() => load(false)} />}
-      {loading && rows.length === 0 && <SkeletonRows rows={5} />}
+      {error && <ErrorBanner message={error.message} onRetry={refresh} />}
+      {initialLoading && <SkeletonRows rows={5} />}
 
-      {rows.length === 0 && !loading && !error && (
+      {accumulated.length === 0 && !initialLoading && !error && (
         <p className="text-base text-gray-500">{t('audit.empty')}</p>
       )}
 
-      {rows.length > 0 && (
+      {accumulated.length > 0 && (
         <div className="card !p-0 overflow-hidden divide-y divide-gray-100">
-          {rows.map((r) => <AuditEntry key={r.id} row={r} />)}
+          {accumulated.map((r) => <AuditEntry key={r.id} row={r} />)}
         </div>
       )}
 
-      {cursor && (
+      {nextCursor && (
         <button
-          onClick={() => load(true)}
-          disabled={more}
+          onClick={() => setCursor(nextCursor)}
+          disabled={loadingMore}
           className="btn-secondary w-full"
         >
-          {more ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-          {more ? t('common.loading') : t('pr.load.more')}
+          {loadingMore ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+          {loadingMore ? t('common.loading') : t('pr.load.more')}
         </button>
       )}
     </section>

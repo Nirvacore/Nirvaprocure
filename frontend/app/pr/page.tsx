@@ -6,14 +6,14 @@ import { mockPrs, srcLabel, type Source } from '@/lib/mock-data';
 import { StatusPill, type PrStatus } from '@/components/StatusPill';
 import { fmtBaht } from '@/lib/format';
 import { withMockFallback } from '@/lib/api-with-fallback';
-import { pr as prApi, ApiError, type PrSummary } from '@/lib/api';
+import { useResource } from '@/lib/use-resource';
+import { pr as prApi, type PrSummary } from '@/lib/api';
 import { SkeletonRows } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
 import { useT } from '@/lib/i18n/provider';
 import clsx from 'clsx';
 
 type Filter = 'all' | PrStatus;
-// Filter keys map to dictionary entries. Labels resolved per render via useT().
 const FILTERS: { key: Filter; tKey:
   'pr.filter.all' | 'pr.filter.pending' | 'pr.filter.approved' | 'pr.filter.draft' | 'pr.filter.rejected'
 }[] = [
@@ -36,7 +36,8 @@ interface Row {
   created_at: string;
 }
 
-/** Adapter from API wire format to the row shape this UI was built around. */
+type PrPage = { data: Row[]; next_cursor: string | null };
+
 function toRow(p: PrSummary): Row {
   return {
     id: p.id,
@@ -49,51 +50,37 @@ function toRow(p: PrSummary): Row {
   };
 }
 
-/**
- * Cursor-paginated list. The backend returns `next_cursor` (or null) and we
- * append page-by-page. Filter is client-side since the active filter often
- * fits within the first page, but if a customer ever needs server-side
- * filter+pagination we'll move it server-side at that time.
- */
+const MOCK_PAGE: PrPage = { data: mockPrs as Row[], next_cursor: null };
+
 export default function PrListPage() {
   const { t } = useT();
-  const [filter, setFilter]     = useState<Filter>('all');
-  const [rows,   setRows]       = useState<Row[] | null>(null);
-  const [cursor, setCursor]     = useState<string | null>(null);
-  const [loading, setLoading]   = useState(true);
-  const [more,    setMore]      = useState(false);
-  const [error,   setError]     = useState<Error | null>(null);
+  const [filter, setFilter]       = useState<Filter>('all');
+  const [cursor, setCursor]       = useState<string | null>(null);
+  const [accumulated, setAccumulated] = useState<Row[]>([]);
 
-  async function loadPage(append: boolean, fromCursor?: string) {
-    append ? setMore(true) : setLoading(true);
-    setError(null);
-    try {
-      const page = await withMockFallback(
-        async () => {
-          const res = await prApi.list({ limit: PAGE_SIZE, cursor: fromCursor });
-          return { data: res.data.map(toRow), next_cursor: res.next_cursor };
-        },
-        // Offline fallback: pretend the mock is a single page.
-        { data: mockPrs as Row[], next_cursor: null },
-      );
-      setCursor(page.next_cursor);
-      setRows((prev) => (append && prev ? [...prev, ...page.data] : page.data));
-    } catch (err) {
-      setError(err as Error);
-    } finally {
-      append ? setMore(false) : setLoading(false);
-    }
-  }
+  const { data: page, loading, error, refresh } = useResource(
+    () => withMockFallback(
+      async () => {
+        const res = await prApi.list({ limit: PAGE_SIZE, cursor: cursor ?? undefined });
+        return { data: res.data.map(toRow), next_cursor: res.next_cursor };
+      },
+      MOCK_PAGE,
+    ),
+    [cursor],
+  );
 
   useEffect(() => {
-    void loadPage(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!page) return;
+    setAccumulated(prev => (cursor ? [...prev, ...page.data] : page.data));
+  }, [page, cursor]);
+
+  const nextCursor = page?.next_cursor ?? null;
+  const loadingMore = loading && cursor !== null;
+  const initialLoading = loading && cursor === null && accumulated.length === 0;
 
   const filtered = useMemo(() => {
-    if (!rows) return [];
-    return filter === 'all' ? rows : rows.filter((r) => r.status === filter);
-  }, [rows, filter]);
+    return filter === 'all' ? accumulated : accumulated.filter((r) => r.status === filter);
+  }, [accumulated, filter]);
 
   return (
     <section className="screen space-y-6">
@@ -125,9 +112,9 @@ export default function PrListPage() {
         ))}
       </div>
 
-      {error && <ErrorBanner message={error.message} onRetry={() => loadPage(false)} />}
-      {loading && !rows && <SkeletonRows />}
-      {!loading && filtered.length === 0 && (
+      {error && <ErrorBanner message={error.message} onRetry={refresh} />}
+      {initialLoading && <SkeletonRows />}
+      {!initialLoading && filtered.length === 0 && (
         <EmptyState filterLabel={t(FILTERS.find((f) => f.key === filter)!.tKey)} />
       )}
       {filtered.length > 0 && (
@@ -161,16 +148,14 @@ export default function PrListPage() {
         </div>
       )}
 
-      {/* Load-more sits at the bottom of the list when there's another page.
-          Hidden once the cursor exhausts so the user knows they reached the end. */}
-      {cursor && (
+      {nextCursor && (
         <button
-          onClick={() => loadPage(true, cursor)}
-          disabled={more}
+          onClick={() => setCursor(nextCursor)}
+          disabled={loadingMore}
           className="btn-secondary w-full"
         >
-          {more ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-          {more ? t('common.loading') : t('pr.load.more')}
+          {loadingMore ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+          {loadingMore ? t('common.loading') : t('pr.load.more')}
         </button>
       )}
     </section>

@@ -1,8 +1,10 @@
 'use client';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Wallet, Lock, Plus } from 'lucide-react';
 import { useT } from '@/lib/i18n/provider';
 import { budgets as budgetsApi, type BudgetRow } from '@/lib/api';
+import { useResource } from '@/lib/use-resource';
+import { withMockFallback } from '@/lib/api-with-fallback';
 import { Loading } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
 
@@ -138,7 +140,7 @@ interface UpsertModalProps {
   month: string;
   existing?: BudgetRow;
   onClose: () => void;
-  onSaved: (row: BudgetRow) => void;
+  onSaved: () => void;
 }
 
 function UpsertModal({ month, existing, onClose, onSaved }: UpsertModalProps) {
@@ -172,7 +174,7 @@ function UpsertModal({ month, existing, onClose, onSaved }: UpsertModalProps) {
         month_start: `${month}-01`,
         soft_block: softBlock,
       });
-      onSaved(row);
+      onSaved();
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : t('common.error'));
     } finally {
@@ -242,39 +244,23 @@ function UpsertModal({ month, existing, onClose, onSaved }: UpsertModalProps) {
 export default function BudgetPage() {
   const { t } = useT();
   const [month, setMonth] = useState(currentMonth);
-  const [rows, setRows] = useState<BudgetRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<BudgetRow | undefined>();
 
-  const load = useCallback(async (m: string) => {
-    setLoading(true);
-    setError('');
-    try {
-      const data = await budgetsApi.list(m);
-      setRows(data);
-    } catch {
-      setRows(mockBudgets(m));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const { data, loading, error, refresh } = useResource(
+    () => withMockFallback(
+      () => budgetsApi.list(month),
+      mockBudgets(month),
+    ),
+    [month],
+  );
 
-  useEffect(() => { void load(month); }, [load, month]);
+  const rows = data ?? [];
 
-  const handleSaved = (row: BudgetRow) => {
-    setRows(prev => {
-      const idx = prev.findIndex(r => r.department_id === row.department_id);
-      if (idx >= 0) {
-        const next = [...prev];
-        next[idx] = row;
-        return next;
-      }
-      return [...prev, row];
-    });
+  const handleSaved = () => {
     setShowModal(false);
     setEditing(undefined);
+    void refresh();
   };
 
   return (
@@ -300,7 +286,7 @@ export default function BudgetPage() {
         />
       </div>
 
-      {error && <div className="mb-4"><ErrorBanner message={error} /></div>}
+      {error && <div className="mb-4"><ErrorBanner message={error.message} onRetry={refresh} /></div>}
 
       {!loading && rows.length > 0 && (
         <BudgetSummary rows={rows} />

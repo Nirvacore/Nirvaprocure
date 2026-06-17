@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   AlertTriangle, ArrowLeft, Banknote, Bot, Building2, CheckCircle2,
   Clock, FileText, Loader2, RefreshCw, ShieldAlert, Timer, Trophy,
@@ -35,42 +35,46 @@ const MOCK: AnalyticsSummary = {
   ],
 };
 
+const MOCK_AI: AiRunSummary = { total_cost_usd: 0.42, total_tokens: 1200, calls: 3 };
+
+const MOCK_RISKS: SupplierRiskRow[] = [
+  { supplier_id: 'sup-4', supplier_name: 'Global Tech Import Co.', score: 76, tier: 'high', factors: { spend_minor: 840000_00, spend_pct: 35, price_cov: 31, rejection_rate: 18, has_coi: true, anomaly_count_90d: 2 }, computed_at: '2026-06-01' },
+  { supplier_id: 'sup-3', supplier_name: 'ร้านเครื่องเขียนสยาม', score: 48, tier: 'medium', factors: { spend_minor: 24000_00, spend_pct: 5, price_cov: 22, rejection_rate: 8, has_coi: false, anomaly_count_90d: 1 }, computed_at: '2026-06-01' },
+  { supplier_id: 'sup-1', supplier_name: 'HP Authorized Store Thailand', score: 18, tier: 'low', factors: { spend_minor: 180000_00, spend_pct: 12, price_cov: 8, rejection_rate: 2, has_coi: false, anomaly_count_90d: 0 }, computed_at: '2026-06-01' },
+];
+
 export default function AnalyticsPage() {
   const { t } = useT();
   const { data, loading, error, refresh } = useResource(
     () => withMockFallback(() => analyticsApi.summary(), MOCK),
   );
 
-  // AI cost summary — load eagerly alongside analytics data.
-  const [aiSummary, setAiSummary] = useState<AiRunSummary | null>(null);
-  useEffect(() => {
-    aiRuns.list(1).then((r) => setAiSummary(r.summary)).catch(() => {});
-  }, []);
+  const { data: aiSummary } = useResource(
+    () => withMockFallback(
+      () => aiRuns.list(1).then(r => r.summary),
+      MOCK_AI,
+    ),
+  );
 
-  // Supplier risk scores — lazy-load when the section is first viewed.
-  const [risks,         setRisks]         = useState<SupplierRiskRow[] | null>(null);
-  const [risksLoading,  setRisksLoading]  = useState(false);
-  const [risksShown,    setRisksShown]    = useState(false);
-  const [recomputing,   setRecomputing]   = useState(false);
+  const [risksShown, setRisksShown] = useState(false);
+  const [recomputing, setRecomputing] = useState(false);
 
-  const loadRisks = useCallback(async () => {
-    if (risksShown) { setRisksShown(false); return; }
-    setRisksShown(true);
-    if (risks !== null) return;
-    setRisksLoading(true);
-    try { setRisks(await supplierRisk.list()); }
-    catch  { setRisks([]); }
-    finally { setRisksLoading(false); }
-  }, [risks, risksShown]);
+  const { data: risks, loading: risksLoading, refresh: refreshRisks } = useResource(
+    () => risksShown
+      ? withMockFallback(() => supplierRisk.list(), MOCK_RISKS)
+      : Promise.resolve(null),
+    [risksShown],
+  );
 
-  const recompute = useCallback(async () => {
+  const recompute = async () => {
     setRecomputing(true);
     try {
       await supplierRisk.refresh();
-      setRisks(await supplierRisk.list());
-    } catch { /* ignore */ }
-    finally { setRecomputing(false); }
-  }, []);
+      await refreshRisks();
+    } finally {
+      setRecomputing(false);
+    }
+  };
 
   // Bar chart needs a max for proportional widths.
   const maxDeptSpend = useMemo(
@@ -121,7 +125,7 @@ export default function AnalyticsPage() {
               icon={Banknote}
               accent="bg-brand-100 text-brand-700"
             />
-            {aiSummary !== null && aiSummary.calls > 0 && (
+            {aiSummary && aiSummary.calls > 0 && (
               <StatCard
                 label={t('analytics.ai_cost')}
                 value={`$${aiSummary.total_cost_usd.toFixed(4)}`}
@@ -228,7 +232,7 @@ export default function AnalyticsPage() {
                   </button>
                 )}
                 <button
-                  onClick={loadRisks}
+                  onClick={() => setRisksShown(v => !v)}
                   className="btn-sm text-sm text-brand-700 border border-brand-200 rounded-lg px-3 py-1 hover:bg-brand-50"
                 >
                   {risksShown ? t('webhooks.log.hide') : t('risk.heading')}
@@ -244,10 +248,10 @@ export default function AnalyticsPage() {
                     <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
                   </div>
                 )}
-                {!risksLoading && risks !== null && risks.length === 0 && (
+                {!risksLoading && risks && risks.length === 0 && (
                   <p className="text-sm text-gray-500 py-2">{t('risk.empty')}</p>
                 )}
-                {!risksLoading && risks !== null && risks.length > 0 && (
+                {!risksLoading && risks && risks.length > 0 && (
                   <ul className="space-y-2">
                     {risks.map((r) => (
                       <RiskRow key={r.supplier_id} row={r} />
