@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
-import { Sparkles, Settings, LogOut } from 'lucide-react';
+import { Sparkles, Settings, LogOut, Search, Bell } from 'lucide-react';
 import { NavLink } from './NavLink';
 import { InboxBadge } from './InboxBadge';
 import { useAuth } from './AuthProvider';
@@ -51,6 +51,22 @@ export function Header() {
         </nav>
 
         <div className="flex-1" />
+
+        <Link
+          href="/search"
+          aria-label={t('nav.search')}
+          className="min-h-[44px] w-11 h-11 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center flex-shrink-0"
+        >
+          <Search className="w-5 h-5" />
+        </Link>
+
+        <Link
+          href="/notifications"
+          aria-label={t('nav.notifications')}
+          className="min-h-[44px] w-11 h-11 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center flex-shrink-0 relative"
+        >
+          <Bell className="w-5 h-5" />
+        </Link>
 
         <ThemeToggle />
         <LangSwitch />

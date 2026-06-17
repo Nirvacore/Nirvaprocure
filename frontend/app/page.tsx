@@ -3,7 +3,7 @@ import React from 'react';
 import Link from 'next/link';
 import {
   Plus, Inbox, List, MessageCircle, CheckCircle2, Clock, Banknote,
-  Wallet, Building2, FileText, Package, Truck,
+  Wallet, Building2, FileText, Package, Truck, Bell,
 } from 'lucide-react';
 import { useT } from '@/lib/i18n/provider';
 import { useAuth } from '@/components/AuthProvider';
@@ -85,6 +85,7 @@ export default function HomePage() {
     { href: '/po',        icon: FileText,  title: t('home.action.po'),        subtitle: t('home.action.po.sub'),        accent: 'bg-cyan-100 text-cyan-700',    hover: 'hover:border-cyan-300' },
     { href: '/stock',     icon: Package,   title: t('home.action.stock'),     subtitle: t('home.action.stock.sub'),     accent: 'bg-sky-100 text-sky-700',      hover: 'hover:border-sky-300' },
     { href: '/receive',   icon: Truck,     title: t('home.action.receive'),   subtitle: t('home.action.receive.sub'),   accent: 'bg-lime-100 text-lime-700',    hover: 'hover:border-lime-300' },
+    { href: '/notifications', icon: Bell,  title: t('home.action.notif'),     subtitle: t('home.action.notif.sub'),     accent: 'bg-violet-100 text-violet-700', hover: 'hover:border-violet-300' },
   ];
 
   return (
