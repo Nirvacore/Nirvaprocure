@@ -9,7 +9,7 @@ test.describe('audit page', () => {
   test('shows audit log entries and filters', async ({ page }) => {
     await gotoAuthenticated(page, '/audit');
     await expect(page.getByRole('heading', { name: 'Audit Log' })).toBeVisible();
-    await expect(page.getByText('สุดา จันทร์')).toBeVisible();
+    await expect(page.getByRole('main').getByText('สุดา จันทร์').first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'ทั้งหมด' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'ใบขอ' })).toBeVisible();
   });

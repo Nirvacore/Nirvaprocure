@@ -38,17 +38,17 @@ export default function SettingsPage() {
 
   return (
     <section className="screen space-y-6 max-w-4xl mx-auto">
-      <Link href="/" className="btn-sm inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 -ml-2 px-2 rounded-lg">
+      <Link href="/" className="btn-sm inline-flex items-center gap-2 text-ink-soft hover:text-ink -ml-2 px-2 rounded-lg">
         <ArrowLeft className="w-5 h-5" />
         <span>{t('common.back')}</span>
       </Link>
 
       <div>
         <h1 className="text-3xl font-bold mb-1">{t('settings.heading')}</h1>
-        <p className="text-base text-gray-600">{t('settings.sub')}</p>
+        <p className="text-base text-ink-soft">{t('settings.sub')}</p>
       </div>
 
-      <div className="flex gap-1 border-b border-gray-200 overflow-x-auto">
+      <div className="flex gap-1 border-b border-line overflow-x-auto">
         {TABS.map((tabDef) => {
           const Icon = tabDef.icon;
           const active = tab === tabDef.key;
@@ -57,7 +57,7 @@ export default function SettingsPage() {
               key={tabDef.key}
               onClick={() => setTab(tabDef.key)}
               className={`min-h-btn-sm px-5 font-semibold whitespace-nowrap border-b-2 ${
-                active ? 'text-brand-700 border-brand-600' : 'text-gray-600 border-transparent'
+                active ? 'text-brand-700 border-brand-600' : 'text-ink-soft border-transparent'
               }`}
             >
               <span className="flex items-center gap-2">
@@ -131,7 +131,7 @@ function Workflows() {
       ))}
       <button
         onClick={() => openEditor()}
-        className="w-full rounded-2xl border-2 border-dashed border-gray-300 hover:border-brand-400 hover:bg-brand-50 text-gray-600 hover:text-brand-700 font-bold flex items-center justify-center gap-2 py-5"
+        className="w-full rounded-2xl border-2 border-dashed border-gray-300 hover:border-brand-400 hover:bg-brand-50 text-ink-soft hover:text-brand-700 font-bold flex items-center justify-center gap-2 py-5"
       >
         <Plus className="w-5 h-5" />
         {t('settings.workflows.add')}
@@ -168,29 +168,29 @@ function WorkflowCard({ wf, index, onEdit }: { wf: Workflow; index: number; onEd
       <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className="num text-xs text-gray-500">{t('settings.workflows.rule_n', { n: index + 1 })}</span>
+            <span className="num text-xs text-ink-muted">{t('settings.workflows.rule_n', { n: index + 1 })}</span>
             {wf.active
               ? <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">{t('settings.workflows.active')}</span>
-              : <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">{t('settings.workflows.inactive')}</span>
+              : <span className="text-xs font-semibold text-ink-soft bg-gray-100 px-2 py-0.5 rounded-full">{t('settings.workflows.inactive')}</span>
             }
           </div>
           <h3 className="text-lg font-bold mb-1 leading-snug">{wf.name}</h3>
-          <p className="text-sm text-gray-600 flex items-center gap-1.5">
+          <p className="text-sm text-ink-soft flex items-center gap-1.5">
             <Filter className="w-4 h-4" />
-            {t('settings.workflows.condition')}: <strong className="text-gray-800 font-semibold">{wf.rule}</strong>
+            {t('settings.workflows.condition')}: <strong className="text-ink font-semibold">{wf.rule}</strong>
           </p>
         </div>
         <button
           onClick={onEdit}
           disabled={!onEdit}
-          className="btn-sm rounded-lg bg-white border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold px-4 flex items-center gap-2 whitespace-nowrap disabled:opacity-50"
+          className="btn-sm rounded-lg bg-white border-2 border-line hover:bg-gray-50 text-ink-soft font-semibold px-4 flex items-center gap-2 whitespace-nowrap disabled:opacity-50"
         >
           <Pencil className="w-4 h-4" />
           {t('common.edit')}
         </button>
       </div>
       <div className="border-t border-gray-100 pt-4">
-        <div className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide">{t('settings.workflows.steps')}</div>
+        <div className="text-sm font-semibold text-ink-muted mb-3 uppercase tracking-wide">{t('settings.workflows.steps')}</div>
         <ol className="space-y-2">
           {wf.steps.map((s, i) => {
             const KindIcon = s.kind === 'user' ? User : Users;
@@ -201,7 +201,7 @@ function WorkflowCard({ wf, index, onEdit }: { wf: Workflow; index: number; onEd
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold">{s.label}</div>
-                  <div className="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
+                  <div className="text-xs text-ink-muted flex items-center gap-2 mt-0.5">
                     <span className="inline-flex items-center gap-1">
                       <KindIcon className="w-3.5 h-3.5" />
                       {s.kind === 'user' ? t('settings.workflows.user') : t('settings.workflows.role')}
@@ -217,15 +217,15 @@ function WorkflowCard({ wf, index, onEdit }: { wf: Workflow; index: number; onEd
                     )}
                   </div>
                 </div>
-                {i < wf.steps.length - 1 && <ArrowDown className="w-4 h-4 text-gray-400 flex-shrink-0" />}
-                <button className="btn-sm w-9 h-9 rounded-lg hover:bg-white text-gray-400 hover:text-gray-700 flex items-center justify-center" aria-label={t('settings.workflows.remove_step')}>
+                {i < wf.steps.length - 1 && <ArrowDown className="w-4 h-4 text-ink-muted flex-shrink-0" />}
+                <button className="btn-sm w-9 h-9 rounded-lg hover:bg-white text-ink-muted hover:text-ink-soft flex items-center justify-center" aria-label={t('settings.workflows.remove_step')}>
                   <X className="w-4 h-4" />
                 </button>
               </li>
             );
           })}
           <li>
-            <button className="btn-sm w-full rounded-xl border-2 border-dashed border-gray-300 hover:border-brand-400 hover:bg-brand-50 text-gray-600 hover:text-brand-700 font-medium flex items-center justify-center gap-2">
+            <button className="btn-sm w-full rounded-xl border-2 border-dashed border-gray-300 hover:border-brand-400 hover:bg-brand-50 text-ink-soft hover:text-brand-700 font-medium flex items-center justify-center gap-2">
               <Plus className="w-5 h-5" />
               {t('settings.workflows.add_step')}
             </button>
@@ -253,10 +253,10 @@ function UsersTab() {
   );
 
   return (
-    <div className="bg-white rounded-2xl shadow-soft border border-gray-200 overflow-hidden">
-      <div className="p-5 border-b border-gray-200 flex items-center gap-3 flex-wrap">
+    <div className="bg-white rounded-2xl shadow-soft border border-line overflow-hidden">
+      <div className="p-5 border-b border-line flex items-center gap-3 flex-wrap">
         <div className="flex-1 min-w-0 flex items-center gap-2 bg-gray-50 rounded-xl px-3 min-h-[44px]">
-          <Search className="w-5 h-5 text-gray-400" />
+          <Search className="w-5 h-5 text-ink-muted" />
           <input
             type="text"
             value={search}
@@ -298,18 +298,18 @@ function UserRowItem({ u, onChanged }: { u: PeopleUser; onChanged: () => void })
         <div className="font-semibold flex items-center gap-2 flex-wrap">
           {u.full_name}
           {!u.is_active && (
-            <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">{t('settings.users.inactive')}</span>
+            <span className="text-xs font-semibold text-ink-soft bg-gray-100 px-2 py-0.5 rounded-full">{t('settings.users.inactive')}</span>
           )}
         </div>
-        <div className="text-sm text-gray-500 truncate">{u.email}</div>
+        <div className="text-sm text-ink-muted truncate">{u.email}</div>
       </div>
       <div className="hidden sm:block text-sm">
         <div className="font-semibold">{u.role ?? '—'}</div>
-        <div className="text-gray-500">{u.department ?? '—'}</div>
+        <div className="text-ink-muted">{u.department ?? '—'}</div>
       </div>
       <button
         onClick={toggleActive}
-        className="btn-sm rounded-lg hover:bg-gray-100 text-gray-500 px-3 text-sm font-medium"
+        className="btn-sm rounded-lg hover:bg-gray-100 text-ink-muted px-3 text-sm font-medium"
       >
         {u.is_active ? t('settings.users.disable') : t('settings.users.enable')}
       </button>
@@ -334,7 +334,7 @@ function DepartmentsTab() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {(data ?? []).map((d) => <DeptCard key={d.id} d={d} />)}
-      <button className="bg-white rounded-2xl p-5 border-2 border-dashed border-gray-300 hover:border-brand-400 hover:bg-brand-50 text-gray-600 hover:text-brand-700 font-bold flex items-center justify-center gap-2 min-h-[140px]">
+      <button className="bg-white rounded-2xl p-5 border-2 border-dashed border-gray-300 hover:border-brand-400 hover:bg-brand-50 text-ink-soft hover:text-brand-700 font-bold flex items-center justify-center gap-2 min-h-[140px]">
         <Plus className="w-5 h-5" />
         {t('settings.depts.add')}
       </button>
@@ -349,16 +349,16 @@ function DeptCard({ d }: { d: PeopleDepartment }) {
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
           <div className="text-xl font-bold mb-0.5">{d.name}</div>
-          <div className="num text-xs text-gray-500">{d.cost_center ?? '—'}</div>
+          <div className="num text-xs text-ink-muted">{d.cost_center ?? '—'}</div>
         </div>
-        <button className="btn-sm w-10 h-10 rounded-lg hover:bg-gray-100 text-gray-500 flex items-center justify-center" aria-label={t('common.edit')}>
+        <button className="btn-sm w-10 h-10 rounded-lg hover:bg-gray-100 text-ink-muted flex items-center justify-center" aria-label={t('common.edit')}>
           <Pencil className="w-4 h-4" />
         </button>
       </div>
       <div className="space-y-2 text-sm">
-        <div className="flex items-center gap-2 text-gray-600">
-          <Users className="w-4 h-4 text-gray-400" />
-          <strong className="num text-gray-900 font-semibold">{d.members}</strong> {t('settings.depts.members')}
+        <div className="flex items-center gap-2 text-ink-soft">
+          <Users className="w-4 h-4 text-ink-muted" />
+          <strong className="num text-ink font-semibold">{d.members}</strong> {t('settings.depts.members')}
         </div>
       </div>
     </div>
