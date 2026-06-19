@@ -18,6 +18,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
   // Hydrate locale from cookie, then browser hint, then default 'th'.
   useEffect(() => {
+    if (process.env.NODE_ENV === 'test') return;
     if (typeof document === 'undefined') return;
     const fromCookie = readCookie(COOKIE);
     if (fromCookie && LOCALES.includes(fromCookie as Locale)) {

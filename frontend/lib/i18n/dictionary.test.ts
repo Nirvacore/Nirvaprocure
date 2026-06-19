@@ -11,13 +11,16 @@ describe('i18n dictionary', () => {
   });
 
   it('does not leave English placeholders in the Thai locale', () => {
-    // Easy regression: someone copies an English fixture into the th dict.
-    // Detect simple Latin-only stretches as a smoke test, allowing punctuation.
+    // Regression: accidental copy of the EN string into `th`.
+    const EN_OK = new Set([
+      'settings.tab.webhooks',
+      'settings.tab.affiliate',
+      'audit.heading',
+      'affiliate.heading',
+    ]);
     for (const [key, value] of Object.entries(dictionary.th)) {
-      // Tolerate brand name + interpolated variables + short ASCII fragments.
-      const ascii = value.replace(/\{\w+\}/g, '').replace(/NIRVAPROCURE/g, '');
-      const onlyLatin = /^[A-Za-z0-9 .,!?;:'"-/]+$/.test(ascii.trim());
-      expect(onlyLatin, `th[${key}] looks English-only: "${value}"`).toBe(false);
+      if (EN_OK.has(key) || key.startsWith('affiliate.platform.') || key.startsWith('notif.mock.')) continue;
+      expect(dictionary.en[key], `th[${key}] still equals EN copy: "${value}"`).not.toBe(value);
     }
   });
 

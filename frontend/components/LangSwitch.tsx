@@ -24,7 +24,7 @@ const COMPACT: Record<Locale, string> = {
 };
 
 export function LangSwitch() {
-  const { locale, setLocale } = useT();
+  const { locale, setLocale, t } = useT();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -42,10 +42,10 @@ export function LangSwitch() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        aria-label="Language"
+        aria-label={t('a11y.language')}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="min-h-[44px] h-11 px-3 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 flex items-center gap-2 flex-shrink-0 text-sm font-bold"
+        className="min-h-[44px] h-11 px-3 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-ink-soft dark:text-gray-200 flex items-center gap-2 flex-shrink-0 text-sm font-bold"
       >
         <Globe className="w-4 h-4" />
         <span className="hidden sm:inline">{COMPACT[locale]}</span>
@@ -66,7 +66,7 @@ export function LangSwitch() {
               }`}
             >
               <span>{LOCALE_LABELS[l]}</span>
-              <span className="text-xs text-gray-500 uppercase">{l}</span>
+              <span className="text-xs text-ink-muted uppercase">{l}</span>
             </button>
           ))}
         </div>
