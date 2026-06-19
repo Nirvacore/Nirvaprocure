@@ -491,7 +491,15 @@ export interface ToRDraft {
   compliance_checklist: Record<string, 'passed' | 'failed' | 'na'>;
   created_at: string;
 }
+export interface ToRListItem {
+  id: string;
+  title: string;
+  procurement_kind: ToRBrief['procurement_kind'];
+  status: 'draft' | 'approved' | 'published';
+  created_at: string;
+}
 export const gov = {
+  list: () => request<ToRListItem[]>('GET', '/gov/tor/drafts'),
   createDraft: (body: { title: string; brief: ToRBrief; template_id?: string }) =>
     request<ToRDraft>('POST', '/gov/tor/drafts', body),
   getDraft: (id: string) => request<ToRDraft>('GET', `/gov/tor/drafts/${id}`),

@@ -74,7 +74,7 @@ export default function NewTorPage() {
 
   return (
     <section className="screen space-y-6 max-w-5xl mx-auto">
-      <Link href="/" className="btn-sm inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 -ml-2 px-2 rounded-lg">
+      <Link href="/gov/tor" className="btn-sm inline-flex items-center gap-2 text-ink-soft hover:text-ink -ml-2 px-2 rounded-lg">
         <ArrowLeft className="w-5 h-5" />
         <span>{t('common.back')}</span>
       </Link>
