@@ -10,54 +10,9 @@ import { useT } from '@/lib/i18n/provider';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
 import { notifications as notificationsApi, type AppNotification } from '@/lib/api';
+import { mockNotifications } from '@/lib/mock-notifications';
 import { Loading } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
-
-const MOCK_NOTIFICATIONS: AppNotification[] = [
-  {
-    id: 'n1',
-    type: 'approval_needed',
-    title: 'PR-2026-0042 รออนุมัติ',
-    body: 'Office printer ink x4 — 8,089 ฿',
-    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    read_at: null,
-    ref_id: '1',
-  },
-  {
-    id: 'n2',
-    type: 'pr_approved',
-    title: 'PR-2026-0041 อนุมัติแล้ว',
-    body: 'ถุงมือแล็บ x 200 คู่',
-    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    read_at: new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString(),
-    ref_id: '2',
-  },
-  {
-    id: 'n3',
-    type: 'po_created',
-    title: 'PO-2026-0018 ออกแล้ว',
-    body: 'บริษัท แม็คโคร จำกัด',
-    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    read_at: null,
-    ref_id: 'po-1',
-  },
-  {
-    id: 'n4',
-    type: 'stock_low',
-    title: 'สต็อกต่ำ: ถุงมือแล็บ M',
-    body: 'คงเหลือ 12 คู่ — ต่ำกว่า reorder point',
-    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    read_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-    ref_id: null,
-  },
-];
-
-interface NotifPayload {
-  items: AppNotification[];
-  lineLinked: boolean;
-}
-
-const MOCK_PAYLOAD: NotifPayload = { items: MOCK_NOTIFICATIONS, lineLinked: true };
 
 function LineStatusCard({ linked }: { linked: boolean }) {
   const { t } = useT();
@@ -131,7 +86,7 @@ function NotificationRow({
 }
 
 export default function NotificationsPage() {
-  const { t } = useT();
+  const { t, locale } = useT();
   const router = useRouter();
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [items, setItems] = useState<AppNotification[] | null>(null);
@@ -144,7 +99,8 @@ export default function NotificationsPage() {
         notificationsApi.lineStatus(),
       ]);
       return { items: notifList, lineLinked: lineStatus.linked };
-    }, MOCK_PAYLOAD),
+    }, { items: mockNotifications(locale), lineLinked: true }),
+    [locale],
   );
 
   React.useEffect(() => {

@@ -187,7 +187,7 @@ function ApprovedPrCard({
                 onClick={() => void confirmReceive()}
                 disabled={confirming}
               >
-                {confirming ? '…' : t('gr.confirm.btn')}
+                {confirming ? t('common.saving') : t('gr.confirm.btn')}
               </button>
             </div>
           </div>
