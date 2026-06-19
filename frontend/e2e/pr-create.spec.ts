@@ -1,15 +1,8 @@
 import { test, expect, type Page } from '@playwright/test';
+import { setupAuthenticatedPage } from './helpers';
 
 async function authenticate(page: Page) {
-  await page.addInitScript(() => {
-    localStorage.setItem('nirva.token',   'stub.access');
-    localStorage.setItem('nirva.refresh', 'stub.refresh');
-    localStorage.setItem('nirva.user', JSON.stringify({
-      id: 'u1', email: 'suda@nirva.co.th', full_name: 'สุดา จันทร์', org_id: 'o1',
-    }));
-  });
-  await page.route('**/v1/approvals/inbox', (r) =>
-    r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+  await setupAuthenticatedPage(page);
   await page.route('**/v1/pr*', (r) => {
     if (r.request().method() === 'GET') {
       return r.fulfill({ status: 200, contentType: 'application/json',
@@ -52,6 +45,9 @@ test('create PR from Shopee link', async ({ page }) => {
     r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
 
   await page.goto('/pr/new');
+  await page.getByRole('dialog', { name: /เกี่ยวกับคุกกี้|About cookies/i })
+    .getByRole('button', { name: /^(เฉพาะที่จำเป็น|Essential only)$/ })
+    .click({ timeout: 3_000 }).catch(() => {});
 
   // Paste a Shopee URL → parse → row appears
   await page.getByPlaceholder('https://shopee.co.th/...').fill('https://shopee.co.th/-i.1.2');

@@ -17,6 +17,9 @@ export default defineConfig({
   reporter: process.env.CI ? 'github' : 'list',
   use: {
     baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3001',
+    // Match NirvaProcure default market locale so Thai dictionary keys align
+    // with existing specs (login, approvals, etc.).
+    locale: 'th-TH',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },

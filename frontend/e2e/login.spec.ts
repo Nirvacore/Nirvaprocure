@@ -1,10 +1,12 @@
 import { test, expect, type Page } from '@playwright/test';
+import { consentCookieValue } from './helpers';
 
-/**
- * Stubs the backend so the login flow runs without a live API.
- * Returns a canned access+refresh pair and a user payload.
- */
 async function stubLogin(page: Page) {
+  const { hostname } = new URL(process.env.E2E_BASE_URL ?? 'http://localhost:3001');
+  await page.context().addCookies([
+    { name: 'nirva.locale', value: 'th', domain: hostname, path: '/' },
+    { name: 'nirva.cookie_consent', value: consentCookieValue(), domain: hostname, path: '/' },
+  ]);
   await page.route('**/v1/auth/login', async (route) => {
     const body = JSON.parse(route.request().postData() ?? '{}') as { email: string };
     await route.fulfill({
@@ -24,9 +26,9 @@ async function stubLogin(page: Page) {
 
 test.describe('login flow', () => {
   test.beforeEach(async ({ page }) => {
-    await stubLogin(page);
     await page.context().clearCookies();
     await page.addInitScript(() => localStorage.clear());
+    await stubLogin(page);
   });
 
   test('redirects unauthenticated user to /login', async ({ page }) => {
@@ -37,8 +39,8 @@ test.describe('login flow', () => {
 
   test('valid credentials land on home', async ({ page }) => {
     await page.goto('/login');
-    await page.getByLabel('อีเมล').fill('suda@nirva.co.th');
-    await page.getByLabel('รหัสผ่าน').fill('password123');
+    await page.locator('input[type="email"]').fill('suda@nirva.co.th');
+    await page.locator('input[type="password"]').fill('password123');
     await page.getByRole('button', { name: 'เข้าระบบ' }).click();
     await expect(page).toHaveURL('/');
     await expect(page.getByRole('heading', { name: /วันนี้/ })).toBeVisible();
@@ -53,8 +55,8 @@ test.describe('login flow', () => {
       }));
 
     await page.goto('/login');
-    await page.getByLabel('อีเมล').fill('wrong@nirva.co.th');
-    await page.getByLabel('รหัสผ่าน').fill('nope');
+    await page.locator('input[type="email"]').fill('wrong@nirva.co.th');
+    await page.locator('input[type="password"]').fill('nope');
     await page.getByRole('button', { name: 'เข้าระบบ' }).click();
     await expect(page.getByText('อีเมลหรือรหัสผ่านไม่ถูกต้อง')).toBeVisible();
   });
