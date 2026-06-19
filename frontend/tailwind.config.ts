@@ -23,6 +23,21 @@ const config: Config = {
           600: '#4F46E5',
           700: '#4338CA',
         },
+        // Semantic tokens — map to CSS vars in globals.css for dark-mode parity.
+        ink: {
+          DEFAULT: 'var(--text-primary)',
+          soft:    'var(--text-secondary)',
+          muted:   'var(--text-muted)',
+        },
+        surface: {
+          DEFAULT:  'var(--surface)',
+          muted:    'var(--surface-muted)',
+          elevated: 'var(--surface-elevated)',
+        },
+        line: {
+          DEFAULT: 'var(--border)',
+          strong:  'var(--border-strong)',
+        },
       },
       boxShadow: {
         soft: '0 1px 2px rgba(17,24,39,0.04), 0 4px 12px rgba(17,24,39,0.06)',

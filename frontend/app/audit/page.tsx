@@ -70,7 +70,7 @@ export default function AuditPage() {
 
   return (
     <section className="screen space-y-6">
-      <Link href="/settings" className="btn-sm inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 -ml-2 px-2 rounded-lg">
+      <Link href="/settings" className="btn-sm inline-flex items-center gap-2 text-ink-soft hover:text-ink -ml-2 px-2 rounded-lg">
         <ArrowLeft className="w-5 h-5" />
         <span>{t('common.back')}</span>
       </Link>
@@ -80,7 +80,7 @@ export default function AuditPage() {
           <Shield className="w-7 h-7 text-brand-600" />
           {t('audit.heading')}
         </h1>
-        <p className="text-base text-gray-600">{t('audit.sub')}</p>
+        <p className="text-base text-ink-soft">{t('audit.sub')}</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -91,7 +91,7 @@ export default function AuditPage() {
             className={`min-h-btn-sm px-4 rounded-full text-sm font-medium ${
               entity === f.key
                 ? 'bg-brand-600 text-white'
-                : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                : 'bg-white border border-line text-ink-soft hover:bg-gray-50'
             }`}
           >
             {t(f.labelKey)}
@@ -103,7 +103,7 @@ export default function AuditPage() {
       {initialLoading && <SkeletonRows rows={5} />}
 
       {accumulated.length === 0 && !initialLoading && !error && (
-        <p className="text-base text-gray-500">{t('audit.empty')}</p>
+        <p className="text-base text-ink-muted">{t('audit.empty')}</p>
       )}
 
       {accumulated.length > 0 && (
@@ -140,16 +140,16 @@ function AuditEntry({ row }: { row: AuditRow }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 flex-wrap">
             <code className="text-sm font-semibold text-brand-700">{row.action}</code>
-            <span className="text-xs text-gray-500">{row.entity_type}</span>
-            <span className="num text-xs text-gray-400">{row.entity_id.slice(0, 8)}</span>
+            <span className="text-xs text-ink-muted">{row.entity_type}</span>
+            <span className="num text-xs text-ink-muted/70">{row.entity_id.slice(0, 8)}</span>
           </div>
-          <div className="text-sm text-gray-600 mt-1">
-            {row.actor_name ?? <em className="text-gray-400">{t('audit.system')}</em>}
+          <div className="text-sm text-ink-soft mt-1">
+            {row.actor_name ?? <em className="text-ink-muted">{t('audit.system')}</em>}
             {' · '}
             <span className="num">{new Date(row.created_at).toLocaleString(locale)}</span>
           </div>
         </div>
-        {hasDiff && (open ? <ChevronUp className="w-5 h-5 text-gray-400 mt-1" /> : <ChevronDown className="w-5 h-5 text-gray-400 mt-1" />)}
+        {hasDiff && (open ? <ChevronUp className="w-5 h-5 text-ink-muted mt-1" /> : <ChevronDown className="w-5 h-5 text-ink-muted mt-1" />)}
       </button>
       {open && hasDiff && (
         <pre className="mt-3 p-3 bg-gray-50 rounded-lg text-xs overflow-x-auto font-mono">

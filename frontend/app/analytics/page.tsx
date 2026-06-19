@@ -84,14 +84,14 @@ export default function AnalyticsPage() {
 
   return (
     <section className="screen space-y-6">
-      <Link href="/" className="btn-sm inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 -ml-2 px-2 rounded-lg">
+      <Link href="/" className="btn-sm inline-flex items-center gap-2 text-ink-soft hover:text-ink -ml-2 px-2 rounded-lg">
         <ArrowLeft className="w-5 h-5" />
         <span>{t('common.back')}</span>
       </Link>
 
       <div>
         <h1 className="text-3xl font-bold mb-1">{t('analytics.heading')}</h1>
-        <p className="text-base text-gray-600">{t('analytics.sub', { date: data?.month_start ?? '—' })}</p>
+        <p className="text-base text-ink-soft">{t('analytics.sub', { date: data?.month_start ?? '—' })}</p>
       </div>
 
       {error && <ErrorBanner message={error.message} onRetry={refresh} />}
@@ -142,7 +142,7 @@ export default function AnalyticsPage() {
                 <Timer className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-sm text-gray-600">{t('analytics.sla.label')}</div>
+                <div className="text-sm text-ink-soft">{t('analytics.sla.label')}</div>
                 <div className="num text-2xl font-bold">
                   {data.avg_approval_hours == null
                     ? '—'
@@ -150,17 +150,17 @@ export default function AnalyticsPage() {
                 </div>
               </div>
             </div>
-            <p className="text-sm text-gray-500">{t('analytics.sla.hint')}</p>
+            <p className="text-sm text-ink-muted">{t('analytics.sla.hint')}</p>
           </div>
 
           {/* By department bar chart */}
           <div className="card">
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-gray-400" />
+              <Building2 className="w-5 h-5 text-ink-muted" />
               {t('analytics.by_dept')}
             </h2>
             {data.by_department.length === 0 ? (
-              <p className="text-base text-gray-500">{t('analytics.empty.dept')}</p>
+              <p className="text-base text-ink-muted">{t('analytics.empty.dept')}</p>
             ) : (
               <ul className="space-y-3">
                 {data.by_department.map((d) => {
@@ -169,7 +169,7 @@ export default function AnalyticsPage() {
                     <li key={d.department ?? '__unspecified__'}>
                       <div className="flex items-baseline justify-between text-sm mb-1">
                         <span className="font-semibold">{d.department ?? t('analytics.unspecified')}</span>
-                        <span className="num text-gray-600">
+                        <span className="num text-ink-soft">
                           ฿ {fmtBaht(d.spend_minor)} · {t('analytics.pr_count', { count: d.pr_count })}
                         </span>
                       </div>
@@ -190,11 +190,11 @@ export default function AnalyticsPage() {
           {/* Top suppliers */}
           <div className="card">
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-gray-400" />
+              <Trophy className="w-5 h-5 text-ink-muted" />
               {t('analytics.top_suppliers')}
             </h2>
             {data.top_suppliers.length === 0 ? (
-              <p className="text-base text-gray-500">{t('analytics.empty.suppliers')}</p>
+              <p className="text-base text-ink-muted">{t('analytics.empty.suppliers')}</p>
             ) : (
               <ol className="space-y-2">
                 {data.top_suppliers.map((s, i) => (
@@ -204,7 +204,7 @@ export default function AnalyticsPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold truncate">{s.name}</div>
-                      <div className="text-sm text-gray-500 num">{t('analytics.po_count', { count: s.po_count })}</div>
+                      <div className="text-sm text-ink-muted num">{t('analytics.po_count', { count: s.po_count })}</div>
                     </div>
                     <div className="num font-bold">฿ {fmtBaht(s.spend_minor)}</div>
                   </li>
@@ -217,7 +217,7 @@ export default function AnalyticsPage() {
           <div className="card">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-lg font-bold flex items-center gap-2">
-                <ShieldAlert className="w-5 h-5 text-gray-400" />
+                <ShieldAlert className="w-5 h-5 text-ink-muted" />
                 {t('risk.heading')}
               </h2>
               <div className="flex gap-2">
@@ -225,7 +225,7 @@ export default function AnalyticsPage() {
                   <button
                     onClick={recompute}
                     disabled={recomputing}
-                    className="btn-sm flex items-center gap-1.5 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-1 hover:bg-gray-50 disabled:opacity-50"
+                    className="btn-sm flex items-center gap-1.5 text-sm text-ink-soft border border-line rounded-lg px-3 py-1 hover:bg-gray-50 disabled:opacity-50"
                   >
                     <RefreshCw className={`w-4 h-4 ${recomputing ? 'animate-spin' : ''}`} />
                     {t('risk.refresh')}
@@ -239,17 +239,17 @@ export default function AnalyticsPage() {
                 </button>
               </div>
             </div>
-            <p className="text-sm text-gray-500 mb-4">{t('risk.sub')}</p>
+            <p className="text-sm text-ink-muted mb-4">{t('risk.sub')}</p>
 
             {risksShown && (
               <>
                 {risksLoading && (
                   <div className="flex justify-center py-6">
-                    <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                    <Loader2 className="w-6 h-6 animate-spin text-ink-muted" />
                   </div>
                 )}
                 {!risksLoading && risks && risks.length === 0 && (
-                  <p className="text-sm text-gray-500 py-2">{t('risk.empty')}</p>
+                  <p className="text-sm text-ink-muted py-2">{t('risk.empty')}</p>
                 )}
                 {!risksLoading && risks && risks.length > 0 && (
                   <ul className="space-y-2">
@@ -275,7 +275,7 @@ function StatCard({
       <div className={`w-10 h-10 rounded-xl ${accent} flex items-center justify-center mb-3`}>
         <Icon className="w-5 h-5" />
       </div>
-      <div className="text-sm text-gray-600">{label}</div>
+      <div className="text-sm text-ink-soft">{label}</div>
       <div className="num text-2xl font-bold">{value}</div>
     </div>
   );
@@ -346,7 +346,7 @@ function RiskRow({ row }: { row: SupplierRiskRow }) {
           />
           <FactorChip
             label={t('risk.factor.coi')}
-            value={row.factors.has_coi ? '⚠ Yes' : 'No'}
+            value={row.factors.has_coi ? t('risk.yes') : t('risk.no')}
             warn={row.factors.has_coi}
           />
           <FactorChip
@@ -363,8 +363,8 @@ function RiskRow({ row }: { row: SupplierRiskRow }) {
 function FactorChip({ label, value, warn }: { label: string; value: string; warn: boolean }) {
   return (
     <div className={`rounded-lg px-3 py-2 text-sm ${warn ? 'bg-amber-50 border border-amber-200' : 'bg-white border border-gray-200'}`}>
-      <div className={`text-xs ${warn ? 'text-amber-700' : 'text-gray-500'}`}>{label}</div>
-      <div className={`num font-bold ${warn ? 'text-amber-900' : 'text-gray-800'}`}>{value}</div>
+      <div className={`text-xs ${warn ? 'text-amber-700' : 'text-ink-muted'}`}>{label}</div>
+      <div className={`num font-bold ${warn ? 'text-amber-900' : 'text-ink'}`}>{value}</div>
     </div>
   );
 }

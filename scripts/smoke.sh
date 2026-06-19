@@ -111,5 +111,21 @@ me_export="$(curl -fsS -b "$cookie_jar" -H "Authorization: Bearer $APPROVER_TOKE
 echo "$me_export" | grep -q '"user"' || { echo "FAIL: export response missing user block"; exit 1; }
 echo "    export OK"
 
+# -----------------------------------------------------------------------------
+# 7. Audit log is readable
+# -----------------------------------------------------------------------------
+echo "==> GET /audit/log"
+audit_log="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" "$API/audit/log")"
+echo "$audit_log" | grep -q '"data"' || { echo "FAIL: audit log response missing data"; echo "$audit_log"; exit 1; }
+echo "    audit log OK"
+
+# -----------------------------------------------------------------------------
+# 8. Analytics summary is readable
+# -----------------------------------------------------------------------------
+echo "==> GET /analytics/summary"
+analytics_summary="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" "$API/analytics/summary")"
+echo "$analytics_summary" | grep -q 'pr_counts' || { echo "FAIL: analytics summary missing pr_counts"; echo "$analytics_summary"; exit 1; }
+echo "    analytics summary OK"
+
 echo ""
-echo "✅ SMOKE PASSED — all 6 steps green"
+echo "✅ SMOKE PASSED — all 8 steps green"

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 import { useT } from '@/lib/i18n/provider';
+import type { TranslationKey } from '@/lib/i18n/dictionary';
 
 // ─── API helpers ─────────────────────────────────────────────────────────────
 
@@ -97,7 +98,7 @@ export default function LinePage() {
   }, [t, toast]);
 
   const handleDeleteRichMenu = useCallback(async () => {
-    if (!confirm(t('line.richmenu.remove') + '?')) return;
+    if (!confirm(t('line.richmenu.confirm_remove'))) return;
     setRmBusy(true);
     try {
       await deleteRichMenu();
@@ -186,7 +187,7 @@ export default function LinePage() {
 
   return (
     <section className="screen space-y-6 max-w-3xl mx-auto">
-      <Link href="/" className="btn-sm inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 -ml-2 px-2 rounded-lg">
+      <Link href="/" className="btn-sm inline-flex items-center gap-2 text-ink-soft hover:text-ink -ml-2 px-2 rounded-lg">
         <ArrowLeft className="w-5 h-5" />
         <span>{t('common.back')}</span>
       </Link>
@@ -196,27 +197,27 @@ export default function LinePage() {
           <span className="w-10 h-10 rounded-xl bg-green-500 text-white flex items-center justify-center text-xl font-black">L</span>
           {t('line.heading')}
         </h1>
-        <p className="text-base text-gray-600">{t('line.sub')}</p>
+        <p className="text-base text-ink-soft">{t('line.sub')}</p>
       </div>
 
       {/* ── Binding card ──────────────────────────────────────────────────── */}
       <div className="card space-y-5">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold flex items-center gap-2">
-            <Link2 className="w-5 h-5 text-gray-400" />
+            <Link2 className="w-5 h-5 text-ink-muted" />
             {t('line.bind.title')}
           </h2>
 
           {/* Status pill */}
           {linked === null ? (
-            <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+            <Loader2 className="w-5 h-5 animate-spin text-ink-muted" />
           ) : linked ? (
             <span className="flex items-center gap-1.5 text-sm font-semibold text-green-700 bg-green-50 px-3 py-1 rounded-full">
               <CheckCircle2 className="w-4 h-4" />
               {t('line.bind.linked')}
             </span>
           ) : (
-            <span className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+            <span className="flex items-center gap-1.5 text-sm font-semibold text-ink-muted bg-gray-100 px-3 py-1 rounded-full">
               <Unlink className="w-4 h-4" />
               {t('line.bind.unlinked')}
             </span>
@@ -226,11 +227,11 @@ export default function LinePage() {
         {/* ── Linked state ── */}
         {linked === true && (
           <div className="space-y-3">
-            <p className="text-sm text-gray-600">{t('line.bind.linked')}</p>
+            <p className="text-sm text-ink-soft">{t('line.bind.linked')}</p>
             <div className="flex gap-2">
               <button
                 onClick={handleRefresh}
-                className="btn-sm flex items-center gap-1.5 text-gray-600 hover:text-gray-900"
+                className="btn-sm flex items-center gap-1.5 text-ink-soft hover:text-ink"
               >
                 <RefreshCw className="w-4 h-4" />
                 {t('line.bind.refresh')}
@@ -250,7 +251,7 @@ export default function LinePage() {
                   </button>
                   <button
                     onClick={() => setConfirmUnlink(false)}
-                    className="btn-sm text-gray-600 border border-gray-200 rounded-lg px-3 hover:bg-gray-50 flex items-center gap-1.5"
+                    className="btn-sm text-ink-soft border border-line rounded-lg px-3 hover:bg-gray-50 flex items-center gap-1.5"
                   >
                     <X className="w-4 h-4" />
                     {t('approvals.reject')}
@@ -299,7 +300,7 @@ export default function LinePage() {
                       <Copy className="w-4 h-4" />
                       {copied ? t('line.bind.copied') : t('line.bind.copy')}
                     </button>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-ink-muted">
                       {t('line.bind.expires', { min: String(minsLeft) })}
                     </span>
                   </div>
@@ -320,7 +321,7 @@ export default function LinePage() {
 
             {/* Step 3 */}
             <Step n={3} label={t('line.bind.step3')}>
-              <p className="text-sm text-gray-600 italic">
+              <p className="text-sm text-ink-soft italic">
                 {t('line.bind.step3')}
               </p>
             </Step>
@@ -343,23 +344,23 @@ export default function LinePage() {
       <div className="card space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold flex items-center gap-2">
-            <Grid3x3 className="w-5 h-5 text-gray-400" />
+            <Grid3x3 className="w-5 h-5 text-ink-muted" />
             {t('line.richmenu.title')}
           </h2>
-          {richMenuId === undefined && <Loader2 className="w-5 h-5 animate-spin text-gray-400" />}
+          {richMenuId === undefined && <Loader2 className="w-5 h-5 animate-spin text-ink-muted" />}
           {richMenuId !== undefined && richMenuId && (
             <span className="text-xs text-green-700 bg-green-50 px-2 py-1 rounded-full font-mono truncate max-w-[200px]">
               {richMenuId}
             </span>
           )}
         </div>
-        <p className="text-sm text-gray-600">{t('line.richmenu.sub')}</p>
+        <p className="text-sm text-ink-soft">{t('line.richmenu.sub')}</p>
 
         {/* Canvas preview (hidden — used only for image generation) */}
         <canvas ref={rmCanvasRef} width={2500} height={843} className="hidden" />
 
         {/* Visible mini-preview */}
-        <RichMenuPreview />
+        <RichMenuPreview t={t} />
 
         <div className="flex gap-2 flex-wrap">
           <button
@@ -410,7 +411,7 @@ export default function LinePage() {
                   <Row label={t('line.demo.requester')} value={t('line.demo.requester.name')} />
                   <Row label={t('line.demo.dept')} value={t('line.demo.dept.value')} />
                   <div className="flex justify-between gap-3 pt-2 border-t border-gray-100">
-                    <span className="text-gray-500">{t('detail.total')}</span>
+                    <span className="text-ink-muted">{t('detail.total')}</span>
                     <span className="num font-bold text-lg">฿ 8,089.20</span>
                   </div>
                 </div>
@@ -435,7 +436,7 @@ export default function LinePage() {
       {/* ── Notification settings ─────────────────────────────────────────── */}
       <div className="card space-y-4">
         <h2 className="text-lg font-bold flex items-center gap-2">
-          <Bell className="w-5 h-5 text-gray-400" />
+          <Bell className="w-5 h-5 text-ink-muted" />
           {t('line.settings.title')}
         </h2>
         <div className="space-y-3">
@@ -460,7 +461,7 @@ function Step({ n, label, children }: { n: number; label: string; children: Reac
         {n}
       </div>
       <div className="flex-1 space-y-2">
-        <p className="font-semibold text-sm text-gray-800">{label}</p>
+        <p className="font-semibold text-sm text-ink">{label}</p>
         {children}
       </div>
     </div>
@@ -470,7 +471,7 @@ function Step({ n, label, children }: { n: number; label: string; children: Reac
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex justify-between gap-3">
-      <span className="text-gray-500">{label}</span>
+      <span className="text-ink-muted">{label}</span>
       <span className="font-semibold">{value}</span>
     </div>
   );
@@ -482,7 +483,7 @@ function ToggleRow({ label, sub, defaultChecked = false }: { label: string; sub:
       <input type="checkbox" defaultChecked={defaultChecked} className="mt-1 w-5 h-5 rounded text-brand-600" />
       <div className="flex-1">
         <div className="font-semibold">{label}</div>
-        <div className="text-sm text-gray-600">{sub}</div>
+        <div className="text-sm text-ink-soft">{sub}</div>
       </div>
     </label>
   );
@@ -490,17 +491,21 @@ function ToggleRow({ label, sub, defaultChecked = false }: { label: string; sub:
 
 // ── Rich menu canvas helpers ──────────────────────────────────────────────────
 
-const BUTTONS = [
-  { emoji: '📥', label: 'รออนุมัติ' },
-  { emoji: '📋', label: 'ใบขอของฉัน' },
-  { emoji: '➕', label: 'ขอซื้อใหม่' },
-  { emoji: '📊', label: 'รายงาน' },
-  { emoji: '🔔', label: 'ตั้งค่า LINE' },
-  { emoji: '🏠', label: 'หน้าหลัก' },
+const RICH_MENU_BUTTONS: { emoji: string; labelKey: TranslationKey }[] = [
+  { emoji: '📥', labelKey: 'line.richmenu.btn.inbox' },
+  { emoji: '📋', labelKey: 'line.richmenu.btn.my_pr' },
+  { emoji: '➕', labelKey: 'line.richmenu.btn.new_pr' },
+  { emoji: '📊', labelKey: 'line.richmenu.btn.reports' },
+  { emoji: '🔔', labelKey: 'line.richmenu.btn.settings' },
+  { emoji: '🏠', labelKey: 'line.richmenu.btn.home' },
 ];
 
+function richMenuLabels(t: (key: TranslationKey) => string) {
+  return RICH_MENU_BUTTONS.map((btn) => ({ emoji: btn.emoji, label: t(btn.labelKey) }));
+}
+
 /** Renders the 2×3 rich menu onto a 2500×843 canvas element. */
-function drawRichMenu(canvas: HTMLCanvasElement, _t: unknown) {
+function drawRichMenu(canvas: HTMLCanvasElement, t: (key: TranslationKey) => string) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
@@ -527,8 +532,10 @@ function drawRichMenu(canvas: HTMLCanvasElement, _t: unknown) {
   ctx.lineTo(W, rh);
   ctx.stroke();
 
+  const buttons = richMenuLabels(t);
+
   // Buttons
-  BUTTONS.forEach((btn, i) => {
+  buttons.forEach((btn, i) => {
     const col = i % COLS;
     const row = Math.floor(i / COLS);
     const cx  = col * cw + cw / 2;
@@ -550,14 +557,15 @@ function drawRichMenu(canvas: HTMLCanvasElement, _t: unknown) {
 }
 
 /** Scaled-down visual preview of the rich menu (CSS only). */
-function RichMenuPreview() {
+function RichMenuPreview({ t }: { t: (key: TranslationKey) => string }) {
+  const buttons = richMenuLabels(t);
   return (
-    <div className="rounded-xl overflow-hidden border border-gray-200 bg-[#4F46E5] select-none">
+    <div className="rounded-xl overflow-hidden border border-line bg-[#4F46E5] select-none">
       <div className="grid grid-cols-3 divide-x divide-white/30">
-        {BUTTONS.slice(0, 3).map((b) => <BtnCell key={b.label} {...b} />)}
+        {buttons.slice(0, 3).map((b) => <BtnCell key={b.label} {...b} />)}
       </div>
       <div className="grid grid-cols-3 divide-x divide-white/30 border-t border-white/30">
-        {BUTTONS.slice(3).map((b) => <BtnCell key={b.label} {...b} />)}
+        {buttons.slice(3).map((b) => <BtnCell key={b.label} {...b} />)}
       </div>
     </div>
   );
