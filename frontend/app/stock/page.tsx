@@ -75,7 +75,7 @@ export default function StockPage() {
 
   return (
     <section className="screen space-y-6">
-      <Link href="/" className="btn-sm inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 -ml-2 px-2 rounded-lg">
+      <Link href="/" className="btn-sm inline-flex items-center gap-2 text-ink-soft hover:text-ink -ml-2 px-2 rounded-lg">
         <ArrowLeft className="w-5 h-5" />
         <span>{t('common.back')}</span>
       </Link>
@@ -83,7 +83,7 @@ export default function StockPage() {
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-3xl font-bold mb-1">{t('stock.heading')}</h1>
-          <p className="text-base text-gray-600">{t('stock.sub')}</p>
+          <p className="text-base text-ink-soft">{t('stock.sub')}</p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           {lowCount > 0 && (
@@ -122,10 +122,10 @@ export default function StockPage() {
       {onHand.error && <ErrorBanner message={onHand.error.message} onRetry={onHand.refresh} />}
       {onHand.loading && !onHand.data && <Loading />}
       {onHand.data && onHand.data.length === 0 && (
-        <div className="bg-white rounded-2xl p-10 text-center border border-gray-200">
-          <Package className="w-10 h-10 text-gray-400 mx-auto mb-3" />
+        <div className="bg-white rounded-2xl p-10 text-center border border-line">
+          <Package className="w-10 h-10 text-ink-muted mx-auto mb-3" />
           <div className="text-xl font-bold mb-1">{t('stock.empty.heading')}</div>
-          <div className="text-base text-gray-600">{t('stock.empty.sub')}</div>
+          <div className="text-base text-ink-soft">{t('stock.empty.sub')}</div>
         </div>
       )}
 
@@ -160,7 +160,7 @@ function FilterChip({
     <button
       onClick={onClick}
       className={`min-h-btn-sm px-4 rounded-full text-sm font-medium flex items-center gap-2 ${
-        active ? 'bg-brand-600 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+        active ? 'bg-brand-600 text-white' : 'bg-white border border-line text-ink-soft hover:bg-gray-50'
       }`}
     >
       {icon}
@@ -190,29 +190,29 @@ function StockCard({ row, onAdjust }: { row: StockOnHandRow; onAdjust: () => voi
   }
 
   return (
-    <div className={`bg-white rounded-2xl p-5 shadow-soft border-2 ${lowStock ? 'border-amber-300' : 'border-gray-200'}`}>
+    <div className={`bg-white rounded-2xl p-5 shadow-soft border-2 ${lowStock ? 'border-amber-300' : 'border-line'}`}>
       <div className="flex items-start gap-3">
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-          lowStock ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'
+          lowStock ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-ink-soft'
         }`}>
           {lowStock ? <AlertTriangle className="w-6 h-6" /> : <Package className="w-6 h-6" />}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="num text-xs text-gray-500 mb-0.5">{row.sku}</div>
+          <div className="num text-xs text-ink-muted mb-0.5">{row.sku}</div>
           <div className="text-base font-bold leading-snug">{row.name}</div>
-          <div className="text-xs text-gray-500 mt-1">{row.warehouse_code} · {row.warehouse_name}</div>
+          <div className="text-xs text-ink-muted mt-1">{row.warehouse_code} · {row.warehouse_name}</div>
         </div>
       </div>
 
       <div className="mt-4 pt-4 border-t border-gray-100">
         <div className="flex items-baseline justify-between gap-2">
-          <span className="text-sm text-gray-600">{t('stock.card.qty')}</span>
-          <span className={`num text-2xl font-bold ${lowStock ? 'text-amber-800' : 'text-gray-900'}`}>
-            {row.qty} <span className="text-base text-gray-500">{row.unit}</span>
+          <span className="text-sm text-ink-soft">{t('stock.card.qty')}</span>
+          <span className={`num text-2xl font-bold ${lowStock ? 'text-amber-800' : 'text-ink'}`}>
+            {row.qty} <span className="text-base text-ink-muted">{row.unit}</span>
           </span>
         </div>
         {row.reorder_point != null && (
-          <div className="flex items-baseline justify-between gap-2 mt-1 text-sm text-gray-600">
+          <div className="flex items-baseline justify-between gap-2 mt-1 text-sm text-ink-soft">
             <span>{t('stock.card.reorder')}</span>
             <span className="num">{row.reorder_point}</span>
           </div>
@@ -220,7 +220,7 @@ function StockCard({ row, onAdjust }: { row: StockOnHandRow; onAdjust: () => voi
         <div className="flex gap-2 mt-3">
           <button
             onClick={onAdjust}
-            className="btn-sm rounded-xl bg-white border-2 border-gray-200 hover:bg-gray-50 text-gray-700 font-bold px-3 flex-1 text-sm flex items-center justify-center gap-1"
+            className="btn-sm rounded-xl bg-white border-2 border-line hover:bg-gray-50 text-ink-soft font-bold px-3 flex-1 text-sm flex items-center justify-center gap-1"
             aria-label={t('stock.action.movement')}
           >
             {t('stock.card.adjust')}

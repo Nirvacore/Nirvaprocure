@@ -65,7 +65,7 @@ export default function HomePage() {
       icon: List,
       title: t('home.action.list'),
       subtitle: t('home.action.list.sub'),
-      accent: 'bg-gray-100 text-gray-700',
+      accent: 'bg-gray-100 text-ink-soft',
       hover: 'hover:border-gray-300',
     },
     {
@@ -91,7 +91,7 @@ export default function HomePage() {
   return (
     <section className="screen space-y-8">
       <div className="space-y-1">
-        <p className="text-base text-gray-500">{t('home.greeting', { name: firstName })}</p>
+        <p className="text-base text-ink-muted">{t('home.greeting', { name: firstName })}</p>
         <h1 className="text-3xl md:text-4xl font-bold">{t('home.heading')}</h1>
       </div>
 
@@ -112,7 +112,7 @@ export default function HomePage() {
                 {a.badge && <span className="num text-sm bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded-full">{a.badge}</span>}
                 {a.badgeOn && <span className="text-xs bg-green-100 text-green-800 font-bold px-2 py-0.5 rounded-full">{a.badgeOn}</span>}
               </div>
-              <div className="text-base text-gray-600">{a.subtitle}</div>
+              <div className="text-base text-ink-soft">{a.subtitle}</div>
             </Link>
           );
         })}
@@ -134,7 +134,7 @@ export default function HomePage() {
                 </div>
                 <div className="min-w-0">
                   <div className="font-semibold text-sm truncate">{a.title}</div>
-                  <div className="text-xs text-gray-500 truncate">{a.subtitle}</div>
+                  <div className="text-xs text-ink-muted truncate">{a.subtitle}</div>
                 </div>
               </Link>
             );
@@ -145,7 +145,7 @@ export default function HomePage() {
       <div className="card">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-xl font-bold">{t('home.summary.title')}</h2>
-          <span className="text-sm text-gray-500">{monthYear}</span>
+          <span className="text-sm text-ink-muted">{monthYear}</span>
         </div>
         {loading && !summary ? (
           <Loading />
@@ -163,7 +163,7 @@ export default function HomePage() {
 }
 
 function Stat({
-  label, value, accent, labelColor = 'text-gray-600', valueColor = 'text-gray-900', icon: Icon,
+  label, value, accent, labelColor = 'text-ink-soft', valueColor = 'text-ink', icon: Icon,
 }: { label: string; value: string; accent: string; labelColor?: string; valueColor?: string; icon?: React.ComponentType<{ className?: string }> }) {
   return (
     <div className={`p-4 rounded-xl ${accent}`}>

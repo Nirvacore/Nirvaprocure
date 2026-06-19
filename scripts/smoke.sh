@@ -127,5 +127,18 @@ analytics_summary="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" "$API/analyt
 echo "$analytics_summary" | grep -q 'pr_counts' || { echo "FAIL: analytics summary missing pr_counts"; echo "$analytics_summary"; exit 1; }
 echo "    analytics summary OK"
 
+# -----------------------------------------------------------------------------
+# 9. Stock warehouses and on-hand are readable
+# -----------------------------------------------------------------------------
+echo "==> GET /stock/warehouses"
+stock_wh="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" "$API/stock/warehouses")"
+echo "$stock_wh" | grep -q '"code"' || { echo "FAIL: stock warehouses response missing code"; echo "$stock_wh"; exit 1; }
+echo "    stock warehouses OK"
+
+echo "==> GET /stock/on-hand"
+stock_on_hand="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" "$API/stock/on-hand")"
+echo "$stock_on_hand" | grep -qE '\[|qty' || { echo "FAIL: stock on-hand response unexpected"; echo "$stock_on_hand"; exit 1; }
+echo "    stock on-hand OK"
+
 echo ""
-echo "✅ SMOKE PASSED — all 8 steps green"
+echo "✅ SMOKE PASSED — all 10 steps green"
