@@ -2,14 +2,15 @@
 import React, { useEffect, useState } from 'react';
 import { Wallet, Lock, Plus } from 'lucide-react';
 import { useT } from '@/lib/i18n/provider';
-import { budgets as budgetsApi, type BudgetRow } from '@/lib/api';
+import { budgets as budgetsApi, people as peopleApi, type BudgetRow, type PeopleDepartment } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
+import { mockDepartments } from '@/lib/mock-data';
 import { Loading } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
 
 // ---------------------------------------------------------------------------
-// Mock fallback — 4 departments with realistic THB amounts
+// Mock fallback — aligned with mockDepartments from NirvaPeople
 // ---------------------------------------------------------------------------
 function currentMonth(): string {
   const now = new Date();
@@ -18,22 +19,39 @@ function currentMonth(): string {
   return `${y}-${m}`;
 }
 
+const MOCK_DEPT_BUDGETS = [
+  { spent: 280000_00, amount: 500000_00, soft: false },
+  { spent: 650000_00, amount: 800000_00, soft: true },
+  { spent: 1150000_00, amount: 1200000_00, soft: true },
+  { spent: 120000_00, amount: 300000_00, soft: false },
+];
+
 function mockBudgets(month: string): BudgetRow[] {
   const monthStart = `${month}-01`;
-  return [
-    { id: 'bud-1', department_id: 'dept-fin',   department_name: 'การเงิน',  month_start: monthStart, amount_minor:  500000_00, spent_minor:  280000_00, remaining_minor:  220000_00, pct_used: 56, soft_block: false },
-    { id: 'bud-2', department_id: 'dept-mkt',   department_name: 'การตลาด',  month_start: monthStart, amount_minor:  800000_00, spent_minor:  650000_00, remaining_minor:  150000_00, pct_used: 81, soft_block: true  },
-    { id: 'bud-3', department_id: 'dept-it',    department_name: 'ไอที',     month_start: monthStart, amount_minor: 1200000_00, spent_minor: 1150000_00, remaining_minor:   50000_00, pct_used: 96, soft_block: true  },
-    { id: 'bud-4', department_id: 'dept-admin', department_name: 'บริหาร',   month_start: monthStart, amount_minor:  300000_00, spent_minor:  120000_00, remaining_minor:  180000_00, pct_used: 40, soft_block: false },
-  ];
+  return mockDepartments.map((d, i) => {
+    const preset = MOCK_DEPT_BUDGETS[i] ?? { spent: 0, amount: 100000_00, soft: false };
+    const remaining = preset.amount - preset.spent;
+    const pct = preset.amount > 0 ? Math.round((preset.spent / preset.amount) * 100) : 0;
+    return {
+      id: `bud-${d.cost_center}`,
+      department_id: d.cost_center,
+      department_name: d.name,
+      month_start: monthStart,
+      amount_minor: preset.amount,
+      spent_minor: preset.spent,
+      remaining_minor: remaining,
+      pct_used: pct,
+      soft_block: preset.soft,
+    };
+  });
 }
 
-const DEPARTMENTS = [
-  { id: 'dept-fin',   name: 'การเงิน' },
-  { id: 'dept-mkt',   name: 'การตลาด' },
-  { id: 'dept-it',    name: 'ไอที' },
-  { id: 'dept-admin', name: 'บริหาร' },
-];
+const MOCK_DEPARTMENTS: PeopleDepartment[] = mockDepartments.map(d => ({
+  id: d.cost_center,
+  name: d.name,
+  cost_center: d.cost_center,
+  members: d.members,
+}));
 
 function barColor(pct: number): string {
   if (pct > 90) return 'bg-red-500';
@@ -145,7 +163,14 @@ interface UpsertModalProps {
 
 function UpsertModal({ month, existing, onClose, onSaved }: UpsertModalProps) {
   const { t } = useT();
-  const [departmentId, setDepartmentId] = useState(existing?.department_id ?? DEPARTMENTS[0].id);
+  const { data: departments } = useResource(
+    () => withMockFallback(
+      () => peopleApi.listDepartments(),
+      MOCK_DEPARTMENTS,
+    ),
+  );
+  const depts = departments ?? [];
+  const [departmentId, setDepartmentId] = useState(existing?.department_id ?? depts[0]?.id ?? '');
   const [amountBaht, setAmountBaht] = useState(
     existing ? String(existing.amount_minor / 100) : '',
   );
@@ -154,21 +179,25 @@ function UpsertModal({ month, existing, onClose, onSaved }: UpsertModalProps) {
   const [err, setErr] = useState('');
 
   useEffect(() => {
-    setDepartmentId(existing?.department_id ?? DEPARTMENTS[0].id);
+    setDepartmentId(existing?.department_id ?? depts[0]?.id ?? '');
     setAmountBaht(existing ? String(existing.amount_minor / 100) : '');
     setSoftBlock(existing?.soft_block ?? false);
-  }, [existing]);
+  }, [existing, depts]);
 
   const save = async () => {
     const baht = parseFloat(amountBaht.replace(/,/g, ''));
     if (!Number.isFinite(baht) || baht < 0) {
-      setErr('กรุณากรอกจำนวนเงินที่ถูกต้อง');
+      setErr(t('budget.err.amount'));
+      return;
+    }
+    if (!departmentId) {
+      setErr(t('common.error'));
       return;
     }
     setSaving(true);
     setErr('');
     try {
-      const row = await budgetsApi.upsert({
+      await budgetsApi.upsert({
         department_id: departmentId,
         amount_minor: Math.round(baht * 100),
         month_start: `${month}-01`,
@@ -198,7 +227,7 @@ function UpsertModal({ month, existing, onClose, onSaved }: UpsertModalProps) {
               disabled={!!existing}
               onChange={e => setDepartmentId(e.target.value)}
             >
-              {DEPARTMENTS.map(d => (
+              {depts.map(d => (
                 <option key={d.id} value={d.id}>{d.name}</option>
               ))}
             </select>
@@ -212,7 +241,7 @@ function UpsertModal({ month, existing, onClose, onSaved }: UpsertModalProps) {
               step="1"
               value={amountBaht}
               onChange={e => setAmountBaht(e.target.value)}
-              placeholder="500000"
+              placeholder={t('budget.amount.placeholder')}
             />
           </label>
           <label className="flex items-center gap-3 cursor-pointer">
@@ -230,7 +259,7 @@ function UpsertModal({ month, existing, onClose, onSaved }: UpsertModalProps) {
             {t('budget.cancel')}
           </button>
           <button className="btn-primary" onClick={() => void save()} disabled={saving}>
-            {saving ? '…' : t('budget.save')}
+            {saving ? t('common.saving') : t('budget.save')}
           </button>
         </div>
       </div>

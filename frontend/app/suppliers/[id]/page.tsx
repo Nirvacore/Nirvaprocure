@@ -360,7 +360,7 @@ function DetailBody({
                 {t('common.cancel')}
               </button>
               <button className="btn-danger" onClick={() => void archive()} disabled={archiving}>
-                {archiving ? '…' : t('suppliers.archive')}
+                {archiving ? t('common.saving') : t('suppliers.archive')}
               </button>
             </div>
           </div>

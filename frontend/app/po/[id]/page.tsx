@@ -137,7 +137,7 @@ function DetailBody({
             disabled={updating}
             onClick={() => void changeStatus('sent')}
           >
-            {updating ? '…' : t('po.send')}
+            {updating ? t('common.saving') : t('po.send')}
           </button>
         )}
         {status === 'sent' && (
@@ -147,7 +147,7 @@ function DetailBody({
             disabled={updating}
             onClick={() => void changeStatus('received')}
           >
-            {updating ? '…' : t('po.receive')}
+            {updating ? t('common.saving') : t('po.receive')}
           </button>
         )}
         {status === 'cancelled' && (
