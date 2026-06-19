@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { X, Loader2, PackagePlus } from 'lucide-react';
 import { stock as stockApi, ApiError, type StockMoveType, type StockOnHandRow, type Warehouse } from '@/lib/api';
 import { useToast } from '@/components/Toast';
@@ -32,6 +32,7 @@ const TYPE_OPTIONS: { key: StockMoveType; labelKey: TranslationKey; hintKey: Tra
 export function MovementModal({ open, onClose, onSaved, items, warehouses, prefill }: Props) {
   const { toast } = useToast();
   const { t } = useT();
+  const titleId = useId();
   const [type, setType]               = useState<StockMoveType>('receive');
   const [itemId, setItemId]           = useState(prefill?.item_id ?? items[0]?.id ?? '');
   const [warehouseId, setWarehouseId] = useState(prefill?.warehouse_id ?? warehouses[0]?.id ?? '');
@@ -70,13 +71,18 @@ export function MovementModal({ open, onClose, onSaved, items, warehouses, prefi
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-lift max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center gap-3 p-5 border-b border-gray-100">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="bg-white rounded-2xl w-full max-w-md shadow-lift max-h-[90vh] overflow-y-auto"
+      >
+        <div className="flex items-center gap-3 p-5 border-b border-line">
           <div className="w-10 h-10 rounded-xl bg-brand-100 text-brand-700 flex items-center justify-center">
             <PackagePlus className="w-5 h-5" />
           </div>
-          <h2 className="text-lg font-bold flex-1">{t('move.title')}</h2>
-          <button onClick={onClose} aria-label={t('common.close')} className="btn-sm w-10 h-10 rounded-lg hover:bg-gray-100 text-gray-500 flex items-center justify-center">
+          <h2 id={titleId} className="text-lg font-bold flex-1">{t('move.title')}</h2>
+          <button onClick={onClose} aria-label={t('common.close')} className="btn-sm w-10 h-10 rounded-lg hover:bg-gray-100 text-ink-muted flex items-center justify-center">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -94,7 +100,7 @@ export function MovementModal({ open, onClose, onSaved, items, warehouses, prefi
                   }`}
                 >
                   <div className="font-semibold text-sm">{t(opt.labelKey)}</div>
-                  <div className="text-xs text-gray-500">{t(opt.hintKey)}</div>
+                  <div className="text-xs text-ink-muted">{t(opt.hintKey)}</div>
                 </button>
               ))}
             </div>

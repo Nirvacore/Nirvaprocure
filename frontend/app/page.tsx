@@ -102,7 +102,7 @@ export default function HomePage() {
             <Link
               key={a.href}
               href={a.href}
-              className={`text-left bg-white rounded-2xl p-6 shadow-soft hover:shadow-lift transition border border-gray-200 ${a.hover} group block`}
+              className={`text-left bg-white rounded-2xl p-6 shadow-soft hover:shadow-lift transition border border-line ${a.hover} group block`}
             >
               <div className={`w-14 h-14 rounded-2xl ${a.accent} flex items-center justify-center mb-4 group-hover:scale-105 transition`}>
                 <Icon className="w-7 h-7" />
@@ -127,7 +127,7 @@ export default function HomePage() {
               <Link
                 key={a.href}
                 href={a.href}
-                className={`flex items-center gap-3 bg-white rounded-xl p-4 shadow-soft border border-gray-200 ${a.hover} transition`}
+                className={`flex items-center gap-3 bg-white rounded-xl p-4 shadow-soft border border-line ${a.hover} transition`}
               >
                 <div className={`w-10 h-10 rounded-xl ${a.accent} flex items-center justify-center flex-shrink-0`}>
                   <Icon className="w-5 h-5" />

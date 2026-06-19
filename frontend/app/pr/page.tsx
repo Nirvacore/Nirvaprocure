@@ -87,7 +87,7 @@ export default function PrListPage() {
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-3xl font-bold mb-1">{t('pr.list.heading')}</h1>
-          <p className="text-base text-gray-600">{t('pr.list.sub')}</p>
+          <p className="text-base text-ink-soft">{t('pr.list.sub')}</p>
         </div>
         <Link href="/pr/new" className="btn-primary px-6">
           <Plus className="w-5 h-5" />
@@ -104,7 +104,7 @@ export default function PrListPage() {
               'min-h-btn-sm px-4 rounded-full text-sm font-medium',
               filter === f.key
                 ? 'bg-brand-600 text-white'
-                : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50',
+                : 'bg-white border border-line text-ink-soft hover:bg-gray-50',
             )}
           >
             {t(f.tKey)}
@@ -123,19 +123,19 @@ export default function PrListPage() {
             <Link
               key={r.id}
               href={`/pr/${r.id}`}
-              className="block w-full text-left bg-white rounded-2xl p-5 shadow-soft border border-gray-200 hover:border-brand-300 hover:shadow-lift transition group"
+              className="block w-full text-left bg-white rounded-2xl p-5 shadow-soft border border-line hover:border-brand-300 hover:shadow-lift transition group"
             >
               <div className="flex items-start gap-3">
                 <div className="flex-1 min-w-0">
-                  <div className="num text-xs text-gray-500 mb-0.5">{r.pr_number}</div>
+                  <div className="num text-xs text-ink-muted mb-0.5">{r.pr_number}</div>
                   <div className="text-lg font-bold mb-1 leading-snug">{r.title}</div>
-                  <div className="text-sm text-gray-600 flex items-center gap-2 flex-wrap">
+                  <div className="text-sm text-ink-soft flex items-center gap-2 flex-wrap">
                     <span className="font-medium">{srcLabel[r.source]}</span>
                     <span>·</span>
                     <span>{r.created_at}</span>
                   </div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-brand-600 transition flex-shrink-0 mt-1" />
+                <ChevronRight className="w-5 h-5 text-ink-muted group-hover:text-brand-600 transition flex-shrink-0 mt-1" />
               </div>
               <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
                 <StatusPill status={r.status} />
@@ -165,12 +165,12 @@ export default function PrListPage() {
 function EmptyState({ filterLabel }: { filterLabel: string }) {
   const { t } = useT();
   return (
-    <div className="bg-white rounded-2xl p-10 text-center border border-gray-200">
+    <div className="bg-white rounded-2xl p-10 text-center border border-line">
       <div className="w-16 h-16 rounded-full bg-gray-100 mx-auto mb-4 flex items-center justify-center">
-        <SearchX className="w-8 h-8 text-gray-400" />
+        <SearchX className="w-8 h-8 text-ink-muted" />
       </div>
       <div className="text-xl font-bold mb-1">{t('pr.empty.heading', { filter: filterLabel })}</div>
-      <div className="text-base text-gray-600 mb-4">{t('pr.empty.sub')}</div>
+      <div className="text-base text-ink-soft mb-4">{t('pr.empty.sub')}</div>
       <Link href="/pr/new" className="btn-primary btn-sm px-5 inline-flex">
         <Plus className="w-5 h-5" />
         {t('pr.list.new')}

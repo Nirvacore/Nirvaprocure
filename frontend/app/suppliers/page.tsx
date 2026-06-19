@@ -25,7 +25,7 @@ function RiskBadge({ tier }: { tier: RiskTier | null }) {
   const { t } = useT();
   if (!tier) {
     return (
-      <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+      <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-ink-muted">
         {t('suppliers.risk.none')}
       </span>
     );
@@ -160,32 +160,32 @@ function SupplierCard({ row }: { row: SupplierRow }) {
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0">
           <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
-            <Building2 className="w-5 h-5 text-gray-500" />
+            <Building2 className="w-5 h-5 text-ink-muted" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-gray-900 truncate">{row.name}</span>
+              <span className="font-semibold text-ink truncate">{row.name}</span>
               {!row.is_active && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 flex items-center gap-1">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-ink-muted flex items-center gap-1">
                   <XCircle className="w-3 h-3" />{t('suppliers.inactive')}
                 </span>
               )}
             </div>
-            <div className="text-sm text-gray-500 mt-0.5">
+            <div className="text-sm text-ink-muted mt-0.5">
               <span className="font-mono text-xs bg-gray-100 px-1.5 py-0.5 rounded mr-2">{row.code}</span>
               {row.category && <span className="mr-2">{row.category}</span>}
             </div>
             {row.contact_email && (
-              <div className="text-sm text-gray-500 mt-1">{row.contact_email}</div>
+              <div className="text-sm text-ink-muted mt-1">{row.contact_email}</div>
             )}
           </div>
         </div>
         <RiskBadge tier={row.risk_tier as RiskTier | null} />
       </div>
-      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-4 text-sm text-gray-600">
+      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-4 text-sm text-ink-soft">
         <span>{t('suppliers.pr_count').replace('{n}', String(row.total_pr_count))}</span>
         <span className="text-gray-300">|</span>
-        <span className="font-medium text-gray-800">{fmt(row.total_spent_minor)}</span>
+        <span className="font-medium text-ink">{fmt(row.total_spent_minor)}</span>
       </div>
     </Link>
   );
@@ -242,7 +242,7 @@ export default function SuppliersPage() {
     <main className="max-w-4xl mx-auto px-4 py-8 pb-24 md:pb-8">
       {/* Header */}
       <div className="flex items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">{t('suppliers.title')}</h1>
+        <h1 className="text-2xl font-bold text-ink">{t('suppliers.title')}</h1>
         <button className="btn-primary flex items-center gap-1.5" onClick={() => setShowAdd(true)}>
           <Plus className="w-4 h-4" />
           <span className="hidden sm:inline">{t('suppliers.add')}</span>
@@ -252,7 +252,7 @@ export default function SuppliersPage() {
 
       {/* Search */}
       <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted pointer-events-none" />
         <input
           className="input pl-9 w-full"
           placeholder={t('suppliers.search')}
@@ -268,8 +268,8 @@ export default function SuppliersPage() {
       ) : rows.length === 0 ? (
         <div className="text-center py-20">
           <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="font-medium text-gray-700">{t('suppliers.empty')}</p>
-          <p className="text-sm text-gray-500 mt-1">{t('suppliers.empty.sub')}</p>
+          <p className="font-medium text-ink-soft">{t('suppliers.empty')}</p>
+          <p className="text-sm text-ink-muted mt-1">{t('suppliers.empty.sub')}</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -285,7 +285,7 @@ export default function SuppliersPage() {
           {/* Inactive suppliers */}
           {inactive.length > 0 && (
             <section>
-              <h2 className="text-sm font-medium text-gray-500 mb-3">{t('suppliers.inactive')}</h2>
+              <h2 className="text-sm font-medium text-ink-muted mb-3">{t('suppliers.inactive')}</h2>
               <div className="grid gap-3 opacity-60">
                 {inactive.map(row => <SupplierCard key={row.id} row={row} />)}
               </div>

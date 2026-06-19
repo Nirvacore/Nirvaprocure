@@ -27,9 +27,9 @@ export function Header() {
   const dept    = user?.email ?? '';
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+    <header className="bg-white border-b border-line sticky top-0 z-30">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3 sm:gap-6">
-        <Link href="/" className="flex items-center gap-2 sm:gap-3 font-bold text-base sm:text-xl text-gray-900 flex-shrink-0 -ml-1 p-1 rounded-lg">
+        <Link href="/" className="flex items-center gap-2 sm:gap-3 font-bold text-base sm:text-xl text-ink flex-shrink-0 -ml-1 p-1 rounded-lg">
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-brand-600 flex items-center justify-center text-white">
             <Sparkles className="w-5 h-5" />
           </div>
@@ -55,7 +55,7 @@ export function Header() {
         <Link
           href="/search"
           aria-label={t('nav.search')}
-          className="min-h-[44px] w-11 h-11 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center flex-shrink-0"
+          className="min-h-[44px] w-11 h-11 rounded-full bg-gray-100 hover:bg-gray-200 text-ink-soft flex items-center justify-center flex-shrink-0"
         >
           <Search className="w-5 h-5" />
         </Link>
@@ -74,7 +74,7 @@ export function Header() {
         <Link
           href="/settings"
           aria-label={t('nav.settings')}
-          className="min-h-[44px] w-11 h-11 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center flex-shrink-0"
+          className="min-h-[44px] w-11 h-11 rounded-full bg-gray-100 hover:bg-gray-200 text-ink-soft flex items-center justify-center flex-shrink-0"
         >
           <Settings className="w-5 h-5" />
         </Link>
@@ -82,23 +82,24 @@ export function Header() {
         <div ref={menuRef} className="relative">
           <button
             onClick={() => setOpen((v) => !v)}
-            className="flex items-center gap-3 sm:pl-3 sm:border-l border-gray-200 whitespace-nowrap flex-shrink-0 min-h-[44px] rounded-lg"
+            className="flex items-center gap-3 sm:pl-3 sm:border-l border-line whitespace-nowrap flex-shrink-0 min-h-[44px] rounded-lg"
             aria-haspopup="menu"
             aria-expanded={open}
+            aria-label={t('a11y.user_menu')}
           >
             <div className="w-10 h-10 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center">
               {initial}
             </div>
             <div className="hidden lg:block leading-tight text-left">
               <div className="font-semibold text-sm">{user?.full_name ?? ''}</div>
-              <div className="text-xs text-gray-500">{dept}</div>
+              <div className="text-xs text-ink-muted">{dept}</div>
             </div>
           </button>
           {open && (
-            <div role="menu" className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lift border border-gray-200 overflow-hidden">
-              <div className="px-4 py-3 border-b border-gray-100">
+            <div role="menu" className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lift border border-line overflow-hidden">
+              <div className="px-4 py-3 border-b border-line">
                 <div className="font-semibold truncate">{user?.full_name}</div>
-                <div className="text-xs text-gray-500 truncate">{user?.email}</div>
+                <div className="text-xs text-ink-muted truncate">{user?.email}</div>
               </div>
               <button
                 onClick={logout}

@@ -41,31 +41,33 @@ function LoginInner() {
             <Sparkles className="w-7 h-7" />
           </div>
           <h1 className="text-2xl font-bold">{t('login.heading')}</h1>
-          <p className="text-sm text-gray-600">{t('login.sub')}</p>
+          <p className="text-sm text-ink-soft">{t('login.sub')}</p>
         </div>
 
         <form onSubmit={submit} className="space-y-5" noValidate>
           <div>
-            <label className="block font-semibold mb-2 text-base">{t('login.email')}</label>
+            <label htmlFor="login-email" className="block font-semibold mb-2 text-base">{t('login.email')}</label>
             <input
+              id="login-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
               required
-              className="w-full px-4 rounded-xl border-2 border-gray-200 focus:border-brand-500 outline-none"
+              className="w-full px-4 rounded-xl border-2 border-line focus:border-brand-500 outline-none"
             />
           </div>
 
           <div>
-            <label className="block font-semibold mb-2 text-base">{t('login.password')}</label>
+            <label htmlFor="login-password" className="block font-semibold mb-2 text-base">{t('login.password')}</label>
             <input
+              id="login-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
               required
-              className="w-full px-4 rounded-xl border-2 border-gray-200 focus:border-brand-500 outline-none"
+              className="w-full px-4 rounded-xl border-2 border-line focus:border-brand-500 outline-none"
             />
           </div>
 
@@ -82,12 +84,12 @@ function LoginInner() {
           </button>
         </form>
 
-        <div className="text-center text-xs text-gray-500 pt-3 border-t border-gray-100">
+        <div className="text-center text-xs text-ink-muted pt-3 border-t border-line">
           {t('login.hint')}: <code className="font-mono">suda@nirva.co.th</code> / <code className="font-mono">password123</code>
         </div>
 
-        <div className="text-center text-xs text-gray-500 pt-2">
-          <a href="/privacy" className="text-gray-600 hover:text-brand-700 underline">
+        <div className="text-center text-xs text-ink-muted pt-2">
+          <a href="/privacy" className="text-ink-soft hover:text-brand-700 underline">
             {t('privacy.title')}
           </a>
         </div>

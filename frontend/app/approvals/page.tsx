@@ -65,7 +65,7 @@ export default function ApprovalsPage() {
     <section className="screen space-y-6">
       <div>
         <h1 className="text-3xl font-bold mb-1">{t('approvals.heading')}</h1>
-        <p className="text-base text-gray-600">
+        <p className="text-base text-ink-soft">
           {t('approvals.sub', { count: items?.length ?? 0 })}
         </p>
       </div>
@@ -82,8 +82,8 @@ export default function ApprovalsPage() {
         </div>
       )}
 
-      <div className="pt-6 border-t border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-500 mb-3">{t('approvals.recent.title')}</h2>
+      <div className="pt-6 border-t border-line">
+        <h2 className="text-lg font-semibold text-ink-muted mb-3">{t('approvals.recent.title')}</h2>
         <div className="space-y-2">
           <RecentDecision icon="check" title={t('approvals.recent.demo1.title')} by={t('approvals.recent.demo1.by')} label={t('status.approved')} labelCls="text-green-700" iconCls="bg-green-100 text-green-700" />
           <RecentDecision icon="x" title={t('approvals.recent.demo2.title')} by={t('approvals.recent.demo2.by')} label={t('status.rejected')} labelCls="text-red-700" iconCls="bg-red-100 text-red-700" />
@@ -96,7 +96,7 @@ export default function ApprovalsPage() {
 function InboxCard({ it, onDecide }: { it: InboxItem; onDecide: (i: InboxItem, d: 'approved' | 'rejected') => void }) {
   const { t } = useT();
   return (
-    <div className={`bg-white rounded-2xl p-5 sm:p-6 shadow-soft border ${it.urgent ? 'border-amber-300' : 'border-gray-200'}`}>
+    <div className={`bg-white rounded-2xl p-5 sm:p-6 shadow-soft border ${it.urgent ? 'border-amber-300' : 'border-line'}`}>
       {it.urgent && (
         <div className="flex items-center gap-2 text-amber-800 font-semibold text-sm mb-3 -mt-1">
           <AlertTriangle className="w-4 h-4" />
@@ -108,16 +108,16 @@ function InboxCard({ it, onDecide }: { it: InboxItem; onDecide: (i: InboxItem, d
           {it.requester[0]}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="num text-xs text-gray-500 mb-0.5">{it.pr_number}</div>
+          <div className="num text-xs text-ink-muted mb-0.5">{it.pr_number}</div>
           <div className="text-lg sm:text-xl font-bold mb-1 leading-snug">{it.title}</div>
-          <div className="text-sm sm:text-base text-gray-600">
+          <div className="text-sm sm:text-base text-ink-soft">
             {it.requester}{it.dept ? ` · ${it.dept}` : ''}<br className="sm:hidden" />
             <span className="hidden sm:inline"> · </span>{it.age}
           </div>
         </div>
       </div>
       <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
-        <div className="text-sm text-gray-500">{t('approvals.items', { count: it.items })} · {srcLabel[it.source].replace(/^[^\s]+\s/, '')}</div>
+        <div className="text-sm text-ink-muted">{t('approvals.items', { count: it.items })} · {srcLabel[it.source].replace(/^[^\s]+\s/, '')}</div>
         <div className="num text-2xl font-bold">฿ {fmtBaht(it.total_minor)}</div>
       </div>
       <div className="flex flex-col sm:flex-row gap-3">
@@ -158,13 +158,13 @@ function RecentDecision({
 }: { icon: 'check' | 'x'; title: string; by: string; label: string; labelCls: string; iconCls: string }) {
   const Icon = icon === 'check' ? Check : X;
   return (
-    <div className="bg-white rounded-xl p-4 border border-gray-200 flex items-center gap-4">
+    <div className="bg-white rounded-xl p-4 border border-line flex items-center gap-4">
       <div className={`w-10 h-10 rounded-full ${iconCls} flex items-center justify-center`}>
         <Icon className="w-5 h-5" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="font-semibold truncate">{title}</div>
-        <div className="text-sm text-gray-500">{by}</div>
+        <div className="text-sm text-ink-muted">{by}</div>
       </div>
       <span className={`text-sm font-medium ${labelCls} flex-shrink-0`}>{label}</span>
     </div>

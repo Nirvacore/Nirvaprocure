@@ -15,9 +15,9 @@ test.describe('settings page', () => {
 
   test('switches between settings tabs', async ({ page }) => {
     await gotoAuthenticated(page, '/settings');
-    await page.getByRole('button', { name: 'ผู้ใช้' }).click();
+    await page.getByRole('main').getByRole('button', { name: 'ผู้ใช้', exact: true }).click();
     await expect(page.getByPlaceholder('ค้นหาชื่อหรืออีเมล')).toBeVisible();
-    await page.getByRole('button', { name: 'แผนก' }).click();
+    await page.getByRole('main').getByRole('button', { name: 'แผนก', exact: true }).click();
     await expect(page.getByRole('button', { name: 'เพิ่มแผนกใหม่' })).toBeVisible();
   });
 });
