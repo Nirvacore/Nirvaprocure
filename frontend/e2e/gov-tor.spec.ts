@@ -21,8 +21,9 @@ test.describe('gov tor list', () => {
     await gotoAuthenticated(page, '/gov/tor');
     await page.getByRole('link', { name: /จัดซื้อเครื่องคอมพิวเตอร์/ }).click();
     await expect(page).toHaveURL(/\/gov\/tor\/tor-1$/);
-    await expect(page.getByRole('heading', { name: 'รายละเอียด ToR' })).toBeVisible();
-    await expect(page.getByText('tor-1')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'จัดซื้อเครื่องคอมพิวเตอร์ จำนวน 20 เครื่อง' })).toBeVisible();
+    await expect(page.getByText('๑. ความเป็นมา')).toBeVisible();
+    await expect(page.getByText('เช็คลิสต์การปฏิบัติ')).toBeVisible();
     await page.getByRole('link', { name: 'กลับไปรายการ ToR' }).click();
     await expect(page).toHaveURL(/\/gov\/tor$/);
   });

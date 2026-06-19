@@ -48,6 +48,24 @@ export class GovService {
     });
   }
 
+  listDrafts(user: CurrentUser) {
+    return withOrg(this.pool, user.orgId, async (c) => {
+      const r = await c.query(
+        `SELECT id, title, status, brief_json, created_at
+         FROM tor_drafts
+         ORDER BY created_at DESC
+         LIMIT 100`,
+      );
+      return r.rows.map((row) => ({
+        id: row.id as string,
+        title: row.title as string,
+        procurement_kind: (row.brief_json as ToRBrief).procurement_kind,
+        status: mapTorListStatus(row.status as string),
+        created_at: row.created_at as string,
+      }));
+    });
+  }
+
   async createDraft(
     user: CurrentUser,
     body: { title: string; brief: ToRBrief; template_id?: string },
@@ -125,4 +143,11 @@ export class GovService {
       { model: 'gpt-4o-mini', maxTokens: 2000 },
     );
   }
+}
+
+/** Map DB tor_status to the simplified labels the list UI expects. */
+function mapTorListStatus(db: string): 'draft' | 'approved' | 'published' {
+  if (db === 'approved') return 'approved';
+  if (db === 'archived') return 'published';
+  return 'draft';
 }

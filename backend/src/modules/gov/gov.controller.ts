@@ -56,6 +56,11 @@ export class GovController {
     return this.svc.listTemplates(user);
   }
 
+  @Get('drafts')
+  listDrafts(@CurrentUser() user: CU) {
+    return this.svc.listDrafts(user);
+  }
+
   @Post('drafts')
   createDraft(@CurrentUser() user: CU, @Body() dto: CreateDraftDto) {
     return this.svc.createDraft(user, dto);

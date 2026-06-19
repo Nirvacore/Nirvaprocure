@@ -192,6 +192,44 @@ async function request<T>(
   return data as T;
 }
 
+/** Unauthenticated request — supplier portal token is the credential. */
+async function publicRequest<T>(
+  method: 'GET' | 'POST',
+  path: string,
+  body?: unknown,
+): Promise<T> {
+  const headers: Record<string, string> = { Accept: 'application/json' };
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+
+  const res = await fetch(`${BASE}${path}`, {
+    method,
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+    credentials: 'omit',
+  });
+
+  if (res.status === 204) return undefined as T;
+
+  let data: unknown = null;
+  const text = await res.text();
+  if (text) {
+    try { data = JSON.parse(text); } catch { data = text; }
+  }
+
+  if (!res.ok) {
+    const err = (data && typeof data === 'object')
+      ? (data as { code?: string; message?: string; details?: unknown })
+      : {};
+    throw new ApiError(
+      res.status,
+      err.code ?? `HTTP_${res.status}`,
+      err.message ?? `Request failed: ${res.status}`,
+      err.details,
+    );
+  }
+  return data as T;
+}
+
 // ---------------------------------------------------------------------------
 // Auth
 // ---------------------------------------------------------------------------
@@ -521,6 +559,36 @@ export const importCsv = {
 };
 
 // ---------------------------------------------------------------------------
+// Supplier portal (public — token in URL)
+// ---------------------------------------------------------------------------
+export interface PortalLine {
+  pr_id: string;
+  pr_number: string;
+  pr_title: string;
+  description: string;
+  quantity: number;
+  unit: string;
+  unit_price_minor: number;
+  line_total_minor: number;
+  status: string;
+}
+export interface PortalOverview {
+  supplier_name: string;
+  expires_at: string;
+  lines: PortalLine[];
+}
+export const portal = {
+  overview: (token: string) =>
+    publicRequest<PortalOverview>('GET', `/portal/${encodeURIComponent(token)}`),
+  acknowledge: (token: string, prId: string, note?: string) =>
+    publicRequest<{ ok: boolean }>(
+      'POST',
+      `/portal/${encodeURIComponent(token)}/pr/${encodeURIComponent(prId)}/ack`,
+      note ? { note } : {},
+    ),
+};
+
+// ---------------------------------------------------------------------------
 // Supplier portal admin (issue/revoke/list opaque tokens)
 // ---------------------------------------------------------------------------
 export interface PortalTokenRow {
@@ -776,6 +844,6 @@ export const analytics = {
 
 export const api = {
   auth, pr, approvals, workflows, notifications, ai, finance, people, stock, gov,
-  analytics, portalAdmin, importCsv, budgets, webhooks, audit, suppliers, po,
+  analytics, portal, portalAdmin, importCsv, budgets, webhooks, audit, suppliers, po,
 };
 export default api;
