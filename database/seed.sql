@@ -129,4 +129,22 @@ INSERT INTO approval_instances (
   1
 ) ON CONFLICT (id) DO NOTHING;
 
+-- ---------------------------------------------------------------------------
+-- NirvaGov — TOR template library (matches frontend mock names)
+-- ---------------------------------------------------------------------------
+INSERT INTO tor_templates (id, org_id, name, procurement_kind, body_markdown, is_official) VALUES
+  ('88888888-8888-8888-8888-888888888801', '00000000-0000-0000-0000-000000000001',
+   'จัดซื้อครุภัณฑ์ทั่วไป', 'goods',
+   E'## ขอบเขตของงาน\n{{scope}}\n\n## งบประมาณ\n{{budget_minor}} {{currency}}\n\n## สิ่งที่ต้องส่งมอบ\n{{deliverables}}',
+   TRUE),
+  ('88888888-8888-8888-8888-888888888802', '00000000-0000-0000-0000-000000000001',
+   'จ้างเหมาบริการมาตรฐาน', 'services',
+   E'## ขอบเขตของงาน\n{{scope}}\n\n## ระยะเวลา\n{{timeline}}\n\n## เกณฑ์การพิจารณา\n{{evaluation_method}}',
+   TRUE),
+  ('88888888-8888-8888-8888-888888888803', '00000000-0000-0000-0000-000000000001',
+   'งานก่อสร้างขนาดเล็ก', 'construction',
+   E'## ขอบเขตของงาน\n{{scope}}\n\n## คุณสมบัติผู้ยื่นข้อเสนอ\n{{qualifications}}',
+   FALSE)
+ON CONFLICT (id) DO NOTHING;
+
 COMMIT;

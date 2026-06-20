@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Pool } from 'pg';
 import { PG_POOL } from '../../common/db/db.module';
 import { withOrg } from '../../common/db/with-org';
@@ -6,6 +6,14 @@ import { OpenAiProvider } from '../ai/openai.provider';
 import type { CurrentUser } from '../../common/auth/current-user.decorator';
 
 export type ProcurementKind = 'goods' | 'services' | 'construction';
+export type TorStatus = 'draft' | 'review' | 'approved' | 'archived';
+
+const TOR_NEXT_STATUS: Record<TorStatus, TorStatus | null> = {
+  draft:     'review',
+  review:    'approved',
+  approved:  'archived',
+  archived:  null,
+};
 
 export interface ToRBrief {
   procurement_kind: ProcurementKind;
@@ -95,6 +103,26 @@ export class GovService {
          FROM tor_drafts WHERE id = $1`, [id],
       );
       if (r.rowCount === 0) throw new NotFoundException();
+      return r.rows[0];
+    });
+  }
+
+  advanceDraftStatus(user: CurrentUser, id: string) {
+    return withOrg(this.pool, user.orgId, async (c) => {
+      const cur = await c.query(
+        `SELECT status FROM tor_drafts WHERE id = $1`, [id],
+      );
+      if (cur.rowCount === 0) throw new NotFoundException();
+      const current = cur.rows[0].status as TorStatus;
+      const next = TOR_NEXT_STATUS[current];
+      if (!next) throw new BadRequestException('TOR is already at the final status');
+
+      const r = await c.query(
+        `UPDATE tor_drafts SET status = $2, updated_at = now()
+         WHERE id = $1
+         RETURNING id, title, status, body_markdown, compliance_checklist, created_at`,
+        [id, next],
+      );
       return r.rows[0];
     });
   }

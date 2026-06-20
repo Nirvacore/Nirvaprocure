@@ -81,4 +81,22 @@ test.describe('gov tor list', () => {
     await expect(page).toHaveURL(/\/gov\/tor$/);
     await expect(page.getByRole('heading', { name: 'ข้อกำหนดการจัดซื้อ (ToR)' })).toBeVisible();
   });
+
+  test('advances draft status on detail page', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/tor-1');
+    await expect(page.getByText('ร่าง').first()).toBeVisible();
+    await page.getByRole('button', { name: 'ส่งตรวจสอบ' }).click();
+    await expect(page.getByText('อัปเดตสถานะแล้ว')).toBeVisible();
+    await expect(page.getByText('อยู่ระหว่างตรวจสอบ').first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'อนุมัติ' })).toBeVisible();
+  });
+
+  test('copy button copies markdown body', async ({ page, context }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await gotoAuthenticated(page, '/gov/tor/tor-1');
+    await page.getByRole('button', { name: 'คัดลอกเนื้อหา' }).click();
+    await expect(page.getByText('คัดลอกไปยังคลิปบอร์ดแล้ว')).toBeVisible();
+    const text = await page.evaluate(() => navigator.clipboard.readText());
+    expect(text).toContain('๑. ความเป็นมา');
+  });
 });

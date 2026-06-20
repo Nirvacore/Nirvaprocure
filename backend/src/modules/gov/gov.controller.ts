@@ -73,4 +73,12 @@ export class GovController {
   ) {
     return this.svc.getDraft(user, id);
   }
+
+  @Post('drafts/:id/advance')
+  advanceDraft(
+    @CurrentUser() user: CU,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ) {
+    return this.svc.advanceDraftStatus(user, id);
+  }
 }
