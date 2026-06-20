@@ -20,4 +20,13 @@ test.describe('audit page', () => {
     await expect(page.getByText('workflow.update')).toBeVisible();
     await expect(page.getByText('pr.create')).not.toBeVisible();
   });
+
+  test('load more appends additional audit rows', async ({ page }) => {
+    await gotoAuthenticated(page, '/audit');
+    await expect(page.getByText('pr.create')).toBeVisible();
+    await expect(page.getByText('user.login')).not.toBeVisible();
+    await page.getByRole('button', { name: 'โหลดเพิ่ม' }).click();
+    await expect(page.getByText('po.create')).toBeVisible();
+    await expect(page.getByText('supplier.update')).toBeVisible();
+  });
 });

@@ -70,4 +70,12 @@ test.describe('suppliers page', () => {
     await expect.poll(() => created).toBe(true);
     await expect(page.getByRole('heading', { name: 'เพิ่มผู้จำหน่ายใหม่' })).not.toBeVisible();
   });
+
+  test('supplier detail shows portal link admin panel', async ({ page }) => {
+    await gotoAuthenticated(page, '/suppliers/sup-1');
+    await expect(page.getByRole('heading', { name: 'ลิงก์พอร์ทัลซัพพลายเออร์' })).toBeVisible();
+    await expect(page.getByText('Q3 ราคา')).toBeVisible();
+    await page.getByRole('button', { name: 'ออกลิงก์ใหม่' }).click();
+    await expect(page.getByText('คัดลอกลิงก์นี้ตอนนี้')).toBeVisible();
+  });
 });

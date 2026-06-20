@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
-import { Sparkles, Settings, LogOut, Search, Bell } from 'lucide-react';
+import { Sparkles, Settings, LogOut, Search, Bell, Scale } from 'lucide-react';
 import { NavLink } from './NavLink';
 import { InboxBadge } from './InboxBadge';
 import { useAuth } from './AuthProvider';
@@ -48,6 +48,7 @@ export function Header() {
           <NavLink href="/suppliers">{t('nav.suppliers')}</NavLink>
           <NavLink href="/po">{t('nav.po')}</NavLink>
           <NavLink href="/budget">{t('nav.budget')}</NavLink>
+          <NavLink href="/gov/tor">{t('nav.gov')}</NavLink>
         </nav>
 
         <div className="flex-1" />

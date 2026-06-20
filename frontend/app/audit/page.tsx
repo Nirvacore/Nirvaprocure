@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, Shield, ChevronDown, ChevronUp } from 'lucide-react';
 import { audit as auditApi, type AuditRow } from '@/lib/api';
@@ -25,9 +25,31 @@ const MOCK_AUDIT: AuditPage = {
     { id: 2, action: 'pr.submit', entity_type: 'purchase_request', entity_id: '1', actor_user_id: 'u1', actor_name: 'สุดา จันทร์', created_at: '2026-06-07T10:22:00Z', diff: null },
     { id: 3, action: 'approval.decide', entity_type: 'approval_instance', entity_id: 'ai-1', actor_user_id: 'u2', actor_name: 'ปอ นวลรัตน์', created_at: '2026-06-07T14:00:00Z', diff: { decision: 'approved' } },
     { id: 4, action: 'workflow.update', entity_type: 'workflow', entity_id: 'wf-1', actor_user_id: 'u3', actor_name: 'Admin', created_at: '2026-06-06T09:00:00Z', diff: { min_amount_minor: 50000 } },
+    { id: 5, action: 'user.login', entity_type: 'user', entity_id: 'u2', actor_user_id: 'u2', actor_name: 'ปอ นวลรัตน์', created_at: '2026-06-06T08:30:00Z', diff: { ip: '203.150.1.1' } },
+  ],
+  next_cursor: 'audit-mock-2',
+};
+
+const MOCK_AUDIT_PAGE_2: AuditPage = {
+  data: [
+    { id: 6, action: 'po.create', entity_type: 'purchase_order', entity_id: 'po-1', actor_user_id: 'u1', actor_name: 'สุดา จันทร์', created_at: '2026-06-05T16:00:00Z', diff: { po_number: 'PO-2026-0016' } },
+    { id: 7, action: 'supplier.update', entity_type: 'supplier', entity_id: 'sup-1', actor_user_id: 'u3', actor_name: 'Admin', created_at: '2026-06-05T10:00:00Z', diff: { is_active: true } },
   ],
   next_cursor: null,
 };
+
+function mockPageForEntity(entity: string | null): AuditPage {
+  if (entity) {
+    const data = MOCK_AUDIT.data.filter((r) => r.entity_type === entity);
+    return { data, next_cursor: null };
+  }
+  return { data: MOCK_AUDIT.data.slice(0, 3), next_cursor: MOCK_AUDIT.next_cursor };
+}
+
+function mockAuditLoadMore(cursor: string): AuditPage {
+  if (cursor === 'audit-mock-2') return MOCK_AUDIT_PAGE_2;
+  return { data: [], next_cursor: null };
+}
 
 /**
  * Read-only audit log viewer. Cursor-paginated; one row per audit_log entry.
@@ -36,37 +58,56 @@ const MOCK_AUDIT: AuditPage = {
  */
 export default function AuditPage() {
   const { t } = useT();
-  const [entity, setEntity]       = useState<string | null>(null);
-  const [cursor, setCursor]       = useState<string | null>(null);
-  const [accumulated, setAccumulated] = useState<AuditRow[]>([]);
-
-  useEffect(() => {
-    setCursor(null);
-    setAccumulated([]);
-  }, [entity]);
+  const [entity, setEntity]           = useState<string | null>(null);
+  const [extraRows, setExtraRows]       = useState<AuditRow[]>([]);
+  const [moreCursor, setMoreCursor]     = useState<string | null>(null);
+  const [loadingMore, setLoadingMore]   = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
 
   const { data: page, loading, error, refresh } = useResource(
     () => withMockFallback(
-      () => auditApi.list({
-        entity_type: entity ?? undefined,
-        cursor: cursor ?? undefined,
-        limit: 50,
-      }),
-      entity
-        ? { ...MOCK_AUDIT, data: MOCK_AUDIT.data.filter(r => r.entity_type === entity) }
-        : MOCK_AUDIT,
+      () => auditApi.list({ entity_type: entity ?? undefined, limit: 50 }),
+      mockPageForEntity(entity),
     ),
-    [entity, cursor],
+    [entity],
   );
 
   useEffect(() => {
-    if (!page) return;
-    setAccumulated(prev => (cursor ? [...prev, ...page.data] : page.data));
-  }, [page, cursor]);
+    setExtraRows([]);
+    setMoreCursor(null);
+    setLoadMoreError(null);
+  }, [entity]);
 
-  const nextCursor = page?.next_cursor ?? null;
-  const loadingMore = loading && cursor !== null;
-  const initialLoading = loading && cursor === null && accumulated.length === 0;
+  const rows = useMemo(
+    () => [...(page?.data ?? []), ...extraRows],
+    [page, extraRows],
+  );
+
+  const nextCursor = moreCursor ?? page?.next_cursor ?? null;
+
+  const loadMore = useCallback(async () => {
+    if (!nextCursor) return;
+    setLoadingMore(true);
+    setLoadMoreError(null);
+    try {
+      const res = await withMockFallback(
+        () => auditApi.list({
+          entity_type: entity ?? undefined,
+          cursor: nextCursor,
+          limit: 50,
+        }),
+        mockAuditLoadMore(nextCursor),
+      );
+      setExtraRows((prev) => [...prev, ...res.data]);
+      setMoreCursor(res.next_cursor);
+    } catch (err) {
+      setLoadMoreError(err instanceof Error ? err.message : t('common.error'));
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [entity, nextCursor, t]);
+
+  const initialLoading = loading && rows.length === 0;
 
   return (
     <section className="screen space-y-6">
@@ -99,22 +140,23 @@ export default function AuditPage() {
         ))}
       </div>
 
-      {error && <ErrorBanner message={error.message} onRetry={refresh} />}
+      {error && <ErrorBanner message={error?.message} onRetry={refresh} />}
+      {loadMoreError && <ErrorBanner message={loadMoreError} onRetry={loadMore} />}
       {initialLoading && <SkeletonRows rows={5} />}
 
-      {accumulated.length === 0 && !initialLoading && !error && (
+      {rows.length === 0 && !initialLoading && !error && (
         <p className="text-base text-ink-muted">{t('audit.empty')}</p>
       )}
 
-      {accumulated.length > 0 && (
+      {rows.length > 0 && (
         <div className="card !p-0 overflow-hidden divide-y divide-gray-100">
-          {accumulated.map((r) => <AuditEntry key={r.id} row={r} />)}
+          {rows.map((r) => <AuditEntry key={r.id} row={r} />)}
         </div>
       )}
 
       {nextCursor && (
         <button
-          onClick={() => setCursor(nextCursor)}
+          onClick={loadMore}
           disabled={loadingMore}
           className="btn-secondary w-full"
         >

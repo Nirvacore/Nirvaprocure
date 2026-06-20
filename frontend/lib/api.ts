@@ -192,6 +192,44 @@ async function request<T>(
   return data as T;
 }
 
+/** Unauthenticated request — supplier portal token is the credential. */
+async function publicRequest<T>(
+  method: 'GET' | 'POST',
+  path: string,
+  body?: unknown,
+): Promise<T> {
+  const headers: Record<string, string> = { Accept: 'application/json' };
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+
+  const res = await fetch(`${BASE}${path}`, {
+    method,
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+    credentials: 'omit',
+  });
+
+  if (res.status === 204) return undefined as T;
+
+  let data: unknown = null;
+  const text = await res.text();
+  if (text) {
+    try { data = JSON.parse(text); } catch { data = text; }
+  }
+
+  if (!res.ok) {
+    const err = (data && typeof data === 'object')
+      ? (data as { code?: string; message?: string; details?: unknown })
+      : {};
+    throw new ApiError(
+      res.status,
+      err.code ?? `HTTP_${res.status}`,
+      err.message ?? `Request failed: ${res.status}`,
+      err.details,
+    );
+  }
+  return data as T;
+}
+
 // ---------------------------------------------------------------------------
 // Auth
 // ---------------------------------------------------------------------------
@@ -491,7 +529,22 @@ export interface ToRDraft {
   compliance_checklist: Record<string, 'passed' | 'failed' | 'na'>;
   created_at: string;
 }
+export interface ToRListItem {
+  id: string;
+  title: string;
+  procurement_kind: ToRBrief['procurement_kind'];
+  status: 'draft' | 'approved' | 'published';
+  created_at: string;
+}
+export interface ToRTemplate {
+  id: string;
+  name: string;
+  procurement_kind: ToRBrief['procurement_kind'];
+  is_official: boolean;
+}
 export const gov = {
+  list: () => request<ToRListItem[]>('GET', '/gov/tor/drafts'),
+  templates: () => request<ToRTemplate[]>('GET', '/gov/tor/templates'),
   createDraft: (body: { title: string; brief: ToRBrief; template_id?: string }) =>
     request<ToRDraft>('POST', '/gov/tor/drafts', body),
   getDraft: (id: string) => request<ToRDraft>('GET', `/gov/tor/drafts/${id}`),
@@ -510,6 +563,36 @@ export interface ImportResult {
 export const importCsv = {
   run: (kind: ImportKind, rows: Record<string, unknown>[]) =>
     request<ImportResult>('POST', '/import/csv', { kind, rows }),
+};
+
+// ---------------------------------------------------------------------------
+// Supplier portal (public — token in URL)
+// ---------------------------------------------------------------------------
+export interface PortalLine {
+  pr_id: string;
+  pr_number: string;
+  pr_title: string;
+  description: string;
+  quantity: number;
+  unit: string;
+  unit_price_minor: number;
+  line_total_minor: number;
+  status: string;
+}
+export interface PortalOverview {
+  supplier_name: string;
+  expires_at: string;
+  lines: PortalLine[];
+}
+export const portal = {
+  overview: (token: string) =>
+    publicRequest<PortalOverview>('GET', `/portal/${encodeURIComponent(token)}`),
+  acknowledge: (token: string, prId: string, note?: string) =>
+    publicRequest<{ ok: boolean }>(
+      'POST',
+      `/portal/${encodeURIComponent(token)}/pr/${encodeURIComponent(prId)}/ack`,
+      note ? { note } : {},
+    ),
 };
 
 // ---------------------------------------------------------------------------
@@ -768,6 +851,6 @@ export const analytics = {
 
 export const api = {
   auth, pr, approvals, workflows, notifications, ai, finance, people, stock, gov,
-  analytics, portalAdmin, importCsv, budgets, webhooks, audit, suppliers, po,
+  analytics, portal, portalAdmin, importCsv, budgets, webhooks, audit, suppliers, po,
 };
 export default api;
