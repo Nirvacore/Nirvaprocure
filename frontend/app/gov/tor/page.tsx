@@ -1,7 +1,7 @@
 'use client';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, FileText, Plus, Scale } from 'lucide-react';
+import { ArrowLeft, FileText, Plus, Scale, Search } from 'lucide-react';
 import { gov as govApi, type ToRListItem } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
@@ -89,14 +89,23 @@ function TorCard({ row }: { row: ToRListItem }) {
 export default function TorListPage() {
   const { t } = useT();
   const [filter, setFilter] = useState<StatusFilter>('');
+  const [query, setQuery] = useState('');
   const { data, loading, error, refresh } = useResource(
     () => withMockFallback(() => govApi.list(), mergeMockTorList(MOCK_TOR_LIST)),
   );
 
-  const filtered = useMemo(
-    () => (filter && data ? data.filter((row) => row.status === filter) : data ?? []),
-    [data, filter],
-  );
+  const filtered = useMemo(() => {
+    let rows = data ?? [];
+    if (filter) rows = rows.filter((row) => row.status === filter);
+    const q = query.trim().toLowerCase();
+    if (q) rows = rows.filter((row) => row.title.toLowerCase().includes(q));
+    return rows;
+  }, [data, filter, query]);
+
+  const noMatches = Boolean(data && data.length > 0 && filtered.length === 0);
+  const emptyMessageKey: TranslationKey = query.trim()
+    ? 'tor.list.search.empty'
+    : 'tor.list.filter.empty';
 
   return (
     <section className="screen space-y-6 max-w-4xl mx-auto">
@@ -119,22 +128,35 @@ export default function TorListPage() {
       </div>
 
       {data && data.length > 0 && (
-        <div className="flex gap-2 flex-wrap overflow-x-auto pb-1">
-          {FILTERS.map(({ key, labelKey }) => (
-            <button
-              key={key || 'all'}
-              type="button"
-              onClick={() => setFilter(key)}
-              className={`min-h-btn-sm px-4 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                filter === key
-                  ? 'bg-brand-600 text-white'
-                  : 'bg-white border border-line text-ink-soft hover:bg-gray-50'
-              }`}
-            >
-              {t(labelKey)}
-            </button>
-          ))}
-        </div>
+        <>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted pointer-events-none" />
+            <input
+              type="search"
+              className="input pl-9 w-full"
+              placeholder={t('tor.list.search')}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </div>
+
+          <div className="flex gap-2 flex-wrap overflow-x-auto pb-1">
+            {FILTERS.map(({ key, labelKey }) => (
+              <button
+                key={key || 'all'}
+                type="button"
+                onClick={() => setFilter(key)}
+                className={`min-h-btn-sm px-4 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                  filter === key
+                    ? 'bg-brand-600 text-white'
+                    : 'bg-white border border-line text-ink-soft hover:bg-gray-50'
+                }`}
+              >
+                {t(labelKey)}
+              </button>
+            ))}
+          </div>
+        </>
       )}
 
       {error && <ErrorBanner message={error?.message} onRetry={refresh} />}
@@ -152,10 +174,10 @@ export default function TorListPage() {
         </div>
       )}
 
-      {data && data.length > 0 && filtered.length === 0 && (
+      {noMatches && (
         <div className="card text-center py-12">
           <FileText className="w-10 h-10 text-ink-muted mx-auto mb-3" />
-          <p className="text-lg font-bold mb-1">{t('tor.list.filter.empty')}</p>
+          <p className="text-lg font-bold mb-1">{t(emptyMessageKey)}</p>
         </div>
       )}
 
