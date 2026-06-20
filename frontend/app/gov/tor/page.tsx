@@ -36,13 +36,21 @@ const MOCK_TOR_LIST: ToRListItem[] = [
 ];
 
 type StatusFilter = '' | ToRListItem['status'];
+type KindFilter = '' | ToRListItem['procurement_kind'];
 
-const FILTERS: { key: StatusFilter; labelKey: TranslationKey }[] = [
+const STATUS_FILTERS: { key: StatusFilter; labelKey: TranslationKey }[] = [
   { key: '',          labelKey: 'pr.filter.all' },
   { key: 'draft',     labelKey: 'tor.status.draft' },
   { key: 'review',    labelKey: 'tor.status.review' },
   { key: 'approved',  labelKey: 'tor.status.approved' },
   { key: 'published', labelKey: 'tor.status.published' },
+];
+
+const KIND_FILTERS: { key: KindFilter; labelKey: TranslationKey }[] = [
+  { key: '',             labelKey: 'pr.filter.all' },
+  { key: 'goods',        labelKey: 'tor.kind.goods' },
+  { key: 'services',     labelKey: 'tor.kind.services' },
+  { key: 'construction', labelKey: 'tor.kind.construction' },
 ];
 
 const KIND_LABEL_KEYS: Record<ToRListItem['procurement_kind'], TranslationKey> = {
@@ -88,7 +96,8 @@ function TorCard({ row }: { row: ToRListItem }) {
 
 export default function TorListPage() {
   const { t } = useT();
-  const [filter, setFilter] = useState<StatusFilter>('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('');
+  const [kindFilter, setKindFilter] = useState<KindFilter>('');
   const [query, setQuery] = useState('');
   const { data, loading, error, refresh } = useResource(
     () => withMockFallback(() => govApi.list(), mergeMockTorList(MOCK_TOR_LIST)),
@@ -96,11 +105,12 @@ export default function TorListPage() {
 
   const filtered = useMemo(() => {
     let rows = data ?? [];
-    if (filter) rows = rows.filter((row) => row.status === filter);
+    if (statusFilter) rows = rows.filter((row) => row.status === statusFilter);
+    if (kindFilter) rows = rows.filter((row) => row.procurement_kind === kindFilter);
     const q = query.trim().toLowerCase();
     if (q) rows = rows.filter((row) => row.title.toLowerCase().includes(q));
     return rows;
-  }, [data, filter, query]);
+  }, [data, statusFilter, kindFilter, query]);
 
   const noMatches = Boolean(data && data.length > 0 && filtered.length === 0);
   const emptyMessageKey: TranslationKey = query.trim()
@@ -141,13 +151,30 @@ export default function TorListPage() {
           </div>
 
           <div className="flex gap-2 flex-wrap overflow-x-auto pb-1">
-            {FILTERS.map(({ key, labelKey }) => (
+            {STATUS_FILTERS.map(({ key, labelKey }) => (
               <button
-                key={key || 'all'}
+                key={key || 'status-all'}
                 type="button"
-                onClick={() => setFilter(key)}
+                onClick={() => setStatusFilter(key)}
                 className={`min-h-btn-sm px-4 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                  filter === key
+                  statusFilter === key
+                    ? 'bg-brand-600 text-white'
+                    : 'bg-white border border-line text-ink-soft hover:bg-gray-50'
+                }`}
+              >
+                {t(labelKey)}
+              </button>
+            ))}
+          </div>
+
+          <div data-testid="tor-kind-filters" className="flex gap-2 flex-wrap overflow-x-auto pb-1">
+            {KIND_FILTERS.map(({ key, labelKey }) => (
+              <button
+                key={key || 'kind-all'}
+                type="button"
+                onClick={() => setKindFilter(key)}
+                className={`min-h-btn-sm px-4 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                  kindFilter === key
                     ? 'bg-brand-600 text-white'
                     : 'bg-white border border-line text-ink-soft hover:bg-gray-50'
                 }`}

@@ -134,3 +134,26 @@ html.dark {
   to   { opacity: 1; transform: none; }
 }
 .screen { animation: fadeIn 200ms ease-out; }
+
+@media print {
+  header,
+  nav,
+  .no-print,
+  [data-cookie-consent] {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .screen {
+    max-width: none !important;
+    padding: 0 !important;
+    animation: none !important;
+  }
+  .card {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+}

@@ -134,4 +134,21 @@ test.describe('gov tor list', () => {
     await expect(page.getByText('จัดซื้อเครื่องคอมพิวเตอร์ จำนวน 20 เครื่อง')).not.toBeVisible();
     await expect(page.getByText('จ้างเหมาบำรุงรักษาระบบเครือข่าย')).not.toBeVisible();
   });
+
+  test('kind filter shows only goods ToR entries', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor');
+    await page.getByTestId('tor-kind-filters').getByRole('button', { name: 'จัดซื้อครุภัณฑ์' }).click();
+    await expect(page.getByText('จัดซื้อเครื่องคอมพิวเตอร์ จำนวน 20 เครื่อง')).toBeVisible();
+    await expect(page.getByText('จ้างเหมาบำรุงรักษาระบบเครือข่าย')).not.toBeVisible();
+    await expect(page.getByText('ก่อสร้างอาคารคลังสินค้า')).not.toBeVisible();
+  });
+
+  test('print button opens browser print dialog', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/tor-1');
+    await page.evaluate(() => {
+      window.print = () => { (window as unknown as { __torPrinted?: boolean }).__torPrinted = true; };
+    });
+    await page.getByRole('button', { name: 'พิมพ์ / บันทึก PDF' }).click();
+    expect(await page.evaluate(() => (window as unknown as { __torPrinted?: boolean }).__torPrinted)).toBe(true);
+  });
 });
