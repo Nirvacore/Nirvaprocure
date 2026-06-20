@@ -147,4 +147,49 @@ INSERT INTO tor_templates (id, org_id, name, procurement_kind, body_markdown, is
    FALSE)
 ON CONFLICT (id) DO NOTHING;
 
+-- ---------------------------------------------------------------------------
+-- NirvaGov — sample TOR drafts (matches frontend mock titles)
+-- ---------------------------------------------------------------------------
+INSERT INTO tor_drafts (
+  id, org_id, template_id, title, status, brief_json, body_markdown,
+  compliance_checklist, created_by, created_at
+) VALUES
+  (
+    '99999999-9999-9999-9999-999999999901',
+    '00000000-0000-0000-0000-000000000001',
+    '88888888-8888-8888-8888-888888888801',
+    'จัดซื้อเครื่องคอมพิวเตอร์ จำนวน 20 เครื่อง',
+    'draft',
+    '{"procurement_kind":"goods","budget_minor":80000000,"currency":"THB","scope":"จัดซื้อเครื่องคอมพิวเตอร์เพื่อทดแทนอุปกรณ์เดิมในหน่วยงาน","deliverables":["เครื่องคอมพิวเตอร์ 20 เครื่อง"],"evaluation_method":"lowest_price"}',
+    E'## ๑. ความเป็นมา\nหน่วยงานมีความจำเป็นต้องจัดซื้อเครื่องคอมพิวเตอร์เพื่อทดแทนอุปกรณ์เดิม\n\n## ๒. วัตถุประสงค์\nเพื่อสนับสนุนการปฏิบัติงานของเจ้าหน้าที่',
+    '{"has_scope":"passed","has_budget":"passed","has_deliverables":"passed","has_evaluation_method":"passed","has_timeline":"failed","has_qualifications":"na"}',
+    '33333333-3333-3333-3333-333333333301',
+    '2026-06-10T09:00:00+00'
+  ),
+  (
+    '99999999-9999-9999-9999-999999999902',
+    '00000000-0000-0000-0000-000000000001',
+    '88888888-8888-8888-8888-888888888802',
+    'จ้างเหมาบำรุงรักษาระบบเครือข่าย',
+    'approved',
+    '{"procurement_kind":"services","budget_minor":36000000,"currency":"THB","scope":"บำรุงรักษาระบบเครือข่ายภายในหน่วยงานเป็นระยะเวลา 12 เดือน","deliverables":["รายงานการบำรุงรักษารายเดือน"],"evaluation_method":"most_advantageous","timeline":{"start":"2026-07-01","end":"2027-06-30"}}',
+    E'## ขอบเขตของงาน\nบำรุงรักษาระบบเครือข่ายภายในหน่วยงานเป็นระยะเวลา 12 เดือน',
+    '{"has_scope":"passed","has_budget":"passed","has_deliverables":"passed","has_evaluation_method":"passed","has_timeline":"passed","has_qualifications":"na"}',
+    '33333333-3333-3333-3333-333333333301',
+    '2026-06-05T14:30:00+00'
+  ),
+  (
+    '99999999-9999-9999-9999-999999999903',
+    '00000000-0000-0000-0000-000000000001',
+    '88888888-8888-8888-8888-888888888803',
+    'ก่อสร้างอาคารคลังสินค้า',
+    'archived',
+    '{"procurement_kind":"construction","budget_minor":500000000,"currency":"THB","scope":"ก่อสร้างอาคารคลังสินค้าขนาด 500 ตร.ม.","deliverables":["อาคารคลังสินค้าพร้อมใช้งาน"],"qualifications":["มีใบอนุญาตรับเหมาก่อสร้าง"],"evaluation_method":"lowest_price","timeline":{"start":"2026-01-01","end":"2026-12-31"}}',
+    E'## ขอบเขตของงาน\nก่อสร้างอาคารคลังสินค้าขนาด 500 ตร.ม.',
+    '{"has_scope":"passed","has_budget":"passed","has_deliverables":"passed","has_evaluation_method":"passed","has_timeline":"passed","has_qualifications":"passed"}',
+    '33333333-3333-3333-3333-333333333301',
+    '2026-05-28T11:00:00+00'
+  )
+ON CONFLICT (id) DO NOTHING;
+
 COMMIT;

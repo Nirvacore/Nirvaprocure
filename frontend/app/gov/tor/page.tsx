@@ -42,6 +42,7 @@ const KIND_LABEL_KEYS: Record<ToRListItem['procurement_kind'], TranslationKey> =
 
 const STATUS_STYLE: Record<ToRListItem['status'], { bg: string; text: string; labelKey: TranslationKey }> = {
   draft:     { bg: 'bg-gray-100',   text: 'text-ink-soft',   labelKey: 'tor.status.draft' },
+  review:    { bg: 'bg-amber-100',  text: 'text-amber-800',  labelKey: 'tor.status.review' },
   approved:  { bg: 'bg-green-100',  text: 'text-green-800',  labelKey: 'tor.status.approved' },
   published: { bg: 'bg-brand-100',  text: 'text-brand-700',  labelKey: 'tor.status.published' },
 };

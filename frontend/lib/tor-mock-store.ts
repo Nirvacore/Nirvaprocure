@@ -2,6 +2,7 @@ import type { ToRDraft, ToRListItem } from './api';
 
 const DRAFT_KEY_PREFIX = 'tor-mock:';
 const LIST_KEY = 'tor-mock-list';
+const STATUS_OVERRIDES_KEY = 'tor-mock-status-overrides';
 
 const TOR_NEXT_STATUS: Record<ToRDraft['status'], ToRDraft['status'] | null> = {
   draft:     'review',
@@ -13,6 +14,7 @@ const TOR_NEXT_STATUS: Record<ToRDraft['status'], ToRDraft['status'] | null> = {
 function listStatusFromDraft(status: ToRDraft['status']): ToRListItem['status'] {
   if (status === 'approved') return 'approved';
   if (status === 'archived') return 'published';
+  if (status === 'review') return 'review';
   return 'draft';
 }
 
@@ -53,11 +55,34 @@ export function readMockTorListItems(): ToRListItem[] {
   }
 }
 
+export function readMockTorStatusOverrides(): Record<string, ToRListItem['status']> {
+  try {
+    const raw = sessionStorage.getItem(STATUS_OVERRIDES_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, ToRListItem['status']>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function setMockTorStatusOverride(id: string, status: ToRListItem['status']) {
+  try {
+    const overrides = readMockTorStatusOverrides();
+    overrides[id] = status;
+    sessionStorage.setItem(STATUS_OVERRIDES_KEY, JSON.stringify(overrides));
+  } catch {
+    // ignore
+  }
+}
+
 export function mergeMockTorList(base: ToRListItem[]): ToRListItem[] {
+  const overrides = readMockTorStatusOverrides();
+  const withOverrides = base.map((row) =>
+    overrides[row.id] ? { ...row, status: overrides[row.id] } : row,
+  );
   const extra = readMockTorListItems();
-  if (extra.length === 0) return base;
+  if (extra.length === 0) return withOverrides;
   const extraIds = new Set(extra.map((row) => row.id));
-  return [...extra, ...base.filter((row) => !extraIds.has(row.id))];
+  return [...extra, ...withOverrides.filter((row) => !extraIds.has(row.id))];
 }
 
 export function advanceMockTorDraft(id: string, fallback: ToRDraft): ToRDraft {
@@ -68,13 +93,17 @@ export function advanceMockTorDraft(id: string, fallback: ToRDraft): ToRDraft {
 }
 
 export function syncMockTorListStatus(id: string, status: ToRDraft['status']) {
+  const listStatus = listStatusFromDraft(status);
   const items = readMockTorListItems();
   const idx = items.findIndex((row) => row.id === id);
-  if (idx < 0) return;
-  items[idx] = { ...items[idx], status: listStatusFromDraft(status) };
-  try {
-    sessionStorage.setItem(LIST_KEY, JSON.stringify(items));
-  } catch {
-    // ignore
+  if (idx >= 0) {
+    items[idx] = { ...items[idx], status: listStatus };
+    try {
+      sessionStorage.setItem(LIST_KEY, JSON.stringify(items));
+    } catch {
+      // ignore
+    }
+    return;
   }
+  setMockTorStatusOverride(id, listStatus);
 }

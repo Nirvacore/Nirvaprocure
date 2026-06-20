@@ -175,8 +175,9 @@ export class GovService {
 }
 
 /** Map DB tor_status to the simplified labels the list UI expects. */
-function mapTorListStatus(db: string): 'draft' | 'approved' | 'published' {
+function mapTorListStatus(db: string): 'draft' | 'review' | 'approved' | 'published' {
   if (db === 'approved') return 'approved';
   if (db === 'archived') return 'published';
+  if (db === 'review') return 'review';
   return 'draft';
 }

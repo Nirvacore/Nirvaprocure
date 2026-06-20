@@ -151,7 +151,18 @@ echo "    gov templates OK"
 echo "==> GET /gov/tor/drafts"
 gov_drafts="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" "$API/gov/tor/drafts")"
 echo "$gov_drafts" | grep -qE '\[|"id"' || { echo "FAIL: gov drafts response unexpected"; echo "$gov_drafts"; exit 1; }
+echo "$gov_drafts" | grep -q 'จัดซื้อเครื่องคอมพิวเตอร์' || { echo "FAIL: seeded TOR draft not in list"; echo "$gov_drafts"; exit 1; }
 echo "    gov drafts OK"
 
+# -----------------------------------------------------------------------------
+# 11. Advance a seeded TOR draft (draft → review)
+# -----------------------------------------------------------------------------
+TOR_DRAFT_ID='99999999-9999-9999-9999-999999999901'
+echo "==> POST /gov/tor/drafts/$TOR_DRAFT_ID/advance"
+gov_advanced="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
+    -X POST "$API/gov/tor/drafts/$TOR_DRAFT_ID/advance")"
+echo "$gov_advanced" | grep -q '"status":"review"' || { echo "FAIL: advance did not return review status"; echo "$gov_advanced"; exit 1; }
+echo "    gov advance OK"
+
 echo ""
-echo "✅ SMOKE PASSED — all 12 steps green"
+echo "✅ SMOKE PASSED — all 13 steps green"
