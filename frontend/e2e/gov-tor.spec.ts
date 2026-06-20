@@ -54,6 +54,26 @@ test.describe('gov tor list', () => {
     await expect(page.getByText('ขอบเขตงานทดสอบ')).toBeVisible();
   });
 
+  test('created mock TOR appears on list after navigating back', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/new');
+    await page.getByPlaceholder('เช่น จัดซื้อเครื่องคอมพิวเตอร์ จำนวน 20 เครื่อง').fill('รายการใหม่จาก E2E');
+    await page.getByPlaceholder('อธิบายงานที่ต้องการให้ผู้รับจ้างทำ ระยะเวลา และเงื่อนไขสำคัญ').fill(
+      'ขอบเขตงานทดสอบรายการใหม่บนรายการ ToR หลังสร้างสำเร็จในโหมด offline',
+    );
+    await page.getByRole('button', { name: 'ร่างเอกสารด้วย AI' }).click();
+    await expect(page).toHaveURL(/\/gov\/tor\/tor-mock-/);
+    await page.getByRole('link', { name: 'กลับไปรายการ ToR' }).click();
+    await expect(page.getByText('รายการใหม่จาก E2E')).toBeVisible();
+  });
+
+  test('mobile nav links to ToR list', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await gotoAuthenticated(page, '/');
+    await page.getByRole('link', { name: 'ภาครัฐ' }).click();
+    await expect(page).toHaveURL(/\/gov\/tor$/);
+    await expect(page.getByRole('heading', { name: 'ข้อกำหนดการจัดซื้อ (ToR)' })).toBeVisible();
+  });
+
   test('header nav links to ToR list', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await gotoAuthenticated(page, '/');

@@ -4,6 +4,7 @@ import { ArrowLeft, FileText, Plus, Scale } from 'lucide-react';
 import { gov as govApi, type ToRListItem } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
+import { mergeMockTorList } from '@/lib/tor-mock-store';
 import { Loading } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
 import { useT } from '@/lib/i18n/provider';
@@ -76,7 +77,7 @@ function TorCard({ row }: { row: ToRListItem }) {
 export default function TorListPage() {
   const { t } = useT();
   const { data, loading, error, refresh } = useResource(
-    () => withMockFallback(() => govApi.list(), MOCK_TOR_LIST),
+    () => withMockFallback(() => govApi.list(), mergeMockTorList(MOCK_TOR_LIST)),
   );
 
   return (

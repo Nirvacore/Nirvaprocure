@@ -12,7 +12,7 @@ import { withMockFallback } from '@/lib/api-with-fallback';
 import { useToast } from '@/components/Toast';
 import { useT } from '@/lib/i18n/provider';
 import type { TranslationKey } from '@/lib/i18n/dictionary';
-import { storeMockTorDraft } from '@/lib/tor-mock-store';
+import { storeMockTorDraft, appendMockTorListItem } from '@/lib/tor-mock-store';
 
 const MOCK_TOR_TEMPLATES: ToRTemplate[] = [
   { id: 'tpl-goods',        name: 'จัดซื้อครุภัณฑ์ทั่วไป',     procurement_kind: 'goods',        is_official: true },
@@ -124,7 +124,16 @@ export default function NewTorPage() {
         }),
         buildMockTorDraft(title, liveBrief),
       );
-      if (result.id.startsWith('tor-mock-')) storeMockTorDraft(result);
+      if (result.id.startsWith('tor-mock-')) {
+        storeMockTorDraft(result);
+        appendMockTorListItem({
+          id: result.id,
+          title: result.title,
+          procurement_kind: liveBrief.procurement_kind,
+          status: 'draft',
+          created_at: result.created_at,
+        });
+      }
       toast(t('tor.toast.created'), 'ok');
       router.push(`/gov/tor/${result.id}`);
     } catch (err) {
