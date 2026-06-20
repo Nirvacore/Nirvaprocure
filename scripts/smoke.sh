@@ -140,5 +140,18 @@ stock_on_hand="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" "$API/stock/on-h
 echo "$stock_on_hand" | grep -qE '\[|qty' || { echo "FAIL: stock on-hand response unexpected"; echo "$stock_on_hand"; exit 1; }
 echo "    stock on-hand OK"
 
+# -----------------------------------------------------------------------------
+# 10. NirvaGov TOR templates and drafts are readable
+# -----------------------------------------------------------------------------
+echo "==> GET /gov/tor/templates"
+gov_templates="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" "$API/gov/tor/templates")"
+echo "$gov_templates" | grep -qE '\[|procurement_kind' || { echo "FAIL: gov templates response unexpected"; echo "$gov_templates"; exit 1; }
+echo "    gov templates OK"
+
+echo "==> GET /gov/tor/drafts"
+gov_drafts="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" "$API/gov/tor/drafts")"
+echo "$gov_drafts" | grep -qE '\[|"id"' || { echo "FAIL: gov drafts response unexpected"; echo "$gov_drafts"; exit 1; }
+echo "    gov drafts OK"
+
 echo ""
-echo "✅ SMOKE PASSED — all 10 steps green"
+echo "✅ SMOKE PASSED — all 12 steps green"

@@ -11,6 +11,7 @@ import { Loading } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
 import { useT } from '@/lib/i18n/provider';
 import type { TranslationKey } from '@/lib/i18n/dictionary';
+import { readMockTorDraft } from '@/lib/tor-mock-store';
 
 const CHECKLIST_LABEL_KEYS: Record<string, TranslationKey> = {
   has_scope:             'tor.checklist.scope',
@@ -90,7 +91,7 @@ const MOCK_TOR_DRAFTS: Record<string, ToRDraft> = {
 };
 
 function mockTorDraft(id: string): ToRDraft {
-  return MOCK_TOR_DRAFTS[id] ?? {
+  return readMockTorDraft(id) ?? MOCK_TOR_DRAFTS[id] ?? {
     id,
     title: `ToR ${id}`,
     status: 'draft',

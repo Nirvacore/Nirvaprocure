@@ -42,6 +42,18 @@ test.describe('gov tor list', () => {
     await expect(page.getByRole('button', { name: 'จัดซื้อครุภัณฑ์' })).toHaveClass(/bg-brand-600/);
   });
 
+  test('creates mock TOR draft and opens detail page', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/new');
+    await page.getByPlaceholder('เช่น จัดซื้อเครื่องคอมพิวเตอร์ จำนวน 20 เครื่อง').fill('ทดสอบ E2E TOR');
+    await page.getByPlaceholder('อธิบายงานที่ต้องการให้ผู้รับจ้างทำ ระยะเวลา และเงื่อนไขสำคัญ').fill(
+      'ขอบเขตงานทดสอบสำหรับการจัดซื้ออุปกรณ์สำนักงานจำนวนมากเพื่อทดสอบระบบอัตโนมัติ',
+    );
+    await page.getByRole('button', { name: 'ร่างเอกสารด้วย AI' }).click();
+    await expect(page).toHaveURL(/\/gov\/tor\/tor-mock-/);
+    await expect(page.getByRole('heading', { name: 'ทดสอบ E2E TOR' })).toBeVisible();
+    await expect(page.getByText('ขอบเขตงานทดสอบ')).toBeVisible();
+  });
+
   test('header nav links to ToR list', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await gotoAuthenticated(page, '/');

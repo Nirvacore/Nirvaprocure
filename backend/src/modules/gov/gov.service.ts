@@ -91,7 +91,8 @@ export class GovService {
   getDraft(user: CurrentUser, id: string) {
     return withOrg(this.pool, user.orgId, async (c) => {
       const r = await c.query(
-        `SELECT * FROM tor_drafts WHERE id = $1`, [id],
+        `SELECT id, title, status, body_markdown, compliance_checklist, created_at
+         FROM tor_drafts WHERE id = $1`, [id],
       );
       if (r.rowCount === 0) throw new NotFoundException();
       return r.rows[0];

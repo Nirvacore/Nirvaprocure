@@ -1,6 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, Building2, CheckCircle2, XCircle, MinusCircle,
   Loader2, FileText, Sparkles, Plus, Trash2,
@@ -11,6 +12,7 @@ import { withMockFallback } from '@/lib/api-with-fallback';
 import { useToast } from '@/components/Toast';
 import { useT } from '@/lib/i18n/provider';
 import type { TranslationKey } from '@/lib/i18n/dictionary';
+import { storeMockTorDraft } from '@/lib/tor-mock-store';
 
 const MOCK_TOR_TEMPLATES: ToRTemplate[] = [
   { id: 'tpl-goods',        name: 'จัดซื้อครุภัณฑ์ทั่วไป',     procurement_kind: 'goods',        is_official: true },
@@ -33,9 +35,41 @@ const CHECKLIST_LABEL_KEYS: Record<string, TranslationKey> = {
   has_qualifications:    'tor.checklist.qualifications',
 };
 
+function runLiveChecklist(brief: ToRBrief): ToRDraft['compliance_checklist'] {
+  return {
+    has_scope:              brief.scope.trim().length > 30 ? 'passed' : 'failed',
+    has_budget:             brief.budget_minor > 0 ? 'passed' : 'failed',
+    has_deliverables:       brief.deliverables.length > 0 ? 'passed' : 'failed',
+    has_evaluation_method:  brief.evaluation_method ? 'passed' : 'failed',
+    has_timeline:           !!(brief.timeline?.start && brief.timeline?.end) ? 'passed' : 'failed',
+    has_qualifications:     brief.procurement_kind === 'construction'
+      ? ((brief.qualifications?.length ?? 0) > 0 ? 'passed' : 'failed')
+      : 'na',
+  };
+}
+
+function buildMockTorDraft(title: string, brief: ToRBrief): ToRDraft {
+  const checklist = runLiveChecklist(brief);
+  return {
+    id: `tor-mock-${Date.now()}`,
+    title,
+    status: 'draft',
+    body_markdown: [
+      '## ขอบเขตของงาน',
+      brief.scope,
+      '',
+      '## งบประมาณ',
+      `${(brief.budget_minor / 100).toLocaleString('th-TH')} ${brief.currency}`,
+    ].join('\n'),
+    compliance_checklist: checklist,
+    created_at: new Date().toISOString(),
+  };
+}
+
 export default function NewTorPage() {
   const { toast } = useToast();
   const { t } = useT();
+  const router = useRouter();
 
   const { data: templates } = useResource(
     () => withMockFallback(() => govApi.templates(), MOCK_TOR_TEMPLATES),
@@ -51,7 +85,19 @@ export default function NewTorPage() {
   const [end, setEnd] = useState('');
   const [evalMethod, setEvalMethod] = useState<ToRBrief['evaluation_method']>('lowest_price');
   const [busy, setBusy] = useState(false);
-  const [draft, setDraft] = useState<ToRDraft | null>(null);
+
+  const liveBrief = useMemo<ToRBrief>(() => ({
+    procurement_kind: kind,
+    budget_minor: Math.round(Number(budget || '0') * 100),
+    currency: 'THB',
+    scope,
+    deliverables: deliverables.map((d) => d.trim()).filter(Boolean),
+    timeline: { start: start || undefined, end: end || undefined },
+    evaluation_method: evalMethod,
+  }), [kind, budget, scope, deliverables, start, end, evalMethod]);
+
+  const liveChecklist = useMemo(() => runLiveChecklist(liveBrief), [liveBrief]);
+  const showLiveChecklist = title.trim().length > 0 || scope.trim().length > 0;
 
   function setDeliverable(i: number, v: string) {
     setDeliverables((arr) => arr.map((x, idx) => (idx === i ? v : x)));
@@ -70,21 +116,17 @@ export default function NewTorPage() {
     }
     setBusy(true);
     try {
-      const result = await govApi.createDraft({
-        title,
-        template_id: templateId || undefined,
-        brief: {
-          procurement_kind: kind,
-          budget_minor: Math.round(Number(budget || '0') * 100),
-          currency: 'THB',
-          scope,
-          deliverables: deliverables.map((d) => d.trim()).filter(Boolean),
-          timeline: { start: start || undefined, end: end || undefined },
-          evaluation_method: evalMethod,
-        },
-      });
-      setDraft(result);
+      const result = await withMockFallback(
+        () => govApi.createDraft({
+          title,
+          template_id: templateId || undefined,
+          brief: liveBrief,
+        }),
+        buildMockTorDraft(title, liveBrief),
+      );
+      if (result.id.startsWith('tor-mock-')) storeMockTorDraft(result);
       toast(t('tor.toast.created'), 'ok');
+      router.push(`/gov/tor/${result.id}`);
     } catch (err) {
       toast(err instanceof ApiError ? err.message : t('tor.err.create'), 'err');
     } finally {
@@ -106,7 +148,7 @@ export default function NewTorPage() {
           </span>
           {t('tor.heading')}
         </h1>
-        <p className="text-base text-gray-600">{t('tor.sub')}</p>
+        <p className="text-base text-ink-soft">{t('tor.sub')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -118,7 +160,7 @@ export default function NewTorPage() {
               id="tor-template"
               value={templateId}
               onChange={(e) => selectTemplate(e.target.value)}
-              className="w-full px-4 rounded-xl border-2 border-gray-200 focus:border-brand-500 outline-none bg-white"
+              className="w-full px-4 rounded-xl border-2 border-line focus:border-brand-500 outline-none bg-white"
             >
               <option value="">{t('tor.template.none')}</option>
               {(templates ?? []).map((tpl) => (
@@ -128,7 +170,7 @@ export default function NewTorPage() {
                 </option>
               ))}
             </select>
-            <p className="text-sm text-gray-500 mt-2">{t('tor.template.hint')}</p>
+            <p className="text-sm text-ink-muted mt-2">{t('tor.template.hint')}</p>
           </div>
 
           <div>
@@ -139,7 +181,7 @@ export default function NewTorPage() {
                   key={k}
                   onClick={() => setKind(k)}
                   className={`min-h-btn-sm px-4 rounded-full text-sm font-medium ${
-                    kind === k ? 'bg-brand-600 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                    kind === k ? 'bg-brand-600 text-white' : 'bg-white border border-line text-ink-soft hover:bg-gray-50'
                   }`}
                 >
                   {t(KIND_LABEL_KEYS[k])}
@@ -155,7 +197,7 @@ export default function NewTorPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={t('tor.title.placeholder')}
-              className="w-full px-4 rounded-xl border-2 border-gray-200 focus:border-brand-500 outline-none"
+              className="w-full px-4 rounded-xl border-2 border-line focus:border-brand-500 outline-none"
             />
           </div>
 
@@ -168,7 +210,7 @@ export default function NewTorPage() {
                 value={budget}
                 onChange={(e) => setBudget(e.target.value)}
                 placeholder="500000"
-                className="num w-full px-4 rounded-xl border-2 border-gray-200 focus:border-brand-500 outline-none"
+                className="num w-full px-4 rounded-xl border-2 border-line focus:border-brand-500 outline-none"
               />
             </div>
             <div>
@@ -176,7 +218,7 @@ export default function NewTorPage() {
               <select
                 value={evalMethod}
                 onChange={(e) => setEvalMethod(e.target.value as ToRBrief['evaluation_method'])}
-                className="w-full px-4 rounded-xl border-2 border-gray-200 focus:border-brand-500 outline-none bg-white"
+                className="w-full px-4 rounded-xl border-2 border-line focus:border-brand-500 outline-none bg-white"
               >
                 <option value="lowest_price">{t('tor.eval.lowest')}</option>
                 <option value="most_advantageous">{t('tor.eval.advantageous')}</option>
@@ -188,12 +230,12 @@ export default function NewTorPage() {
             <div>
               <label className="block font-semibold mb-2">{t('tor.start.label')}</label>
               <input type="date" value={start} onChange={(e) => setStart(e.target.value)}
-                className="num w-full px-4 rounded-xl border-2 border-gray-200 focus:border-brand-500 outline-none" />
+                className="num w-full px-4 rounded-xl border-2 border-line focus:border-brand-500 outline-none" />
             </div>
             <div>
               <label className="block font-semibold mb-2">{t('tor.end.label')}</label>
               <input type="date" value={end} onChange={(e) => setEnd(e.target.value)}
-                className="num w-full px-4 rounded-xl border-2 border-gray-200 focus:border-brand-500 outline-none" />
+                className="num w-full px-4 rounded-xl border-2 border-line focus:border-brand-500 outline-none" />
             </div>
           </div>
 
@@ -204,7 +246,7 @@ export default function NewTorPage() {
               onChange={(e) => setScope(e.target.value)}
               rows={5}
               placeholder={t('tor.scope.placeholder')}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-brand-500 outline-none resize-none"
+              className="w-full px-4 py-3 rounded-xl border-2 border-line focus:border-brand-500 outline-none resize-none"
             />
           </div>
 
@@ -218,7 +260,7 @@ export default function NewTorPage() {
                     value={d}
                     onChange={(e) => setDeliverable(i, e.target.value)}
                     placeholder={t('tor.deliverables.placeholder', { n: i + 1 })}
-                    className="flex-1 px-3 rounded-lg border-2 border-gray-200 focus:border-brand-500 outline-none"
+                    className="flex-1 px-3 rounded-lg border-2 border-line focus:border-brand-500 outline-none"
                   />
                   {deliverables.length > 1 && (
                     <button
@@ -250,30 +292,20 @@ export default function NewTorPage() {
         {/* Checklist sidebar */}
         <div className="card h-fit lg:sticky lg:top-24">
           <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-gray-400" />
+            <FileText className="w-5 h-5 text-ink-muted" />
             {t('tor.checklist.title')}
           </h2>
-          {draft?.compliance_checklist ? (
+          {showLiveChecklist ? (
             <ul className="space-y-2">
-              {Object.entries(draft.compliance_checklist).map(([key, status]) => (
+              {Object.entries(liveChecklist).map(([key, status]) => (
                 <ChecklistItem key={key} label={CHECKLIST_LABEL_KEYS[key] ? t(CHECKLIST_LABEL_KEYS[key]) : key} status={status} />
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-gray-500">{t('tor.checklist.hint')}</p>
+            <p className="text-sm text-ink-muted">{t('tor.checklist.hint')}</p>
           )}
         </div>
       </div>
-
-      {/* AI draft preview */}
-      {draft?.body_markdown && (
-        <div className="card">
-          <h2 className="text-lg font-bold mb-3">{t('tor.draft.title')}</h2>
-          <div className="prose prose-sm max-w-none whitespace-pre-wrap text-gray-800 leading-relaxed">
-            {draft.body_markdown}
-          </div>
-        </div>
-      )}
     </section>
   );
 }
@@ -282,7 +314,7 @@ function ChecklistItem({ label, status }: { label: string; status: 'passed' | 'f
   const cfg = {
     passed: { icon: CheckCircle2, cls: 'text-green-600',  bg: 'bg-green-50' },
     failed: { icon: XCircle,      cls: 'text-red-600',    bg: 'bg-red-50' },
-    na:     { icon: MinusCircle,  cls: 'text-gray-400',   bg: 'bg-gray-50' },
+    na:     { icon: MinusCircle,  cls: 'text-ink-muted',  bg: 'bg-gray-50' },
   }[status];
   const Icon = cfg.icon;
   return (
