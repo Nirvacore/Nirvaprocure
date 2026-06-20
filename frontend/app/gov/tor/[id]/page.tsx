@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
   ArrowLeft, Scale, FileText, CheckCircle2, XCircle, MinusCircle,
-  Copy, Loader2, ChevronRight,
+  Copy, Download, Loader2, ChevronRight,
 } from 'lucide-react';
 import { gov as govApi, type ToRDraft } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
@@ -157,6 +157,19 @@ export default function TorDetailPage() {
     });
   }
 
+  function downloadBody() {
+    if (!draft?.body_markdown) return;
+    const slug = draft.title.replace(/[^\p{L}\p{N}\s-]/gu, '').trim().slice(0, 60) || 'tor-draft';
+    const blob = new Blob([draft.body_markdown], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${slug}.md`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+    toast(t('tor.toast.downloaded'), 'ok');
+  }
+
   return (
     <section className="screen space-y-6 max-w-4xl mx-auto">
       <Link href="/gov/tor" className="btn-sm inline-flex items-center gap-2 text-ink-soft hover:text-ink -ml-2 px-2 rounded-lg">
@@ -197,14 +210,24 @@ export default function TorDetailPage() {
               </button>
             )}
             {draft.body_markdown && (
-              <button
-                type="button"
-                onClick={copyBody}
-                className="btn-secondary inline-flex items-center gap-2 px-5"
-              >
-                <Copy className="w-4 h-4" />
-                {t('tor.action.copy')}
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={copyBody}
+                  className="btn-secondary inline-flex items-center gap-2 px-5"
+                >
+                  <Copy className="w-4 h-4" />
+                  {t('tor.action.copy')}
+                </button>
+                <button
+                  type="button"
+                  onClick={downloadBody}
+                  className="btn-secondary inline-flex items-center gap-2 px-5"
+                >
+                  <Download className="w-4 h-4" />
+                  {t('tor.action.download')}
+                </button>
+              </>
             )}
           </div>
 
