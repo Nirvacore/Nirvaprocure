@@ -5,10 +5,18 @@ import {
   ArrowLeft, Building2, CheckCircle2, XCircle, MinusCircle,
   Loader2, FileText, Sparkles, Plus, Trash2,
 } from 'lucide-react';
-import { gov as govApi, ApiError, type ToRBrief, type ToRDraft } from '@/lib/api';
+import { gov as govApi, ApiError, type ToRBrief, type ToRDraft, type ToRTemplate } from '@/lib/api';
+import { useResource } from '@/lib/use-resource';
+import { withMockFallback } from '@/lib/api-with-fallback';
 import { useToast } from '@/components/Toast';
 import { useT } from '@/lib/i18n/provider';
 import type { TranslationKey } from '@/lib/i18n/dictionary';
+
+const MOCK_TOR_TEMPLATES: ToRTemplate[] = [
+  { id: 'tpl-goods',        name: 'จัดซื้อครุภัณฑ์ทั่วไป',     procurement_kind: 'goods',        is_official: true },
+  { id: 'tpl-services',     name: 'จ้างเหมาบริการมาตรฐาน',    procurement_kind: 'services',     is_official: true },
+  { id: 'tpl-construction', name: 'งานก่อสร้างขนาดเล็ก',       procurement_kind: 'construction', is_official: false },
+];
 
 const KIND_LABEL_KEYS: Record<ToRBrief['procurement_kind'], TranslationKey> = {
   goods: 'tor.kind.goods',
@@ -29,6 +37,11 @@ export default function NewTorPage() {
   const { toast } = useToast();
   const { t } = useT();
 
+  const { data: templates } = useResource(
+    () => withMockFallback(() => govApi.templates(), MOCK_TOR_TEMPLATES),
+  );
+
+  const [templateId, setTemplateId] = useState<string>('');
   const [kind, setKind] = useState<ToRBrief['procurement_kind']>('goods');
   const [title, setTitle] = useState('');
   const [budget, setBudget] = useState('');
@@ -44,6 +57,12 @@ export default function NewTorPage() {
     setDeliverables((arr) => arr.map((x, idx) => (idx === i ? v : x)));
   }
 
+  function selectTemplate(id: string) {
+    setTemplateId(id);
+    const tpl = templates?.find((row) => row.id === id);
+    if (tpl) setKind(tpl.procurement_kind);
+  }
+
   async function submit() {
     if (!title.trim() || !scope.trim()) {
       toast(t('tor.err.required'), 'warn');
@@ -53,6 +72,7 @@ export default function NewTorPage() {
     try {
       const result = await govApi.createDraft({
         title,
+        template_id: templateId || undefined,
         brief: {
           procurement_kind: kind,
           budget_minor: Math.round(Number(budget || '0') * 100),
@@ -92,6 +112,25 @@ export default function NewTorPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Form */}
         <div className="lg:col-span-2 card space-y-5">
+          <div>
+            <label htmlFor="tor-template" className="block font-semibold mb-2">{t('tor.template.label')}</label>
+            <select
+              id="tor-template"
+              value={templateId}
+              onChange={(e) => selectTemplate(e.target.value)}
+              className="w-full px-4 rounded-xl border-2 border-gray-200 focus:border-brand-500 outline-none bg-white"
+            >
+              <option value="">{t('tor.template.none')}</option>
+              {(templates ?? []).map((tpl) => (
+                <option key={tpl.id} value={tpl.id}>
+                  {tpl.name}
+                  {tpl.is_official ? ` (${t('tor.template.official')})` : ''}
+                </option>
+              ))}
+            </select>
+            <p className="text-sm text-gray-500 mt-2">{t('tor.template.hint')}</p>
+          </div>
+
           <div>
             <label className="block font-semibold mb-2">{t('tor.kind.label')} <span className="text-red-600">*</span></label>
             <div className="flex flex-wrap gap-2">

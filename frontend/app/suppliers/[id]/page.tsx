@@ -4,14 +4,15 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeft, Building2, AlertTriangle, CheckCircle2, ShieldAlert,
-  XCircle, Receipt,
+  XCircle, Receipt, Link2, Copy, Loader2,
 } from 'lucide-react';
 import { useT } from '@/lib/i18n/provider';
-import { suppliers as suppliersApi, supplierRisk, type SupplierRow, type SupplierRiskRow } from '@/lib/api';
+import { suppliers as suppliersApi, supplierRisk, portalAdmin, type SupplierRow, type SupplierRiskRow, type PortalTokenRow } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
 import { Loading } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
+import { useToast } from '@/components/Toast';
 
 // ---------------------------------------------------------------------------
 // Risk badge (same pattern as list page)
@@ -59,6 +60,29 @@ const MOCK_RISKS: SupplierRiskRow[] = [
   { supplier_id: 'sup-2', supplier_name: 'บริษัท แม็คโคร จำกัด',           score: 22, tier: 'low',    factors: { spend_minor: 540000_00, spend_pct: 28, price_cov: 11, rejection_rate: 4,  has_coi: false, anomaly_count_90d: 0 }, computed_at: '2026-06-01' },
   { supplier_id: 'sup-3', supplier_name: 'ร้านเครื่องเขียนสยาม',             score: 48, tier: 'medium', factors: { spend_minor:  24000_00, spend_pct: 5,  price_cov: 22, rejection_rate: 8,  has_coi: false, anomaly_count_90d: 1 }, computed_at: '2026-06-01' },
   { supplier_id: 'sup-4', supplier_name: 'Global Tech Import Co.',          score: 76, tier: 'high',   factors: { spend_minor: 840000_00, spend_pct: 35, price_cov: 31, rejection_rate: 18, has_coi: true,  anomaly_count_90d: 2 }, computed_at: '2026-06-01' },
+];
+
+const MOCK_PORTAL_TOKENS: PortalTokenRow[] = [
+  {
+    id: 'pt-1',
+    supplier_id: 'sup-1',
+    supplier_name: 'HP Authorized Store Thailand',
+    label: 'Q3 ราคา',
+    expires_at: '2026-09-01T00:00:00Z',
+    revoked_at: null,
+    last_used_at: '2026-06-15T10:00:00Z',
+    created_at: '2026-06-01T00:00:00Z',
+  },
+  {
+    id: 'pt-2',
+    supplier_id: 'sup-2',
+    supplier_name: 'บริษัท แม็คโคร จำกัด',
+    label: null,
+    expires_at: '2026-07-01T00:00:00Z',
+    revoked_at: '2026-06-10T08:00:00Z',
+    last_used_at: null,
+    created_at: '2026-05-01T00:00:00Z',
+  },
 ];
 
 type EditableFieldKey = 'name' | 'category' | 'tax_id' | 'contact_name' | 'contact_email' | 'contact_phone';
@@ -181,6 +205,156 @@ function RiskFactor({ label, value, warn }: { label: string; value: string; warn
     <div className={`rounded-lg px-3 py-2 text-sm ${warn ? 'bg-amber-50 border border-amber-200' : 'bg-gray-50 border border-gray-100'}`}>
       <div className={`text-xs ${warn ? 'text-amber-700' : 'text-gray-500'}`}>{label}</div>
       <div className={`num font-bold ${warn ? 'text-amber-900' : 'text-gray-800'}`}>{value}</div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Supplier portal token admin
+// ---------------------------------------------------------------------------
+function PortalTokensPanel({ supplierId }: { supplierId: string }) {
+  const { t, locale } = useT();
+  const { toast } = useToast();
+  const [freshToken, setFreshToken] = useState<string | null>(null);
+  const [issuing, setIssuing] = useState(false);
+  const [revoking, setRevoking] = useState<string | null>(null);
+
+  const mockForSupplier = MOCK_PORTAL_TOKENS.filter((row) => row.supplier_id === supplierId);
+
+  const { data: tokens, loading, error, refresh } = useResource(
+    () => withMockFallback(
+      () => portalAdmin.list(supplierId),
+      mockForSupplier,
+    ),
+    [supplierId],
+  );
+
+  const fmtDate = (iso: string) =>
+    new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(iso));
+
+  async function issue() {
+    setIssuing(true);
+    try {
+      const result = await withMockFallback(
+        () => portalAdmin.issue({ supplier_id: supplierId }),
+        { token: 'demo-portal-token', expires_at: new Date(Date.now() + 30 * 86_400_000).toISOString() },
+      );
+      setFreshToken(result.token);
+      toast(t('portal.admin.toast.issued'), 'ok');
+      await refresh();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t('common.error'), 'err');
+    } finally {
+      setIssuing(false);
+    }
+  }
+
+  async function revoke(id: string) {
+    setRevoking(id);
+    try {
+      await withMockFallback(
+        () => portalAdmin.revoke(id),
+        { revoked: true },
+      );
+      toast(t('portal.admin.toast.revoked'), 'ok');
+      await refresh();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t('common.error'), 'err');
+    } finally {
+      setRevoking(null);
+    }
+  }
+
+  function copyLink(token: string) {
+    const url = `${window.location.origin}/portal/${encodeURIComponent(token)}`;
+    void navigator.clipboard.writeText(url).then(() => {
+      toast(t('portal.admin.copy'), 'ok');
+    });
+  }
+
+  return (
+    <div className="card">
+      <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
+        <div>
+          <h3 className="font-bold text-lg flex items-center gap-2">
+            <Link2 className="w-5 h-5 text-gray-400" />
+            {t('portal.admin.heading')}
+          </h3>
+          <p className="text-sm text-gray-500 mt-1">{t('portal.admin.sub')}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => void issue()}
+          disabled={issuing}
+          className="btn-primary px-4 inline-flex items-center gap-2"
+        >
+          {issuing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />}
+          {t('portal.admin.issue')}
+        </button>
+      </div>
+
+      {error && <ErrorBanner message={error.message} onRetry={refresh} />}
+      {loading && !tokens && <Loading />}
+
+      {freshToken && (
+        <div className="mb-4 p-4 rounded-xl bg-brand-50 border border-brand-200 space-y-2">
+          <p className="text-sm font-semibold text-brand-800">{t('portal.admin.token_once')}</p>
+          <code className="block text-xs break-all bg-white rounded-lg p-3 border border-brand-100">
+            {`${typeof window !== 'undefined' ? window.location.origin : ''}/portal/${freshToken}`}
+          </code>
+          <button
+            type="button"
+            onClick={() => copyLink(freshToken)}
+            className="btn-sm inline-flex items-center gap-2 text-brand-700 font-semibold"
+          >
+            <Copy className="w-4 h-4" />
+            {t('portal.admin.copy')}
+          </button>
+        </div>
+      )}
+
+      {tokens && tokens.length === 0 && (
+        <p className="text-sm text-gray-500">{t('portal.admin.empty')}</p>
+      )}
+
+      {tokens && tokens.length > 0 && (
+        <ul className="space-y-3">
+          {tokens.map((row) => {
+            const revoked = !!row.revoked_at;
+            return (
+              <li key={row.id} className="p-4 rounded-xl border border-gray-100 bg-gray-50">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-medium text-gray-900 truncate">
+                      {row.label ?? row.id.slice(0, 8)}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1 num">
+                      {revoked
+                        ? t('portal.admin.revoked')
+                        : t('portal.admin.expires', { date: fmtDate(row.expires_at) })}
+                    </div>
+                    {row.last_used_at && (
+                      <div className="text-xs text-gray-400 mt-0.5 num">
+                        {t('portal.admin.last_used', { date: fmtDate(row.last_used_at) })}
+                      </div>
+                    )}
+                  </div>
+                  {!revoked && (
+                    <button
+                      type="button"
+                      onClick={() => void revoke(row.id)}
+                      disabled={revoking === row.id}
+                      className="btn-sm text-red-700 hover:bg-red-50 border border-red-200 px-3 rounded-lg font-semibold"
+                    >
+                      {revoking === row.id ? <Loader2 className="w-4 h-4 animate-spin" /> : t('portal.admin.revoke')}
+                    </button>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }
@@ -318,6 +492,8 @@ function DetailBody({
       </div>
 
       <RiskPanel supplierId={supplier.id} />
+
+      <PortalTokensPanel supplierId={supplier.id} />
 
       <div className="card">
         <h3 className="font-bold text-lg mb-4 flex items-center gap-2">

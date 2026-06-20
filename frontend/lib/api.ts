@@ -536,8 +536,15 @@ export interface ToRListItem {
   status: 'draft' | 'approved' | 'published';
   created_at: string;
 }
+export interface ToRTemplate {
+  id: string;
+  name: string;
+  procurement_kind: ToRBrief['procurement_kind'];
+  is_official: boolean;
+}
 export const gov = {
   list: () => request<ToRListItem[]>('GET', '/gov/tor/drafts'),
+  templates: () => request<ToRTemplate[]>('GET', '/gov/tor/templates'),
   createDraft: (body: { title: string; brief: ToRBrief; template_id?: string }) =>
     request<ToRDraft>('POST', '/gov/tor/drafts', body),
   getDraft: (id: string) => request<ToRDraft>('GET', `/gov/tor/drafts/${id}`),

@@ -35,6 +35,13 @@ test.describe('gov tor list', () => {
     await expect(page.getByRole('heading', { name: 'ร่างเอกสาร TOR (ขอบเขตของงาน)' })).toBeVisible();
   });
 
+  test('template picker loads mock templates', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/new');
+    await expect(page.getByLabel('แม่แบบ TOR')).toBeVisible();
+    await page.getByLabel('แม่แบบ TOR').selectOption('tpl-goods');
+    await expect(page.getByRole('button', { name: 'จัดซื้อครุภัณฑ์' })).toHaveClass(/bg-brand-600/);
+  });
+
   test('header nav links to ToR list', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await gotoAuthenticated(page, '/');
