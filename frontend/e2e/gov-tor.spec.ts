@@ -126,4 +126,12 @@ test.describe('gov tor list', () => {
     expect(download.suggestedFilename()).toMatch(/\.md$/);
     await expect(page.getByText('ดาวน์โหลดไฟล์แล้ว')).toBeVisible();
   });
+
+  test('search filters ToR list by project title', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor');
+    await page.getByPlaceholder('ค้นหาชื่อโครงการ ToR…').fill('คลังสินค้า');
+    await expect(page.getByText('ก่อสร้างอาคารคลังสินค้า')).toBeVisible();
+    await expect(page.getByText('จัดซื้อเครื่องคอมพิวเตอร์ จำนวน 20 เครื่อง')).not.toBeVisible();
+    await expect(page.getByText('จ้างเหมาบำรุงรักษาระบบเครือข่าย')).not.toBeVisible();
+  });
 });
