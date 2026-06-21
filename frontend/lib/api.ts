@@ -533,7 +533,7 @@ export interface ToRListItem {
   id: string;
   title: string;
   procurement_kind: ToRBrief['procurement_kind'];
-  status: 'draft' | 'approved' | 'published';
+  status: 'draft' | 'review' | 'approved' | 'published';
   created_at: string;
 }
 export interface ToRTemplate {

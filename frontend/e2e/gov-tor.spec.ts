@@ -99,4 +99,14 @@ test.describe('gov tor list', () => {
     const text = await page.evaluate(() => navigator.clipboard.readText());
     expect(text).toContain('๑. ความเป็นมา');
   });
+
+  test('advanced status reflects on list after navigating back', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/tor-1');
+    await page.getByRole('button', { name: 'ส่งตรวจสอบ' }).click();
+    await expect(page.getByText('อัปเดตสถานะแล้ว')).toBeVisible();
+    await page.getByRole('link', { name: 'กลับไปรายการ ToR' }).click();
+    await expect(page).toHaveURL(/\/gov\/tor$/);
+    const card = page.getByRole('link', { name: /จัดซื้อเครื่องคอมพิวเตอร์/ });
+    await expect(card.getByText('อยู่ระหว่างตรวจสอบ')).toBeVisible();
+  });
 });
