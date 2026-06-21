@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
   ArrowLeft, Scale, FileText, CheckCircle2, XCircle, MinusCircle,
-  Copy, Download, Loader2, ChevronRight,
+  Copy, Download, Loader2, ChevronRight, Printer,
 } from 'lucide-react';
 import { gov as govApi, type ToRDraft } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
@@ -172,7 +172,7 @@ export default function TorDetailPage() {
 
   return (
     <section className="screen space-y-6 max-w-4xl mx-auto">
-      <Link href="/gov/tor" className="btn-sm inline-flex items-center gap-2 text-ink-soft hover:text-ink -ml-2 px-2 rounded-lg">
+      <Link href="/gov/tor" className="no-print btn-sm inline-flex items-center gap-2 text-ink-soft hover:text-ink -ml-2 px-2 rounded-lg">
         <ArrowLeft className="w-5 h-5" />
         <span>{t('tor.list.back')}</span>
       </Link>
@@ -197,7 +197,7 @@ export default function TorDetailPage() {
             )}
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 no-print">
             {advanceKey && (
               <button
                 type="button"
@@ -227,6 +227,14 @@ export default function TorDetailPage() {
                   <Download className="w-4 h-4" />
                   {t('tor.action.download')}
                 </button>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="btn-secondary inline-flex items-center gap-2 px-5"
+                >
+                  <Printer className="w-4 h-4" />
+                  {t('tor.action.print')}
+                </button>
               </>
             )}
           </div>
@@ -248,7 +256,7 @@ export default function TorDetailPage() {
               )}
             </div>
 
-            <div className="card h-fit lg:sticky lg:top-24">
+            <div className="card h-fit lg:sticky lg:top-24 no-print">
               <h2 className="text-lg font-bold mb-3 flex items-center gap-2 text-ink">
                 <FileText className="w-5 h-5 text-ink-muted" />
                 {t('tor.checklist.title')}
