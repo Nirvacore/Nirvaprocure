@@ -548,6 +548,8 @@ export const gov = {
   createDraft: (body: { title: string; brief: ToRBrief; template_id?: string }) =>
     request<ToRDraft>('POST', '/gov/tor/drafts', body),
   getDraft: (id: string) => request<ToRDraft>('GET', `/gov/tor/drafts/${id}`),
+  updateDraft: (id: string, body: { body_markdown: string }) =>
+    request<ToRDraft>('PATCH', `/gov/tor/drafts/${id}`, body),
   advanceStatus: (id: string) => request<ToRDraft>('POST', `/gov/tor/drafts/${id}/advance`),
 };
 

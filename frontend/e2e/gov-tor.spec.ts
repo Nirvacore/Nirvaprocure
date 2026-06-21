@@ -157,4 +157,19 @@ test.describe('gov tor list', () => {
     await expect(page.getByRole('link', { name: 'ดาวน์โหลด PDF' })).not.toBeVisible();
     await expect(page.getByRole('button', { name: 'พิมพ์ / บันทึก PDF' })).toBeVisible();
   });
+
+  test('edits and saves TOR body markdown', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/tor-1');
+    await page.getByRole('button', { name: 'แก้ไขเนื้อหา' }).click();
+    await page.getByLabel('เนื้อหาร่าง ToR').fill('## ทดสอบแก้ไข\nเนื้อหาใหม่จาก E2E');
+    await page.getByRole('button', { name: 'บันทึก' }).click();
+    await expect(page.getByText('บันทึกเนื้อหาแล้ว')).toBeVisible();
+    await expect(page.getByText('ทดสอบแก้ไข')).toBeVisible();
+    await expect(page.getByText('เนื้อหาใหม่จาก E2E')).toBeVisible();
+  });
+
+  test('edit button hidden on approved TOR', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/tor-2');
+    await expect(page.getByRole('button', { name: 'แก้ไขเนื้อหา' })).not.toBeVisible();
+  });
 });

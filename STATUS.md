@@ -47,7 +47,7 @@ Font per script auto-loaded by Next.js; the body font-stack swaps based on
 | `marketplace/`  | Shopee + Lazada + Makro + Alibaba URL parsers | (internal — called by /pr/import-link) |
 | `stock/`        | Warehouses, items, movements ledger, reorder cron | `GET /stock/on-hand`, `POST /stock/movements` |
 | `people/`       | Users + departments + roles CRUD | `GET/POST /people/users`, `/people/departments` |
-| `gov/`          | TOR templates + AI draft (Thai gov format) | `GET /gov/tor/templates`, `GET /gov/tor/drafts`, `POST /gov/tor/drafts`, `GET /gov/tor/drafts/:id`, `GET /gov/tor/drafts/:id/pdf`, `POST /gov/tor/drafts/:id/advance` |
+| `gov/`          | TOR templates + AI draft (Thai gov format) | `GET /gov/tor/templates`, `GET /gov/tor/drafts`, `POST /gov/tor/drafts`, `GET /gov/tor/drafts/:id`, `PATCH /gov/tor/drafts/:id`, `GET /gov/tor/drafts/:id/pdf`, `POST /gov/tor/drafts/:id/advance` |
 | `ai/`           | NirvaAI price-compare (OpenAI/Claude wrapper) | `POST /ai/price-compare` |
 | `finance/`      | NirvaFinance — invoice OCR via vision LLM | `POST /finance/invoice/ocr` |
 | `notifications/`| LINE push + webhook receive (HMAC) + FCM push | `POST /notifications/line/webhook`, `POST /notifications/fcm/token` |

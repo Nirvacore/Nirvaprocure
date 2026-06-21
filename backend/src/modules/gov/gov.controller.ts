@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Header, Param, ParseUUIDPipe, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, Header, Param, ParseUUIDPipe, Patch, Post, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import {
   ArrayMinSize, IsArray, IsIn, IsInt, IsObject, IsOptional, IsString, IsUUID, Min,
@@ -49,6 +49,11 @@ class CreateDraftDto {
   brief!: BriefDto;
 }
 
+class UpdateDraftDto {
+  @IsString() @MaxLength(50000)
+  body_markdown!: string;
+}
+
 @Controller('gov/tor')
 export class GovController {
   constructor(
@@ -89,6 +94,15 @@ export class GovController {
     const slug = id.slice(0, 8);
     res.setHeader('Content-Disposition', `inline; filename="tor-${slug}.pdf"`);
     await this.pdf.render(user, id, res);
+  }
+
+  @Patch('drafts/:id')
+  updateDraft(
+    @CurrentUser() user: CU,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateDraftDto,
+  ) {
+    return this.svc.updateDraftBody(user, id, dto.body_markdown);
   }
 
   @Post('drafts/:id/advance')

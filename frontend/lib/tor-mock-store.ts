@@ -92,6 +92,14 @@ export function advanceMockTorDraft(id: string, fallback: ToRDraft): ToRDraft {
   return { ...draft, status: next };
 }
 
+export function updateMockTorDraftBody(id: string, fallback: ToRDraft, body_markdown: string): ToRDraft {
+  const draft = readMockTorDraft(id) ?? fallback;
+  if (draft.status !== 'draft' && draft.status !== 'review') {
+    throw new Error('TOR body can only be edited while draft or in review');
+  }
+  return { ...draft, body_markdown };
+}
+
 export function syncMockTorListStatus(id: string, status: ToRDraft['status']) {
   const listStatus = listStatusFromDraft(status);
   const items = readMockTorListItems();
