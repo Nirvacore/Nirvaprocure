@@ -1,6 +1,7 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ArrowLeft, FileText, Plus, Scale, Search } from 'lucide-react';
 import { gov as govApi, type ToRListItem } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
@@ -96,12 +97,23 @@ function TorCard({ row }: { row: ToRListItem }) {
 
 export default function TorListPage() {
   const { t } = useT();
+  const pathname = usePathname();
+  const revisited = useRef(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('');
   const [kindFilter, setKindFilter] = useState<KindFilter>('');
   const [query, setQuery] = useState('');
   const { data, loading, error, refresh } = useResource(
     () => withMockFallback(() => govApi.list(), mergeMockTorList(MOCK_TOR_LIST)),
   );
+
+  useEffect(() => {
+    if (pathname !== '/gov/tor') return;
+    if (!revisited.current) {
+      revisited.current = true;
+      return;
+    }
+    void refresh();
+  }, [pathname, refresh]);
 
   const filtered = useMemo(() => {
     let rows = data ?? [];

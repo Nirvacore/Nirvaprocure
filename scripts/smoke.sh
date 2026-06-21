@@ -155,9 +155,19 @@ echo "$gov_drafts" | grep -q 'จัดซื้อเครื่องคอ�
 echo "    gov drafts OK"
 
 # -----------------------------------------------------------------------------
-# 11. Advance a seeded TOR draft (draft → review)
+# 11. TOR draft PDF export
 # -----------------------------------------------------------------------------
 TOR_DRAFT_ID='99999999-9999-9999-9999-999999999901'
+echo "==> GET /gov/tor/drafts/$TOR_DRAFT_ID/pdf"
+pdf_type="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
+    -o /dev/null -w '%{content_type}' \
+    "$API/gov/tor/drafts/$TOR_DRAFT_ID/pdf")"
+echo "$pdf_type" | grep -q 'application/pdf' || { echo "FAIL: TOR PDF not application/pdf ($pdf_type)"; exit 1; }
+echo "    gov draft PDF OK"
+
+# -----------------------------------------------------------------------------
+# 12. Advance a seeded TOR draft (draft → review)
+# -----------------------------------------------------------------------------
 echo "==> POST /gov/tor/drafts/$TOR_DRAFT_ID/advance"
 gov_advanced="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
     -X POST "$API/gov/tor/drafts/$TOR_DRAFT_ID/advance")"
@@ -165,4 +175,4 @@ echo "$gov_advanced" | grep -q '"status":"review"' || { echo "FAIL: advance did 
 echo "    gov advance OK"
 
 echo ""
-echo "✅ SMOKE PASSED — all 13 steps green"
+echo "✅ SMOKE PASSED — all 14 steps green"
