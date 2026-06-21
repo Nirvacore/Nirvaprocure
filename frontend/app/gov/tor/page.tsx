@@ -1,4 +1,5 @@
 'use client';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, FileText, Plus, Scale } from 'lucide-react';
 import { gov as govApi, type ToRListItem } from '@/lib/api';
@@ -32,6 +33,16 @@ const MOCK_TOR_LIST: ToRListItem[] = [
     status: 'published',
     created_at: '2026-05-28T11:00:00Z',
   },
+];
+
+type StatusFilter = '' | ToRListItem['status'];
+
+const FILTERS: { key: StatusFilter; labelKey: TranslationKey }[] = [
+  { key: '',          labelKey: 'pr.filter.all' },
+  { key: 'draft',     labelKey: 'tor.status.draft' },
+  { key: 'review',    labelKey: 'tor.status.review' },
+  { key: 'approved',  labelKey: 'tor.status.approved' },
+  { key: 'published', labelKey: 'tor.status.published' },
 ];
 
 const KIND_LABEL_KEYS: Record<ToRListItem['procurement_kind'], TranslationKey> = {
@@ -77,8 +88,14 @@ function TorCard({ row }: { row: ToRListItem }) {
 
 export default function TorListPage() {
   const { t } = useT();
+  const [filter, setFilter] = useState<StatusFilter>('');
   const { data, loading, error, refresh } = useResource(
     () => withMockFallback(() => govApi.list(), mergeMockTorList(MOCK_TOR_LIST)),
+  );
+
+  const filtered = useMemo(
+    () => (filter && data ? data.filter((row) => row.status === filter) : data ?? []),
+    [data, filter],
   );
 
   return (
@@ -101,6 +118,25 @@ export default function TorListPage() {
         </Link>
       </div>
 
+      {data && data.length > 0 && (
+        <div className="flex gap-2 flex-wrap overflow-x-auto pb-1">
+          {FILTERS.map(({ key, labelKey }) => (
+            <button
+              key={key || 'all'}
+              type="button"
+              onClick={() => setFilter(key)}
+              className={`min-h-btn-sm px-4 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                filter === key
+                  ? 'bg-brand-600 text-white'
+                  : 'bg-white border border-line text-ink-soft hover:bg-gray-50'
+              }`}
+            >
+              {t(labelKey)}
+            </button>
+          ))}
+        </div>
+      )}
+
       {error && <ErrorBanner message={error?.message} onRetry={refresh} />}
       {loading && !data && <Loading />}
 
@@ -116,9 +152,16 @@ export default function TorListPage() {
         </div>
       )}
 
-      {data && data.length > 0 && (
+      {data && data.length > 0 && filtered.length === 0 && (
+        <div className="card text-center py-12">
+          <FileText className="w-10 h-10 text-ink-muted mx-auto mb-3" />
+          <p className="text-lg font-bold mb-1">{t('tor.list.filter.empty')}</p>
+        </div>
+      )}
+
+      {filtered.length > 0 && (
         <div className="space-y-3">
-          {data.map((row) => <TorCard key={row.id} row={row} />)}
+          {filtered.map((row) => <TorCard key={row.id} row={row} />)}
         </div>
       )}
     </section>

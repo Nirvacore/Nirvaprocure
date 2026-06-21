@@ -12,9 +12,9 @@ test.describe('gov tor list', () => {
     await expect(page.getByText('จัดซื้อเครื่องคอมพิวเตอร์ จำนวน 20 เครื่อง')).toBeVisible();
     await expect(page.getByText('จ้างเหมาบำรุงรักษาระบบเครือข่าย')).toBeVisible();
     await expect(page.getByText('ก่อสร้างอาคารคลังสินค้า')).toBeVisible();
-    await expect(page.getByText('ร่าง')).toBeVisible();
-    await expect(page.getByText('อนุมัติแล้ว')).toBeVisible();
-    await expect(page.getByText('เผยแพร่แล้ว')).toBeVisible();
+    await expect(page.getByRole('link', { name: /จัดซื้อเครื่องคอมพิวเตอร์/ }).getByText('ร่าง')).toBeVisible();
+    await expect(page.getByRole('link', { name: /จ้างเหมา/ }).getByText('อนุมัติแล้ว')).toBeVisible();
+    await expect(page.getByRole('link', { name: /ก่อสร้าง/ }).getByText('เผยแพร่แล้ว')).toBeVisible();
   });
 
   test('card navigates to stub detail page', async ({ page }) => {
@@ -108,5 +108,22 @@ test.describe('gov tor list', () => {
     await expect(page).toHaveURL(/\/gov\/tor$/);
     const card = page.getByRole('link', { name: /จัดซื้อเครื่องคอมพิวเตอร์/ });
     await expect(card.getByText('อยู่ระหว่างตรวจสอบ')).toBeVisible();
+  });
+
+  test('status filter shows only draft ToR entries', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor');
+    await page.getByRole('button', { name: 'ร่าง', exact: true }).click();
+    await expect(page.getByText('จัดซื้อเครื่องคอมพิวเตอร์ จำนวน 20 เครื่อง')).toBeVisible();
+    await expect(page.getByText('จ้างเหมาบำรุงรักษาระบบเครือข่าย')).not.toBeVisible();
+    await expect(page.getByText('ก่อสร้างอาคารคลังสินค้า')).not.toBeVisible();
+  });
+
+  test('download button saves markdown file', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/tor-1');
+    const downloadPromise = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'ดาวน์โหลด Markdown' }).click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toMatch(/\.md$/);
+    await expect(page.getByText('ดาวน์โหลดไฟล์แล้ว')).toBeVisible();
   });
 });
