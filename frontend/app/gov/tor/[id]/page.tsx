@@ -1,17 +1,22 @@
 'use client';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
   ArrowLeft, Scale, FileText, CheckCircle2, XCircle, MinusCircle,
+  Copy, Loader2, ChevronRight,
 } from 'lucide-react';
 import { gov as govApi, type ToRDraft } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
 import { Loading } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
+import { useToast } from '@/components/Toast';
 import { useT } from '@/lib/i18n/provider';
 import type { TranslationKey } from '@/lib/i18n/dictionary';
-import { readMockTorDraft } from '@/lib/tor-mock-store';
+import {
+  advanceMockTorDraft, readMockTorDraft, storeMockTorDraft, syncMockTorListStatus,
+} from '@/lib/tor-mock-store';
 
 const CHECKLIST_LABEL_KEYS: Record<string, TranslationKey> = {
   has_scope:             'tor.checklist.scope',
@@ -27,6 +32,12 @@ const STATUS_LABEL_KEYS: Record<ToRDraft['status'], TranslationKey> = {
   review:    'tor.status.review',
   approved:  'tor.status.approved',
   archived:  'tor.status.archived',
+};
+
+const ADVANCE_LABEL_KEYS: Partial<Record<ToRDraft['status'], TranslationKey>> = {
+  draft:    'tor.action.submit_review',
+  review:   'tor.action.approve',
+  approved: 'tor.action.archive',
 };
 
 const STATUS_STYLE: Record<ToRDraft['status'], { bg: string; text: string }> = {
@@ -104,16 +115,47 @@ function mockTorDraft(id: string): ToRDraft {
 export default function TorDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t, locale } = useT();
+  const { toast } = useToast();
+  const [local, setLocal] = useState<ToRDraft | null>(null);
+  const [advancing, setAdvancing] = useState(false);
 
-  const { data: draft, loading, error, refresh } = useResource(
+  const { data, loading, error, refresh } = useResource(
     () => withMockFallback(() => govApi.getDraft(id), mockTorDraft(id)),
     [id],
   );
 
+  const draft = local ?? data;
+  const advanceKey = draft ? ADVANCE_LABEL_KEYS[draft.status] : undefined;
   const statusStyle = draft ? STATUS_STYLE[draft.status] : null;
   const fmtDate = draft
     ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(draft.created_at))
     : '';
+
+  async function advanceStatus() {
+    if (!draft || !advanceKey) return;
+    setAdvancing(true);
+    try {
+      const updated = await withMockFallback(
+        () => govApi.advanceStatus(id),
+        advanceMockTorDraft(id, mockTorDraft(id)),
+      );
+      storeMockTorDraft(updated);
+      syncMockTorListStatus(id, updated.status);
+      setLocal(updated);
+      toast(t('tor.toast.status'), 'ok');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t('common.error'), 'err');
+    } finally {
+      setAdvancing(false);
+    }
+  }
+
+  function copyBody() {
+    if (!draft?.body_markdown) return;
+    void navigator.clipboard.writeText(draft.body_markdown).then(() => {
+      toast(t('tor.toast.copied'), 'ok');
+    });
+  }
 
   return (
     <section className="screen space-y-6 max-w-4xl mx-auto">
@@ -139,6 +181,30 @@ export default function TorDetailPage() {
               <span className={`text-xs font-semibold px-3 py-1 rounded-full ${statusStyle.bg} ${statusStyle.text}`}>
                 {t(STATUS_LABEL_KEYS[draft.status])}
               </span>
+            )}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {advanceKey && (
+              <button
+                type="button"
+                onClick={() => void advanceStatus()}
+                disabled={advancing}
+                className="btn-primary inline-flex items-center gap-2 px-5"
+              >
+                {advancing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronRight className="w-4 h-4" />}
+                {t(advanceKey)}
+              </button>
+            )}
+            {draft.body_markdown && (
+              <button
+                type="button"
+                onClick={copyBody}
+                className="btn-secondary inline-flex items-center gap-2 px-5"
+              >
+                <Copy className="w-4 h-4" />
+                {t('tor.action.copy')}
+              </button>
             )}
           </div>
 
