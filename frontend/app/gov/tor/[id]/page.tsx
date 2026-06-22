@@ -136,6 +136,9 @@ export default function TorDetailPage() {
   const canEdit = draft?.status === 'draft' || draft?.status === 'review';
   const advanceKey = draft ? ADVANCE_LABEL_KEYS[draft.status] : undefined;
   const statusStyle = draft ? STATUS_STYLE[draft.status] : null;
+  const failedChecklistCount = draft
+    ? Object.values(draft.compliance_checklist).filter((s) => s === 'failed').length
+    : 0;
   const fmtDate = draft
     ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(draft.created_at))
     : '';
@@ -282,6 +285,22 @@ export default function TorDetailPage() {
               </>
             )}
           </div>
+
+          {failedChecklistCount > 0 && canEdit && !editing && (
+            <div className="no-print card border-amber-200 bg-amber-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <p className="text-sm text-amber-900">
+                {t('tor.checklist.failed_banner', { count: failedChecklistCount })}
+              </p>
+              <button
+                type="button"
+                onClick={startEdit}
+                className="btn-secondary inline-flex items-center gap-2 px-4 shrink-0"
+              >
+                <Pencil className="w-4 h-4" />
+                {t('tor.action.edit')}
+              </button>
+            </div>
+          )}
 
           <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
             <div className="space-y-6">

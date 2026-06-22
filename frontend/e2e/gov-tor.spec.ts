@@ -160,7 +160,7 @@ test.describe('gov tor list', () => {
 
   test('edits and saves TOR body markdown', async ({ page }) => {
     await gotoAuthenticated(page, '/gov/tor/tor-1');
-    await page.getByRole('button', { name: 'แก้ไขเนื้อหา' }).click();
+    await page.getByRole('button', { name: 'แก้ไขเนื้อหา' }).last().click();
     await page.getByLabel('เนื้อหาร่าง ToR').fill('## ทดสอบแก้ไข\nเนื้อหาใหม่จาก E2E');
     await page.getByRole('button', { name: 'บันทึก' }).click();
     await expect(page.getByText('บันทึกเนื้อหาแล้ว')).toBeVisible();
@@ -171,5 +171,24 @@ test.describe('gov tor list', () => {
   test('edit button hidden on approved TOR', async ({ page }) => {
     await gotoAuthenticated(page, '/gov/tor/tor-2');
     await expect(page.getByRole('button', { name: 'แก้ไขเนื้อหา' })).not.toBeVisible();
+  });
+
+  test('clear filters resets list to all entries', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor');
+    await page.getByPlaceholder('ค้นหาชื่อโครงการ ToR…').fill('คลังสินค้า');
+    await page.getByTestId('tor-kind-filters').getByRole('button', { name: 'งานก่อสร้าง' }).click();
+    await expect(page.getByText('ก่อสร้างอาคารคลังสินค้า')).toBeVisible();
+    await expect(page.getByText('จัดซื้อเครื่องคอมพิวเตอร์')).not.toBeVisible();
+    await page.getByRole('button', { name: 'ล้างตัวกรอง' }).click();
+    await expect(page.getByText('จัดซื้อเครื่องคอมพิวเตอร์ จำนวน 20 เครื่อง')).toBeVisible();
+    await expect(page.getByText('จ้างเหมาบำรุงรักษาระบบเครือข่าย')).toBeVisible();
+    await expect(page.getByText('ก่อสร้างอาคารคลังสินค้า')).toBeVisible();
+  });
+
+  test('failed checklist banner offers edit on draft TOR', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/tor-1');
+    await expect(page.getByText('มี 1 รายการที่ยังไม่ผ่าน')).toBeVisible();
+    await page.getByRole('button', { name: 'แก้ไขเนื้อหา' }).first().click();
+    await expect(page.getByLabel('เนื้อหาร่าง ToR')).toBeVisible();
   });
 });

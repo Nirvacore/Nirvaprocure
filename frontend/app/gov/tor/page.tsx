@@ -124,6 +124,15 @@ export default function TorListPage() {
     return rows;
   }, [data, statusFilter, kindFilter, query]);
 
+  const hasActiveFilters = Boolean(statusFilter || kindFilter || query.trim());
+  const totalCount = data?.length ?? 0;
+
+  function clearFilters() {
+    setStatusFilter('');
+    setKindFilter('');
+    setQuery('');
+  }
+
   const noMatches = Boolean(data && data.length > 0 && filtered.length === 0);
   const emptyMessageKey: TranslationKey = query.trim()
     ? 'tor.list.search.empty'
@@ -195,6 +204,21 @@ export default function TorListPage() {
               </button>
             ))}
           </div>
+
+          {hasActiveFilters && (
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <p className="text-sm text-ink-soft num">
+                {t('tor.list.results', { count: filtered.length, total: totalCount })}
+              </p>
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="btn-sm text-brand-600 hover:text-brand-700 font-medium"
+              >
+                {t('tor.list.clear_filters')}
+              </button>
+            </div>
+          )}
         </>
       )}
 
@@ -217,6 +241,15 @@ export default function TorListPage() {
         <div className="card text-center py-12">
           <FileText className="w-10 h-10 text-ink-muted mx-auto mb-3" />
           <p className="text-lg font-bold mb-1">{t(emptyMessageKey)}</p>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="btn-secondary inline-flex px-5 mt-4"
+            >
+              {t('tor.list.clear_filters')}
+            </button>
+          )}
         </div>
       )}
 
