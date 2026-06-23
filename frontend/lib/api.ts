@@ -46,6 +46,12 @@ export interface PrLineItem {
   supplier_id: string | null;
   source: Source | null;
   source_url: string | null;
+  source_metadata?: Record<string, unknown> | null;
+}
+export interface LinkedTorRef {
+  id: string;
+  title: string;
+  status: 'draft' | 'review' | 'approved' | 'archived';
 }
 export interface ApprovalDecision {
   step_no: number;
@@ -64,6 +70,7 @@ export interface PrDetail extends PrSummary {
   justification: string;
   items: PrLineItem[];
   approval: ApprovalTrail | null;
+  linked_tor?: LinkedTorRef | null;
 }
 export interface InboxEntry {
   instance_id: string;

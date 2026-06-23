@@ -119,10 +119,16 @@ export default function TorListPage() {
             {t('tor.list.heading')}
           </h1>
         </div>
-        <Link href="/gov/tor/new" className="btn-primary px-5">
-          <Plus className="w-5 h-5" />
-          {t('tor.list.new')}
-        </Link>
+        <div className="flex gap-2 flex-wrap">
+          <Link href="/gov/tor/new" className="btn-primary px-5">
+            <Plus className="w-5 h-5" />
+            {t('tor.list.new')}
+          </Link>
+          <Link href="/gov/tor/templates" className="btn-secondary px-5">
+            <FileText className="w-5 h-5" />
+            {t('tor.templates.heading')}
+          </Link>
+        </div>
       </div>
 
       {data && data.length > 0 && (

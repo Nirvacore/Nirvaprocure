@@ -1,20 +1,21 @@
 'use client';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, Clock, MessageSquare, GitBranch, Package, Check, Download } from 'lucide-react';
+import { ArrowLeft, Clock, MessageSquare, GitBranch, Package, Check, Download, Scale } from 'lucide-react';
 import { mockDetailById, srcLabel, type PrDetail, type Source } from '@/lib/mock-data';
 import { StatusPill } from '@/components/StatusPill';
 import { fmtBaht } from '@/lib/format';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
-import { pr as prApi, type PrDetail as ApiPrDetail } from '@/lib/api';
+import { pr as prApi, type LinkedTorRef, type PrDetail as ApiPrDetail } from '@/lib/api';
+import { findMockTorByPrId } from '@/lib/tor-mock-store';
 import { Loading } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
 import { AiSuggestionCard } from '@/components/AiSuggestionCard';
 import { PrComments } from '@/components/PrComments';
 import { useT } from '@/lib/i18n/provider';
 
-function toDetail(d: ApiPrDetail): PrDetail {
+function toDetail(d: ApiPrDetail): PrDetail & { linked_tor?: LinkedTorRef | null } {
   const items = d.items.map((it) => ({
     description: it.description,
     qty: it.quantity,
@@ -53,7 +54,13 @@ function toDetail(d: ApiPrDetail): PrDetail {
     items,
     total_minor: d.total.amount_minor,
     trail: allItems,
+    linked_tor: d.linked_tor ?? null,
   };
+}
+
+function mockPrDetail(id: string): PrDetail & { linked_tor?: LinkedTorRef | null } {
+  const base = mockDetailById[id] ?? mockDetailById['1'];
+  return { ...base, linked_tor: findMockTorByPrId(id) };
 }
 
 export default function PrDetailPage() {
@@ -63,7 +70,7 @@ export default function PrDetailPage() {
   const { data: pr, loading, error, refresh } = useResource(
     () => withMockFallback(
       async () => toDetail(await prApi.get(id)),
-      mockDetailById[id] ?? mockDetailById['1'],
+      mockPrDetail(id),
     ),
     [id],
   );
@@ -97,7 +104,7 @@ export default function PrDetailPage() {
   );
 }
 
-function DetailBody({ pr }: { pr: PrDetail }) {
+function DetailBody({ pr }: { pr: PrDetail & { linked_tor?: LinkedTorRef | null } }) {
   const { t } = useT();
   return (
     <>
@@ -138,6 +145,21 @@ function DetailBody({ pr }: { pr: PrDetail }) {
           <span className="num text-2xl font-bold">฿ {fmtBaht(pr.total_minor)}</span>
         </div>
       </div>
+
+      {pr.linked_tor && (
+        <Link href={`/gov/tor/${pr.linked_tor.id}`} className="card hover:border-brand-300 transition-colors block">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center flex-shrink-0">
+              <Scale className="w-5 h-5 text-brand-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium text-gray-500 mb-1">{t('pr.linked_tor.title')}</div>
+              <div className="font-semibold text-ink leading-snug">{pr.linked_tor.title}</div>
+              <div className="text-sm text-brand-600 mt-1">{t('pr.linked_tor.view')}</div>
+            </div>
+          </div>
+        </Link>
+      )}
 
       {/* Justification */}
       <div className="card">

@@ -1,18 +1,20 @@
 import type { ToRDraft, ToRListItem } from './api';
 import type { ToRBrief } from './api';
-import { MOCK_TOR_LIST, patchChecklistFromBody } from './tor-shared';
+import { MOCK_TOR_DRAFTS, MOCK_TOR_LIST, patchChecklistFromBody } from './tor-shared';
 
 export const TOR_MOCK_STORAGE = {
   draftPrefix: 'tor-mock:',
   listKey: 'tor-mock-list',
   statusOverridesKey: 'tor-mock-status-overrides',
   prLinkPrefix: 'tor-mock-pr:',
+  prToTorPrefix: 'pr-mock-tor-src:',
 } as const;
 
 const DRAFT_KEY_PREFIX = TOR_MOCK_STORAGE.draftPrefix;
 const LIST_KEY = TOR_MOCK_STORAGE.listKey;
 const STATUS_OVERRIDES_KEY = TOR_MOCK_STORAGE.statusOverridesKey;
 const PR_LINK_PREFIX = TOR_MOCK_STORAGE.prLinkPrefix;
+const PR_TO_TOR_PREFIX = TOR_MOCK_STORAGE.prToTorPrefix;
 
 const TOR_NEXT_STATUS: Record<ToRDraft['status'], ToRDraft['status'] | null> = {
   draft:     'review',
@@ -72,6 +74,25 @@ export function mergeMockTorPrLink(draft: ToRDraft): ToRDraft {
   const link = readMockTorPrLink(draft.id);
   if (!link) return draft;
   return { ...draft, linked_pr_id: link.pr_id, linked_pr_number: link.pr_number };
+}
+
+export function findMockTorByPrId(prId: string): { id: string; title: string; status: ToRDraft['status'] } | null {
+  try {
+    const raw = sessionStorage.getItem(`${PR_TO_TOR_PREFIX}${prId}`);
+    if (raw) return JSON.parse(raw) as { id: string; title: string; status: ToRDraft['status'] };
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i);
+      if (!key?.startsWith(PR_LINK_PREFIX)) continue;
+      const link = JSON.parse(sessionStorage.getItem(key)!) as { pr_id: string; pr_number: string };
+      if (link.pr_id !== prId) continue;
+      const torId = key.slice(PR_LINK_PREFIX.length);
+      const draft = readMockTorDraft(torId) ?? MOCK_TOR_DRAFTS[torId];
+      if (draft) return { id: draft.id, title: draft.title, status: draft.status };
+    }
+  } catch {
+    // ignore
+  }
+  return null;
 }
 
 /** Track mock list rows created in this browser session (offline create flow). */
@@ -154,6 +175,14 @@ export function createMockPrFromTor(
   const prNumber = `PR-TOR-${String(Date.now()).slice(-6)}`;
   const link = { pr_id: prId, pr_number: prNumber };
   storeMockTorPrLink(id, link);
+  try {
+    sessionStorage.setItem(
+      `${PR_TO_TOR_PREFIX}${prId}`,
+      JSON.stringify({ id: current.id, title: current.title, status: current.status }),
+    );
+  } catch {
+    // ignore
+  }
   const updated = { ...current, linked_pr_id: link.pr_id, linked_pr_number: link.pr_number };
   storeMockTorDraft(updated);
   return updated;

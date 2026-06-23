@@ -128,7 +128,14 @@ Titles and checklist states are aligned between `MOCK_TOR_*` and `database/seed.
 
 Merge in order onto `main` (each PR targets the previous phase branch):
 
-`#50` → `#51` → `#52` → `#53` → `#54` → `#55` → `#56` → `#67` → `#69` → `#70` → `#71` → Phase 30
+`#50` → … → `#72` → Phase 31
+
+## Cross-module links
+
+| Direction | Mechanism |
+|---|---|
+| ToR → PR | `POST .../create-pr` sets `tor_drafts.linked_pr_id` |
+| PR → ToR | `GET /pr/:id` returns `linked_tor` (by `linked_pr_id` or item `source_metadata.tor_draft_id`) |
 
 Or squash the stack into one release PR after final review.
 
@@ -153,6 +160,7 @@ backend/src/modules/gov/
 
 frontend/app/gov/tor/
 ├── page.tsx            List: search, status/kind filters, sort, refresh on revisit
+├── templates/page.tsx  Template library browser (official + org templates)
 ├── new/page.tsx        Template picker, brief form, live checklist, create
 └── [id]/page.tsx       Detail: advance, copy/download/print/PDF, inline edit, banner
 
