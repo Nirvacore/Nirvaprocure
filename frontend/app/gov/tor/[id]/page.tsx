@@ -13,34 +13,23 @@ import { Loading } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
 import { useToast } from '@/components/Toast';
 import { useT } from '@/lib/i18n/provider';
-import type { TranslationKey } from '@/lib/i18n/dictionary';
 import {
   advanceMockTorDraft, readMockTorDraft, storeMockTorDraft, syncMockTorListStatus,
   updateMockTorDraftBody,
 } from '@/lib/tor-mock-store';
-import { mockTorDraft, TOR_CHECKLIST_LABEL_KEYS, TOR_UUID_RE } from '@/lib/tor-shared';
+import {
+  mockTorDraft,
+  TOR_ADVANCE_LABEL_KEYS,
+  TOR_CHECKLIST_LABEL_KEYS,
+  TOR_DETAIL_STATUS_LABEL_KEYS,
+  TOR_DETAIL_STATUS_STYLE,
+  TOR_UUID_RE,
+} from '@/lib/tor-shared';
 
 const CHECKLIST_LABEL_KEYS = TOR_CHECKLIST_LABEL_KEYS;
-
-const STATUS_LABEL_KEYS: Record<ToRDraft['status'], TranslationKey> = {
-  draft:     'tor.status.draft',
-  review:    'tor.status.review',
-  approved:  'tor.status.approved',
-  archived:  'tor.status.archived',
-};
-
-const ADVANCE_LABEL_KEYS: Partial<Record<ToRDraft['status'], TranslationKey>> = {
-  draft:    'tor.action.submit_review',
-  review:   'tor.action.approve',
-  approved: 'tor.action.archive',
-};
-
-const STATUS_STYLE: Record<ToRDraft['status'], { bg: string; text: string }> = {
-  draft:     { bg: 'bg-gray-100',   text: 'text-ink-soft' },
-  review:    { bg: 'bg-amber-100',  text: 'text-amber-800' },
-  approved:  { bg: 'bg-green-100',  text: 'text-green-800' },
-  archived:  { bg: 'bg-brand-100',  text: 'text-brand-700' },
-};
+const STATUS_LABEL_KEYS = TOR_DETAIL_STATUS_LABEL_KEYS;
+const ADVANCE_LABEL_KEYS = TOR_ADVANCE_LABEL_KEYS;
+const STATUS_STYLE = TOR_DETAIL_STATUS_STYLE;
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3000/v1';
 

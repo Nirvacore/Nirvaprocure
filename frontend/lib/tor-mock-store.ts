@@ -1,9 +1,15 @@
 import type { ToRDraft, ToRListItem } from './api';
-import { patchChecklistFromBody } from './tor-shared';
+import { MOCK_TOR_LIST, patchChecklistFromBody } from './tor-shared';
 
-const DRAFT_KEY_PREFIX = 'tor-mock:';
-const LIST_KEY = 'tor-mock-list';
-const STATUS_OVERRIDES_KEY = 'tor-mock-status-overrides';
+export const TOR_MOCK_STORAGE = {
+  draftPrefix: 'tor-mock:',
+  listKey: 'tor-mock-list',
+  statusOverridesKey: 'tor-mock-status-overrides',
+} as const;
+
+const DRAFT_KEY_PREFIX = TOR_MOCK_STORAGE.draftPrefix;
+const LIST_KEY = TOR_MOCK_STORAGE.listKey;
+const STATUS_OVERRIDES_KEY = TOR_MOCK_STORAGE.statusOverridesKey;
 
 const TOR_NEXT_STATUS: Record<ToRDraft['status'], ToRDraft['status'] | null> = {
   draft:     'review',
@@ -98,7 +104,12 @@ export function updateMockTorDraftBody(id: string, fallback: ToRDraft, body_mark
   if (draft.status !== 'draft' && draft.status !== 'review') {
     throw new Error('TOR body can only be edited while draft or in review');
   }
-  const compliance_checklist = patchChecklistFromBody(draft.compliance_checklist, body_markdown);
+  const listRow = MOCK_TOR_LIST.find((row) => row.id === id);
+  const compliance_checklist = patchChecklistFromBody(
+    draft.compliance_checklist,
+    body_markdown,
+    { procurementKind: listRow?.procurement_kind },
+  );
   return { ...draft, body_markdown, compliance_checklist };
 }
 

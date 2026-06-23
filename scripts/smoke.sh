@@ -172,9 +172,10 @@ echo "==> PATCH /gov/tor/drafts/$TOR_DRAFT_ID"
 gov_patched="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
     -H 'Content-Type: application/json' \
     -X PATCH \
-    -d '{"body_markdown":"## Smoke edit\nUpdated by smoke test"}' \
+    -d '{"body_markdown":"## Smoke edit\nUpdated by smoke test\n\n## ระยะเวลาดำเนินการ\n12 เดือน (2026-01-01 ถึง 2026-12-31)"}' \
     "$API/gov/tor/drafts/$TOR_DRAFT_ID")"
 echo "$gov_patched" | grep -q 'Smoke edit' || { echo "FAIL: TOR patch did not persist body"; echo "$gov_patched"; exit 1; }
+echo "$gov_patched" | grep -q '"has_timeline":"passed"' || { echo "FAIL: PATCH should refresh has_timeline to passed"; echo "$gov_patched"; exit 1; }
 echo "    gov patch OK"
 
 # -----------------------------------------------------------------------------

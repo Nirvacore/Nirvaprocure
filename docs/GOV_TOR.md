@@ -88,7 +88,50 @@ Six items evaluated at create time from the brief (`runBriefChecklist` / `gov.se
 | `has_timeline` | start + end dates |
 | `has_qualifications` | required for construction only |
 
-On **body PATCH**, `has_timeline` is re-evaluated from markdown via `patchChecklistFromBody` (frontend mock store + backend service) when the item is not `na`.
+On **body PATCH**, non-`na` checklist rows are re-scanned from markdown via `scanChecklistFromBody` / `patchChecklistFromBody` (frontend `tor-shared.ts` + backend `gov.service`). Rules mirror the brief checks using keyword heuristics (scope length, budget/timeline/deliverable/evaluation keywords). `has_qualifications` only updates when `brief_json.procurement_kind` is `construction`.
+
+## Offline mock storage (`sessionStorage`)
+
+Exported as `TOR_MOCK_STORAGE` in `tor-mock-store.ts`:
+
+| Key | Purpose |
+|---|---|
+| `tor-mock:{id}` | Persisted draft JSON after create/edit/advance |
+| `tor-mock-list` | Extra list rows from offline create |
+| `tor-mock-status-overrides` | List status overrides after advance on seeded mocks |
+
+`mergeMockTorList(MOCK_TOR_LIST)` applies overrides and prepends session-created rows before the API/mock base list.
+
+## Seed data vs frontend mocks
+
+| Surface | ID pattern | Example |
+|---|---|---|
+| Frontend offline | string slug | `tor-1`, `tor-2`, `tor-3` |
+| Database seed | UUID | `99999999-…-901` (draft), `88888888-…-801` (template) |
+
+Titles and checklist states are aligned between `MOCK_TOR_*` and `database/seed.sql` so smoke/e2e and a live DB show the same sample projects. UUID drafts enable backend PDF; slug mocks stay client-only.
+
+## Online vs offline routing
+
+- `TOR_UUID_RE.test(id)` → backend PDF link, live PATCH/advance
+- Non-UUID ids → `mockTorDraft(id, readMockTorDraft(id))` only; print/copy/download still work
+
+## PR merge stack (Phases 19–28)
+
+Merge in order onto `main` (each PR targets the previous phase branch):
+
+`#50` → `#51` → `#52` → `#53` → `#54` → `#55` → `#56` → `#67` → `#69` → Phase 28
+
+Or squash the stack into one release PR after final review.
+
+## Shared UI constants (`tor-shared.ts`)
+
+| Export | Used by |
+|---|---|
+| `TOR_KIND_LABEL_KEYS` | list, new, detail kind badges |
+| `TOR_CHECKLIST_LABEL_KEYS` | new, detail checklist |
+| `TOR_LIST_STATUS_STYLE` | list cards |
+| `TOR_DETAIL_STATUS_*` | detail status badge + advance labels |
 
 ## File map
 
@@ -124,5 +167,6 @@ frontend/lib/
 
 ## Tests
 
+- `frontend/lib/tor-shared.test.ts` — unit tests for checklist scan/patch + sort
 - `frontend/e2e/gov-tor.spec.ts` — list filters, create, detail actions, edit, checklist banner
-- `scripts/smoke.sh` — templates, drafts, PDF, PATCH, advance against live API
+- `scripts/smoke.sh` — templates, drafts, PDF, PATCH (asserts `has_timeline`), advance against live API

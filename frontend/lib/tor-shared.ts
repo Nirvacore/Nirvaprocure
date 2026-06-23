@@ -104,6 +104,33 @@ export const MOCK_TOR_DRAFTS: Record<string, ToRDraft> = {
 
 export const TOR_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+export const TOR_DETAIL_STATUS_LABEL_KEYS: Record<ToRDraft['status'], TranslationKey> = {
+  draft:     'tor.status.draft',
+  review:    'tor.status.review',
+  approved:  'tor.status.approved',
+  archived:  'tor.status.archived',
+};
+
+export const TOR_ADVANCE_LABEL_KEYS: Partial<Record<ToRDraft['status'], TranslationKey>> = {
+  draft:    'tor.action.submit_review',
+  review:   'tor.action.approve',
+  approved: 'tor.action.archive',
+};
+
+export const TOR_DETAIL_STATUS_STYLE: Record<ToRDraft['status'], { bg: string; text: string }> = {
+  draft:     { bg: 'bg-gray-100',   text: 'text-ink-soft' },
+  review:    { bg: 'bg-amber-100',  text: 'text-amber-800' },
+  approved:  { bg: 'bg-green-100',  text: 'text-green-800' },
+  archived:  { bg: 'bg-brand-100',  text: 'text-brand-700' },
+};
+
+export const TOR_LIST_STATUS_STYLE: Record<ToRListItem['status'], { bg: string; text: string; labelKey: TranslationKey }> = {
+  draft:     { bg: 'bg-gray-100',   text: 'text-ink-soft',   labelKey: 'tor.status.draft' },
+  review:    { bg: 'bg-amber-100',  text: 'text-amber-800',  labelKey: 'tor.status.review' },
+  approved:  { bg: 'bg-green-100',  text: 'text-green-800',  labelKey: 'tor.status.approved' },
+  published: { bg: 'bg-brand-100',  text: 'text-brand-700',  labelKey: 'tor.status.published' },
+};
+
 export function mockTorDraft(id: string, stored?: ToRDraft | null): ToRDraft {
   return stored ?? MOCK_TOR_DRAFTS[id] ?? {
     id,
@@ -128,15 +155,49 @@ export function runBriefChecklist(brief: ToRBrief): ToRDraft['compliance_checkli
   };
 }
 
-/** Re-evaluate timeline checklist item from edited body markdown. */
+/** Scan markdown body for compliance signals (used after inline edits). */
+export function scanChecklistFromBody(
+  body: string,
+  options?: { procurementKind?: ToRBrief['procurement_kind'] },
+): ToRDraft['compliance_checklist'] {
+  const trimmed = body.trim();
+  return {
+    has_scope: (trimmed.length > 80 || (/ขอบเขต|scope/i.test(trimmed) && trimmed.length > 30))
+      ? 'passed' : 'failed',
+    has_budget: /งบประมาณ|ราคากลาง|วงเงิน|budget|THB|บาท/i.test(trimmed) || /\d{1,3}(,\d{3})+/.test(trimmed)
+      ? 'passed' : 'failed',
+    has_deliverables: /ส่งมอบ|deliverable|รายการ|^\s*[-*•]/m.test(trimmed)
+      ? 'passed' : 'failed',
+    has_evaluation_method: /เกณฑ์การพิจารณา|evaluation|ราคาต่ำสุด|most.advantageous|lowest.price/i.test(trimmed)
+      ? 'passed' : 'failed',
+    has_timeline: /ระยะเวลา|timeline|เดือน|วัน|start|end/i.test(trimmed) || /\d{4}-\d{2}-\d{2}/.test(trimmed)
+      ? 'passed' : 'failed',
+    has_qualifications: options?.procurementKind === 'construction'
+      ? (/คุณสมบัติ|qualification/i.test(trimmed) ? 'passed' : 'failed')
+      : 'na',
+  };
+}
+
+/** Re-evaluate checklist items from edited body markdown (preserves `na` rows). */
 export function patchChecklistFromBody(
   checklist: ToRDraft['compliance_checklist'],
   body: string,
+  options?: { procurementKind?: ToRBrief['procurement_kind'] },
 ): ToRDraft['compliance_checklist'] {
-  if (checklist.has_timeline === 'na') return checklist;
-  const hasTimeline = /ระยะเวลา|timeline|เดือน|วัน|start|end/i.test(body)
-    || /\d{4}-\d{2}-\d{2}/.test(body);
-  return { ...checklist, has_timeline: hasTimeline ? 'passed' : 'failed' };
+  const scanned = scanChecklistFromBody(body, options);
+  const next: ToRDraft['compliance_checklist'] = { ...checklist };
+
+  for (const key of Object.keys(scanned) as Array<keyof typeof scanned>) {
+    const current = next[key];
+    const fresh = scanned[key];
+    if (fresh === 'na') continue;
+    if (current === 'na' && key !== 'has_qualifications') continue;
+    if (key === 'has_qualifications' && current === 'na' && options?.procurementKind !== 'construction') {
+      continue;
+    }
+    next[key] = fresh;
+  }
+  return next;
 }
 
 export function sortTorList(rows: ToRListItem[]): ToRListItem[] {

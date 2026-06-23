@@ -130,7 +130,7 @@ export class GovService {
   updateDraftBody(user: CurrentUser, id: string, body_markdown: string) {
     return withOrg(this.pool, user.orgId, async (c) => {
       const cur = await c.query(
-        `SELECT status, compliance_checklist FROM tor_drafts WHERE id = $1`, [id],
+        `SELECT status, compliance_checklist, brief_json FROM tor_drafts WHERE id = $1`, [id],
       );
       if (cur.rowCount === 0) throw new NotFoundException();
       const status = cur.rows[0].status as TorStatus;
@@ -138,11 +138,18 @@ export class GovService {
         throw new BadRequestException('TOR body can only be edited while draft or in review');
       }
 
+      const brief = cur.rows[0].brief_json as ToRBrief;
+      const checklist = this.patchChecklistFromBody(
+        cur.rows[0].compliance_checklist ?? {},
+        body_markdown,
+        brief?.procurement_kind,
+      );
+
       const r = await c.query(
         `UPDATE tor_drafts SET body_markdown = $2, compliance_checklist = $3, updated_at = now()
          WHERE id = $1
          RETURNING id, title, status, body_markdown, compliance_checklist, created_at`,
-        [id, body_markdown, this.patchChecklistFromBody(cur.rows[0].compliance_checklist ?? {}, body_markdown)],
+        [id, body_markdown, JSON.stringify(checklist)],
       );
       return r.rows[0];
     });
@@ -170,11 +177,35 @@ export class GovService {
   private patchChecklistFromBody(
     checklist: Record<string, 'passed' | 'failed' | 'na'>,
     body: string,
+    procurementKind?: ProcurementKind,
   ): Record<string, 'passed' | 'failed' | 'na'> {
-    if (checklist.has_timeline === 'na') return checklist;
-    const hasTimeline = /ระยะเวลา|timeline|เดือน|วัน|start|end/i.test(body)
-      || /\d{4}-\d{2}-\d{2}/.test(body);
-    return { ...checklist, has_timeline: hasTimeline ? 'passed' : 'failed' };
+    const trimmed = body.trim();
+    const scanned: Record<string, 'passed' | 'failed' | 'na'> = {
+      has_scope: (trimmed.length > 80 || (/ขอบเขต|scope/i.test(trimmed) && trimmed.length > 30))
+        ? 'passed' : 'failed',
+      has_budget: /งบประมาณ|ราคากลาง|วงเงิน|budget|THB|บาท/i.test(trimmed) || /\d{1,3}(,\d{3})+/.test(trimmed)
+        ? 'passed' : 'failed',
+      has_deliverables: /ส่งมอบ|deliverable|รายการ|^\s*[-*•]/m.test(trimmed)
+        ? 'passed' : 'failed',
+      has_evaluation_method: /เกณฑ์การพิจารณา|evaluation|ราคาต่ำสุด|most.advantageous|lowest.price/i.test(trimmed)
+        ? 'passed' : 'failed',
+      has_timeline: /ระยะเวลา|timeline|เดือน|วัน|start|end/i.test(trimmed) || /\d{4}-\d{2}-\d{2}/.test(trimmed)
+        ? 'passed' : 'failed',
+      has_qualifications: procurementKind === 'construction'
+        ? (/คุณสมบัติ|qualification/i.test(trimmed) ? 'passed' : 'failed')
+        : 'na',
+    };
+
+    const next = { ...checklist };
+    for (const key of Object.keys(scanned)) {
+      const current = next[key];
+      const fresh = scanned[key];
+      if (fresh === 'na') continue;
+      if (current === 'na' && key !== 'has_qualifications') continue;
+      if (key === 'has_qualifications' && current === 'na' && procurementKind !== 'construction') continue;
+      next[key] = fresh;
+    }
+    return next;
   }
 
   private async generateBody(title: string, brief: ToRBrief): Promise<string> {

@@ -7,7 +7,7 @@ import { gov as govApi, type ToRListItem } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
 import { mergeMockTorList } from '@/lib/tor-mock-store';
-import { MOCK_TOR_LIST, sortTorList, TOR_KIND_LABEL_KEYS } from '@/lib/tor-shared';
+import { MOCK_TOR_LIST, sortTorList, TOR_KIND_LABEL_KEYS, TOR_LIST_STATUS_STYLE } from '@/lib/tor-shared';
 import { Loading } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
 import { useT } from '@/lib/i18n/provider';
@@ -32,13 +32,7 @@ const KIND_FILTERS: { key: KindFilter; labelKey: TranslationKey }[] = [
 ];
 
 const KIND_LABEL_KEYS = TOR_KIND_LABEL_KEYS;
-
-const STATUS_STYLE: Record<ToRListItem['status'], { bg: string; text: string; labelKey: TranslationKey }> = {
-  draft:     { bg: 'bg-gray-100',   text: 'text-ink-soft',   labelKey: 'tor.status.draft' },
-  review:    { bg: 'bg-amber-100',  text: 'text-amber-800',  labelKey: 'tor.status.review' },
-  approved:  { bg: 'bg-green-100',  text: 'text-green-800',  labelKey: 'tor.status.approved' },
-  published: { bg: 'bg-brand-100',  text: 'text-brand-700',  labelKey: 'tor.status.published' },
-};
+const STATUS_STYLE = TOR_LIST_STATUS_STYLE;
 
 function TorCard({ row }: { row: ToRListItem }) {
   const { t, locale } = useT();
