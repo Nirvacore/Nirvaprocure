@@ -24,6 +24,36 @@ export const MOCK_TOR_TEMPLATES: ToRTemplate[] = [
   { id: 'tpl-construction', name: 'งานก่อสร้างขนาดเล็ก',       procurement_kind: 'construction', is_official: false },
 ];
 
+export const MOCK_TOR_BRIEFS: Record<string, ToRBrief> = {
+  'tor-1': {
+    procurement_kind: 'goods',
+    budget_minor: 80000000,
+    currency: 'THB',
+    scope: 'จัดซื้อเครื่องคอมพิวเตอร์เพื่อทดแทนอุปกรณ์เดิมในหน่วยงาน',
+    deliverables: ['เครื่องคอมพิวเตอร์ 20 เครื่อง'],
+    evaluation_method: 'lowest_price',
+  },
+  'tor-2': {
+    procurement_kind: 'services',
+    budget_minor: 36000000,
+    currency: 'THB',
+    scope: 'บำรุงรักษาระบบเครือข่ายภายในหน่วยงานเป็นระยะเวลา 12 เดือน',
+    deliverables: ['รายงานการบำรุงรักษารายเดือน'],
+    evaluation_method: 'most_advantageous',
+    timeline: { start: '2026-07-01', end: '2027-06-30' },
+  },
+  'tor-3': {
+    procurement_kind: 'construction',
+    budget_minor: 500000000,
+    currency: 'THB',
+    scope: 'ก่อสร้างอาคารคลังสินค้าขนาด 500 ตร.ม.',
+    deliverables: ['อาคารคลังสินค้าพร้อมใช้งาน'],
+    qualifications: ['มีใบอนุญาตรับเหมาก่อสร้าง'],
+    evaluation_method: 'lowest_price',
+    timeline: { start: '2026-01-01', end: '2026-12-31' },
+  },
+};
+
 export const MOCK_TOR_LIST: ToRListItem[] = [
   {
     id: 'tor-1',
@@ -213,4 +243,39 @@ export function sortTorList(rows: ToRListItem[]): ToRListItem[] {
   return [...rows].sort(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
   );
+}
+
+export function buildPrPayloadFromTor(
+  torId: string,
+  title: string,
+  brief: ToRBrief,
+): {
+  title: string;
+  justification: string;
+  items: {
+    description: string;
+    quantity: number;
+    unit: string;
+    unit_price_minor: number;
+    source: 'manual';
+    source_metadata: { tor_draft_id: string };
+  }[];
+} {
+  const justification = `สร้างจาก ToR (${torId})\n\n${brief.scope}`;
+  const deliverables = brief.deliverables.length > 0 ? brief.deliverables : [brief.scope.slice(0, 2000) || title];
+  const n = deliverables.length;
+  const base = Math.floor(brief.budget_minor / n);
+
+  return {
+    title,
+    justification,
+    items: deliverables.map((description, i) => ({
+      description,
+      quantity: 1,
+      unit: 'รายการ',
+      unit_price_minor: i === n - 1 ? brief.budget_minor - base * (n - 1) : base,
+      source: 'manual' as const,
+      source_metadata: { tor_draft_id: torId },
+    })),
+  };
 }

@@ -120,4 +120,12 @@ export class GovController {
   ) {
     return this.svc.revertDraftStatus(user, id);
   }
+
+  @Post('drafts/:id/create-pr')
+  createPrFromTor(
+    @CurrentUser() user: CU,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ) {
+    return this.svc.createPrFromTor(user, id);
+  }
 }

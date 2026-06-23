@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MOCK_TOR_DRAFTS, patchChecklistFromBody, scanChecklistFromBody, sortTorList } from './tor-shared';
+import { MOCK_TOR_BRIEFS, MOCK_TOR_DRAFTS, buildPrPayloadFromTor, patchChecklistFromBody, scanChecklistFromBody, sortTorList } from './tor-shared';
 
 describe('scanChecklistFromBody', () => {
   it('detects timeline keywords in markdown', () => {
@@ -33,6 +33,15 @@ describe('patchChecklistFromBody', () => {
       { procurementKind: 'construction' },
     );
     expect(patched.has_qualifications).toBe('passed');
+  });
+});
+
+describe('buildPrPayloadFromTor', () => {
+  it('maps deliverables to PR line items', () => {
+    const payload = buildPrPayloadFromTor('tor-2', 'ทดสอบ', MOCK_TOR_BRIEFS['tor-2']);
+    expect(payload.items).toHaveLength(1);
+    expect(payload.items[0].unit_price_minor).toBe(36000000);
+    expect(payload.items[0].source_metadata.tor_draft_id).toBe('tor-2');
   });
 });
 

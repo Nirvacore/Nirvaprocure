@@ -106,6 +106,7 @@ Exported as `TOR_MOCK_STORAGE` in `tor-mock-store.ts`:
 | `tor-mock:{id}` | Persisted draft JSON after create/edit/advance |
 | `tor-mock-list` | Extra list rows from offline create |
 | `tor-mock-status-overrides` | List status overrides after advance on seeded mocks |
+| `tor-mock-pr:{id}` | Linked PR id/number after create-pr from approved ToR |
 
 `mergeMockTorList(MOCK_TOR_LIST)` applies overrides and prepends session-created rows before the API/mock base list.
 
@@ -127,7 +128,7 @@ Titles and checklist states are aligned between `MOCK_TOR_*` and `database/seed.
 
 Merge in order onto `main` (each PR targets the previous phase branch):
 
-`#50` → `#51` → `#52` → `#53` → `#54` → `#55` → `#56` → `#67` → `#69` → `#70` → Phase 29
+`#50` → `#51` → `#52` → `#53` → `#54` → `#55` → `#56` → `#67` → `#69` → `#70` → `#71` → Phase 30
 
 Or squash the stack into one release PR after final review.
 
@@ -172,6 +173,7 @@ frontend/lib/
 | PATCH | `/gov/tor/drafts/:id` | Update `body_markdown` (+ checklist refresh) |
 | POST | `/gov/tor/drafts/:id/advance` | Move to next status |
 | POST | `/gov/tor/drafts/:id/revert` | Send back (review → draft) |
+| POST | `/gov/tor/drafts/:id/create-pr` | Create PR from approved ToR (sets `linked_pr_id`) |
 | GET | `/gov/tor/drafts/:id/pdf` | PDF download (UUID drafts only in UI) |
 
 ## Tests

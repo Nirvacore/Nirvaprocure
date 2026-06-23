@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
   ArrowLeft, Scale, FileText, CheckCircle2, XCircle, MinusCircle,
-  Copy, Download, Loader2, ChevronRight, Printer, Pencil, Undo2,
+  Copy, Download, Loader2, ChevronRight, Printer, Pencil, Undo2, ShoppingCart,
 } from 'lucide-react';
 import { gov as govApi, type ToRDraft } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
@@ -14,10 +14,11 @@ import { ErrorBanner } from '@/components/ErrorBanner';
 import { useToast } from '@/components/Toast';
 import { useT } from '@/lib/i18n/provider';
 import {
-  advanceMockTorDraft, readMockTorDraft, revertMockTorDraft, storeMockTorDraft, syncMockTorListStatus,
-  updateMockTorDraftBody,
+  advanceMockTorDraft, createMockPrFromTor, readMockTorDraft, revertMockTorDraft,
+  storeMockTorDraft, syncMockTorListStatus, updateMockTorDraftBody, mergeMockTorPrLink,
 } from '@/lib/tor-mock-store';
 import {
+  MOCK_TOR_BRIEFS,
   mockTorDraft,
   TOR_ADVANCE_LABEL_KEYS,
   TOR_CHECKLIST_LABEL_KEYS,
@@ -42,12 +43,16 @@ export default function TorDetailPage() {
   const [local, setLocal] = useState<ToRDraft | null>(null);
   const [advancing, setAdvancing] = useState(false);
   const [reverting, setReverting] = useState(false);
+  const [creatingPr, setCreatingPr] = useState(false);
   const [editing, setEditing] = useState(false);
   const [bodyEdit, setBodyEdit] = useState('');
   const [saving, setSaving] = useState(false);
 
   const { data, loading, error, refresh } = useResource(
-    () => withMockFallback(() => govApi.getDraft(id), mockTorDraft(id, readMockTorDraft(id))),
+    () => withMockFallback(
+      () => govApi.getDraft(id),
+      mergeMockTorPrLink(mockTorDraft(id, readMockTorDraft(id))),
+    ),
     [id],
   );
 
@@ -99,6 +104,29 @@ export default function TorDetailPage() {
       toast(err instanceof Error ? err.message : t('common.error'), 'err');
     } finally {
       setReverting(false);
+    }
+  }
+
+  async function createPrFromTor() {
+    if (!draft) return;
+    const brief = MOCK_TOR_BRIEFS[id];
+    if (!brief) {
+      toast(t('common.error'), 'err');
+      return;
+    }
+    setCreatingPr(true);
+    try {
+      const updated = await withMockFallback(
+        () => govApi.createPrFromTor(id),
+        createMockPrFromTor(id, draft, brief),
+      );
+      storeMockTorDraft(updated);
+      setLocal(updated);
+      toast(t('tor.toast.pr_created'), 'ok');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t('common.error'), 'err');
+    } finally {
+      setCreatingPr(false);
     }
   }
 
@@ -178,7 +206,7 @@ export default function TorDetailPage() {
               <button
                 type="button"
                 onClick={() => void advanceStatus()}
-                disabled={advancing || reverting}
+                disabled={advancing || reverting || creatingPr}
                 className="btn-primary inline-flex items-center gap-2 px-5"
               >
                 {advancing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronRight className="w-4 h-4" />}
@@ -189,12 +217,32 @@ export default function TorDetailPage() {
               <button
                 type="button"
                 onClick={() => void revertStatus()}
-                disabled={advancing || reverting}
+                disabled={advancing || reverting || creatingPr}
                 className="btn-secondary inline-flex items-center gap-2 px-5"
               >
                 {reverting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Undo2 className="w-4 h-4" />}
                 {t(revertKey)}
               </button>
+            )}
+            {draft.status === 'approved' && !draft.linked_pr_id && MOCK_TOR_BRIEFS[id] && (
+              <button
+                type="button"
+                onClick={() => void createPrFromTor()}
+                disabled={advancing || reverting || creatingPr}
+                className="btn-primary inline-flex items-center gap-2 px-5"
+              >
+                {creatingPr ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingCart className="w-4 h-4" />}
+                {t('tor.action.create_pr')}
+              </button>
+            )}
+            {draft.linked_pr_id && (
+              <Link
+                href={`/pr/${draft.linked_pr_id}`}
+                className="btn-secondary inline-flex items-center gap-2 px-5"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                {t('tor.action.view_pr', { number: draft.linked_pr_number ?? draft.linked_pr_id })}
+              </Link>
             )}
             {draft.body_markdown && !editing && (
               <>
