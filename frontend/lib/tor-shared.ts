@@ -117,6 +117,15 @@ export const TOR_ADVANCE_LABEL_KEYS: Partial<Record<ToRDraft['status'], Translat
   approved: 'tor.action.archive',
 };
 
+/** Allowed send-back transitions (review → draft). */
+export const TOR_REVERT_LABEL_KEYS: Partial<Record<ToRDraft['status'], TranslationKey>> = {
+  review: 'tor.action.send_back',
+};
+
+export const TOR_PREV_STATUS: Partial<Record<ToRDraft['status'], ToRDraft['status']>> = {
+  review: 'draft',
+};
+
 export const TOR_DETAIL_STATUS_STYLE: Record<ToRDraft['status'], { bg: string; text: string }> = {
   draft:     { bg: 'bg-gray-100',   text: 'text-ink-soft' },
   review:    { bg: 'bg-amber-100',  text: 'text-amber-800' },

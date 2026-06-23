@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
   ArrowLeft, Scale, FileText, CheckCircle2, XCircle, MinusCircle,
-  Copy, Download, Loader2, ChevronRight, Printer, Pencil,
+  Copy, Download, Loader2, ChevronRight, Printer, Pencil, Undo2,
 } from 'lucide-react';
 import { gov as govApi, type ToRDraft } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
@@ -14,7 +14,7 @@ import { ErrorBanner } from '@/components/ErrorBanner';
 import { useToast } from '@/components/Toast';
 import { useT } from '@/lib/i18n/provider';
 import {
-  advanceMockTorDraft, readMockTorDraft, storeMockTorDraft, syncMockTorListStatus,
+  advanceMockTorDraft, readMockTorDraft, revertMockTorDraft, storeMockTorDraft, syncMockTorListStatus,
   updateMockTorDraftBody,
 } from '@/lib/tor-mock-store';
 import {
@@ -23,12 +23,14 @@ import {
   TOR_CHECKLIST_LABEL_KEYS,
   TOR_DETAIL_STATUS_LABEL_KEYS,
   TOR_DETAIL_STATUS_STYLE,
+  TOR_REVERT_LABEL_KEYS,
   TOR_UUID_RE,
 } from '@/lib/tor-shared';
 
 const CHECKLIST_LABEL_KEYS = TOR_CHECKLIST_LABEL_KEYS;
 const STATUS_LABEL_KEYS = TOR_DETAIL_STATUS_LABEL_KEYS;
 const ADVANCE_LABEL_KEYS = TOR_ADVANCE_LABEL_KEYS;
+const REVERT_LABEL_KEYS = TOR_REVERT_LABEL_KEYS;
 const STATUS_STYLE = TOR_DETAIL_STATUS_STYLE;
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3000/v1';
@@ -39,6 +41,7 @@ export default function TorDetailPage() {
   const { toast } = useToast();
   const [local, setLocal] = useState<ToRDraft | null>(null);
   const [advancing, setAdvancing] = useState(false);
+  const [reverting, setReverting] = useState(false);
   const [editing, setEditing] = useState(false);
   const [bodyEdit, setBodyEdit] = useState('');
   const [saving, setSaving] = useState(false);
@@ -52,6 +55,7 @@ export default function TorDetailPage() {
   const isLiveDraft = TOR_UUID_RE.test(id);
   const canEdit = draft?.status === 'draft' || draft?.status === 'review';
   const advanceKey = draft ? ADVANCE_LABEL_KEYS[draft.status] : undefined;
+  const revertKey = draft ? REVERT_LABEL_KEYS[draft.status] : undefined;
   const statusStyle = draft ? STATUS_STYLE[draft.status] : null;
   const failedChecklistCount = draft
     ? Object.values(draft.compliance_checklist).filter((s) => s === 'failed').length
@@ -76,6 +80,25 @@ export default function TorDetailPage() {
       toast(err instanceof Error ? err.message : t('common.error'), 'err');
     } finally {
       setAdvancing(false);
+    }
+  }
+
+  async function revertStatus() {
+    if (!draft || !revertKey) return;
+    setReverting(true);
+    try {
+      const updated = await withMockFallback(
+        () => govApi.revertStatus(id),
+        revertMockTorDraft(id, mockTorDraft(id, readMockTorDraft(id))),
+      );
+      storeMockTorDraft(updated);
+      syncMockTorListStatus(id, updated.status);
+      setLocal(updated);
+      toast(t('tor.toast.status'), 'ok');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t('common.error'), 'err');
+    } finally {
+      setReverting(false);
     }
   }
 
@@ -155,11 +178,22 @@ export default function TorDetailPage() {
               <button
                 type="button"
                 onClick={() => void advanceStatus()}
-                disabled={advancing}
+                disabled={advancing || reverting}
                 className="btn-primary inline-flex items-center gap-2 px-5"
               >
                 {advancing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronRight className="w-4 h-4" />}
                 {t(advanceKey)}
+              </button>
+            )}
+            {revertKey && (
+              <button
+                type="button"
+                onClick={() => void revertStatus()}
+                disabled={advancing || reverting}
+                className="btn-secondary inline-flex items-center gap-2 px-5"
+              >
+                {reverting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Undo2 className="w-4 h-4" />}
+                {t(revertKey)}
               </button>
             )}
             {draft.body_markdown && !editing && (

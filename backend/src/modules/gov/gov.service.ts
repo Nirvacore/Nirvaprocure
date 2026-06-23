@@ -15,6 +15,10 @@ const TOR_NEXT_STATUS: Record<TorStatus, TorStatus | null> = {
   archived:  null,
 };
 
+const TOR_PREV_STATUS: Partial<Record<TorStatus, TorStatus>> = {
+  review: 'draft',
+};
+
 export interface ToRBrief {
   procurement_kind: ProcurementKind;
   budget_minor: number;
@@ -122,6 +126,26 @@ export class GovService {
          WHERE id = $1
          RETURNING id, title, status, body_markdown, compliance_checklist, created_at`,
         [id, next],
+      );
+      return r.rows[0];
+    });
+  }
+
+  revertDraftStatus(user: CurrentUser, id: string) {
+    return withOrg(this.pool, user.orgId, async (c) => {
+      const cur = await c.query(
+        `SELECT status FROM tor_drafts WHERE id = $1`, [id],
+      );
+      if (cur.rowCount === 0) throw new NotFoundException();
+      const current = cur.rows[0].status as TorStatus;
+      const prev = TOR_PREV_STATUS[current];
+      if (!prev) throw new BadRequestException('TOR cannot be sent back from this status');
+
+      const r = await c.query(
+        `UPDATE tor_drafts SET status = $2, updated_at = now()
+         WHERE id = $1
+         RETURNING id, title, status, body_markdown, compliance_checklist, created_at`,
+        [id, prev],
       );
       return r.rows[0];
     });

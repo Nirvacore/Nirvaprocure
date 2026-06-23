@@ -112,4 +112,12 @@ export class GovController {
   ) {
     return this.svc.advanceDraftStatus(user, id);
   }
+
+  @Post('drafts/:id/revert')
+  revertDraft(
+    @CurrentUser() user: CU,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ) {
+    return this.svc.revertDraftStatus(user, id);
+  }
 }

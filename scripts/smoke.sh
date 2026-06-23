@@ -187,5 +187,14 @@ gov_advanced="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
 echo "$gov_advanced" | grep -q '"status":"review"' || { echo "FAIL: advance did not return review status"; echo "$gov_advanced"; exit 1; }
 echo "    gov advance OK"
 
+# -----------------------------------------------------------------------------
+# 14. Send back TOR draft (review → draft)
+# -----------------------------------------------------------------------------
+echo "==> POST /gov/tor/drafts/$TOR_DRAFT_ID/revert"
+gov_reverted="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
+    -X POST "$API/gov/tor/drafts/$TOR_DRAFT_ID/revert")"
+echo "$gov_reverted" | grep -q '"status":"draft"' || { echo "FAIL: revert did not return draft status"; echo "$gov_reverted"; exit 1; }
+echo "    gov revert OK"
+
 echo ""
-echo "✅ SMOKE PASSED — all 15 steps green"
+echo "✅ SMOKE PASSED — all 16 steps green"

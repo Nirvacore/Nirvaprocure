@@ -18,6 +18,10 @@ const TOR_NEXT_STATUS: Record<ToRDraft['status'], ToRDraft['status'] | null> = {
   archived:  null,
 };
 
+const TOR_PREV_STATUS: Partial<Record<ToRDraft['status'], ToRDraft['status']>> = {
+  review: 'draft',
+};
+
 function listStatusFromDraft(status: ToRDraft['status']): ToRListItem['status'] {
   if (status === 'approved') return 'approved';
   if (status === 'archived') return 'published';
@@ -97,6 +101,13 @@ export function advanceMockTorDraft(id: string, fallback: ToRDraft): ToRDraft {
   const next = TOR_NEXT_STATUS[draft.status];
   if (!next) throw new Error('TOR is already at the final status');
   return { ...draft, status: next };
+}
+
+export function revertMockTorDraft(id: string, fallback: ToRDraft): ToRDraft {
+  const draft = readMockTorDraft(id) ?? fallback;
+  const prev = TOR_PREV_STATUS[draft.status];
+  if (!prev) throw new Error('TOR cannot be sent back from this status');
+  return { ...draft, status: prev };
 }
 
 export function updateMockTorDraftBody(id: string, fallback: ToRDraft, body_markdown: string): ToRDraft {

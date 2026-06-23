@@ -100,6 +100,17 @@ test.describe('gov tor list', () => {
     expect(text).toContain('๑. ความเป็นมา');
   });
 
+  test('sends back TOR from review to draft', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/tor-1');
+    await page.getByRole('button', { name: 'ส่งตรวจสอบ' }).click();
+    await expect(page.getByText('อัปเดตสถานะแล้ว')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'ส่งกลับแก้ไข' })).toBeVisible();
+    await page.getByRole('button', { name: 'ส่งกลับแก้ไข' }).click();
+    await expect(page.getByText('อัปเดตสถานะแล้ว')).toBeVisible();
+    await expect(page.getByText('ร่าง').first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'ส่งตรวจสอบ' })).toBeVisible();
+  });
+
   test('advanced status reflects on list after navigating back', async ({ page }) => {
     await gotoAuthenticated(page, '/gov/tor/tor-1');
     await page.getByRole('button', { name: 'ส่งตรวจสอบ' }).click();

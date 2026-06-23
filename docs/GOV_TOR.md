@@ -64,7 +64,14 @@ useResource(() => withMockFallback(() => govApi.<method>(), <mock>))
 
 ```
 draft → review → approved → archived
+         ↑
+    send back (revert)
 ```
+
+| Transition | Endpoint |
+|---|---|
+| Forward | `POST .../advance` |
+| Send back | `POST .../revert` (review → draft only) |
 
 | DB status | List UI label |
 |---|---|
@@ -120,7 +127,7 @@ Titles and checklist states are aligned between `MOCK_TOR_*` and `database/seed.
 
 Merge in order onto `main` (each PR targets the previous phase branch):
 
-`#50` → `#51` → `#52` → `#53` → `#54` → `#55` → `#56` → `#67` → `#69` → Phase 28
+`#50` → `#51` → `#52` → `#53` → `#54` → `#55` → `#56` → `#67` → `#69` → `#70` → Phase 29
 
 Or squash the stack into one release PR after final review.
 
@@ -132,6 +139,7 @@ Or squash the stack into one release PR after final review.
 | `TOR_CHECKLIST_LABEL_KEYS` | new, detail checklist |
 | `TOR_LIST_STATUS_STYLE` | list cards |
 | `TOR_DETAIL_STATUS_*` | detail status badge + advance labels |
+| `TOR_REVERT_LABEL_KEYS` | send-back button (review only) |
 
 ## File map
 
@@ -163,6 +171,7 @@ frontend/lib/
 | GET | `/gov/tor/drafts/:id` | Draft detail |
 | PATCH | `/gov/tor/drafts/:id` | Update `body_markdown` (+ checklist refresh) |
 | POST | `/gov/tor/drafts/:id/advance` | Move to next status |
+| POST | `/gov/tor/drafts/:id/revert` | Send back (review → draft) |
 | GET | `/gov/tor/drafts/:id/pdf` | PDF download (UUID drafts only in UI) |
 
 ## Tests

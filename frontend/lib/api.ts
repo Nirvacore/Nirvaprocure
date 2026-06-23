@@ -551,6 +551,7 @@ export const gov = {
   updateDraft: (id: string, body: { body_markdown: string }) =>
     request<ToRDraft>('PATCH', `/gov/tor/drafts/${id}`, body),
   advanceStatus: (id: string) => request<ToRDraft>('POST', `/gov/tor/drafts/${id}/advance`),
+  revertStatus: (id: string) => request<ToRDraft>('POST', `/gov/tor/drafts/${id}/revert`),
 };
 
 // ---------------------------------------------------------------------------
