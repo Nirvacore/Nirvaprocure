@@ -191,4 +191,17 @@ test.describe('gov tor list', () => {
     await page.getByRole('button', { name: 'แก้ไขเนื้อหา' }).first().click();
     await expect(page.getByLabel('เนื้อหาร่าง ToR')).toBeVisible();
   });
+
+  test('editing body with timeline text clears failed checklist banner', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/tor-1');
+    await expect(page.getByText('มี 1 รายการที่ยังไม่ผ่าน')).toBeVisible();
+    await page.getByRole('button', { name: 'แก้ไขเนื้อหา' }).first().click();
+    const body = await page.getByLabel('เนื้อหาร่าง ToR').inputValue();
+    await page.getByLabel('เนื้อหาร่าง ToR').fill(
+      `${body}\n\n## ระยะเวลาดำเนินการ\n12 เดือน (2026-01-01 ถึง 2026-12-31)`,
+    );
+    await page.getByRole('button', { name: 'บันทึก' }).click();
+    await expect(page.getByText('บันทึกเนื้อหาแล้ว')).toBeVisible();
+    await expect(page.getByText('มี 1 รายการที่ยังไม่ผ่าน')).not.toBeVisible();
+  });
 });

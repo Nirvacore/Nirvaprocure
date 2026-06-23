@@ -1,4 +1,5 @@
 import type { ToRDraft, ToRListItem } from './api';
+import { patchChecklistFromBody } from './tor-shared';
 
 const DRAFT_KEY_PREFIX = 'tor-mock:';
 const LIST_KEY = 'tor-mock-list';
@@ -97,7 +98,8 @@ export function updateMockTorDraftBody(id: string, fallback: ToRDraft, body_mark
   if (draft.status !== 'draft' && draft.status !== 'review') {
     throw new Error('TOR body can only be edited while draft or in review');
   }
-  return { ...draft, body_markdown };
+  const compliance_checklist = patchChecklistFromBody(draft.compliance_checklist, body_markdown);
+  return { ...draft, body_markdown, compliance_checklist };
 }
 
 export function syncMockTorListStatus(id: string, status: ToRDraft['status']) {

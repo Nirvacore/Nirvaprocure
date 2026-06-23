@@ -83,6 +83,7 @@ app/
 ├── approvals               Inbox + optimistic undo + urgent badges
 ├── settings                4 tabs: workflows / users / departments / webhooks
 ├── stock                   Warehouse on-hand + reorder + movement modal
+├── gov/tor                 ToR list (search/filter/export) — see `docs/GOV_TOR.md`
 ├── gov/tor/new             TOR brief → AI draft + compliance checklist
 ├── analytics               Stat cards + dept bar chart + top suppliers + SLA
 ├── audit                   Cursor-paginated audit log + diff expand

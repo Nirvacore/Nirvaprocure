@@ -130,7 +130,7 @@ export class GovService {
   updateDraftBody(user: CurrentUser, id: string, body_markdown: string) {
     return withOrg(this.pool, user.orgId, async (c) => {
       const cur = await c.query(
-        `SELECT status FROM tor_drafts WHERE id = $1`, [id],
+        `SELECT status, compliance_checklist FROM tor_drafts WHERE id = $1`, [id],
       );
       if (cur.rowCount === 0) throw new NotFoundException();
       const status = cur.rows[0].status as TorStatus;
@@ -139,10 +139,10 @@ export class GovService {
       }
 
       const r = await c.query(
-        `UPDATE tor_drafts SET body_markdown = $2, updated_at = now()
+        `UPDATE tor_drafts SET body_markdown = $2, compliance_checklist = $3, updated_at = now()
          WHERE id = $1
          RETURNING id, title, status, body_markdown, compliance_checklist, created_at`,
-        [id, body_markdown],
+        [id, body_markdown, this.patchChecklistFromBody(cur.rows[0].compliance_checklist ?? {}, body_markdown)],
       );
       return r.rows[0];
     });
@@ -165,6 +165,16 @@ export class GovService {
         ? ((brief.qualifications?.length ?? 0) > 0 ? 'passed' : 'failed')
         : 'na',
     };
+  }
+
+  private patchChecklistFromBody(
+    checklist: Record<string, 'passed' | 'failed' | 'na'>,
+    body: string,
+  ): Record<string, 'passed' | 'failed' | 'na'> {
+    if (checklist.has_timeline === 'na') return checklist;
+    const hasTimeline = /ระยะเวลา|timeline|เดือน|วัน|start|end/i.test(body)
+      || /\d{4}-\d{2}-\d{2}/.test(body);
+    return { ...checklist, has_timeline: hasTimeline ? 'passed' : 'failed' };
   }
 
   private async generateBody(title: string, brief: ToRBrief): Promise<string> {

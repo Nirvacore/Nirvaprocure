@@ -11,45 +11,16 @@ import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
 import { useToast } from '@/components/Toast';
 import { useT } from '@/lib/i18n/provider';
-import type { TranslationKey } from '@/lib/i18n/dictionary';
 import { storeMockTorDraft, appendMockTorListItem } from '@/lib/tor-mock-store';
+import {
+  MOCK_TOR_TEMPLATES, runBriefChecklist, TOR_CHECKLIST_LABEL_KEYS, TOR_KIND_LABEL_KEYS,
+} from '@/lib/tor-shared';
 
-const MOCK_TOR_TEMPLATES: ToRTemplate[] = [
-  { id: 'tpl-goods',        name: 'จัดซื้อครุภัณฑ์ทั่วไป',     procurement_kind: 'goods',        is_official: true },
-  { id: 'tpl-services',     name: 'จ้างเหมาบริการมาตรฐาน',    procurement_kind: 'services',     is_official: true },
-  { id: 'tpl-construction', name: 'งานก่อสร้างขนาดเล็ก',       procurement_kind: 'construction', is_official: false },
-];
-
-const KIND_LABEL_KEYS: Record<ToRBrief['procurement_kind'], TranslationKey> = {
-  goods: 'tor.kind.goods',
-  services: 'tor.kind.services',
-  construction: 'tor.kind.construction',
-};
-
-const CHECKLIST_LABEL_KEYS: Record<string, TranslationKey> = {
-  has_scope:             'tor.checklist.scope',
-  has_budget:            'tor.checklist.budget',
-  has_deliverables:      'tor.checklist.deliverables',
-  has_evaluation_method: 'tor.checklist.evaluation',
-  has_timeline:          'tor.checklist.timeline',
-  has_qualifications:    'tor.checklist.qualifications',
-};
-
-function runLiveChecklist(brief: ToRBrief): ToRDraft['compliance_checklist'] {
-  return {
-    has_scope:              brief.scope.trim().length > 30 ? 'passed' : 'failed',
-    has_budget:             brief.budget_minor > 0 ? 'passed' : 'failed',
-    has_deliverables:       brief.deliverables.length > 0 ? 'passed' : 'failed',
-    has_evaluation_method:  brief.evaluation_method ? 'passed' : 'failed',
-    has_timeline:           !!(brief.timeline?.start && brief.timeline?.end) ? 'passed' : 'failed',
-    has_qualifications:     brief.procurement_kind === 'construction'
-      ? ((brief.qualifications?.length ?? 0) > 0 ? 'passed' : 'failed')
-      : 'na',
-  };
-}
+const KIND_LABEL_KEYS = TOR_KIND_LABEL_KEYS;
+const CHECKLIST_LABEL_KEYS = TOR_CHECKLIST_LABEL_KEYS;
 
 function buildMockTorDraft(title: string, brief: ToRBrief): ToRDraft {
-  const checklist = runLiveChecklist(brief);
+  const checklist = runBriefChecklist(brief);
   return {
     id: `tor-mock-${Date.now()}`,
     title,
@@ -96,7 +67,7 @@ export default function NewTorPage() {
     evaluation_method: evalMethod,
   }), [kind, budget, scope, deliverables, start, end, evalMethod]);
 
-  const liveChecklist = useMemo(() => runLiveChecklist(liveBrief), [liveBrief]);
+  const liveChecklist = useMemo(() => runBriefChecklist(liveBrief), [liveBrief]);
   const showLiveChecklist = title.trim().length > 0 || scope.trim().length > 0;
 
   function setDeliverable(i: number, v: string) {
