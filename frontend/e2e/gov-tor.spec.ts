@@ -151,4 +151,10 @@ test.describe('gov tor list', () => {
     await page.getByRole('button', { name: 'พิมพ์ / บันทึก PDF' }).click();
     expect(await page.evaluate(() => (window as unknown as { __torPrinted?: boolean }).__torPrinted)).toBe(true);
   });
+
+  test('backend PDF link hidden for mock offline draft ids', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/tor-1');
+    await expect(page.getByRole('link', { name: 'ดาวน์โหลด PDF' })).not.toBeVisible();
+    await expect(page.getByRole('button', { name: 'พิมพ์ / บันทึก PDF' })).toBeVisible();
+  });
 });

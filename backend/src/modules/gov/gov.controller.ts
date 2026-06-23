@@ -1,10 +1,12 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common';
+import { Body, Controller, Get, Header, Param, ParseUUIDPipe, Post, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   ArrayMinSize, IsArray, IsIn, IsInt, IsObject, IsOptional, IsString, IsUUID, Min,
   MaxLength, ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { GovService, type ProcurementKind } from './gov.service';
+import { GovPdfService } from './gov-pdf.service';
 import { CurrentUser } from '../../common/auth/current-user.decorator';
 import type { CurrentUser as CU } from '../../common/auth/current-user.decorator';
 
@@ -49,7 +51,10 @@ class CreateDraftDto {
 
 @Controller('gov/tor')
 export class GovController {
-  constructor(private readonly svc: GovService) {}
+  constructor(
+    private readonly svc: GovService,
+    private readonly pdf: GovPdfService,
+  ) {}
 
   @Get('templates')
   templates(@CurrentUser() user: CU) {
@@ -72,6 +77,18 @@ export class GovController {
     @Param('id', new ParseUUIDPipe()) id: string,
   ) {
     return this.svc.getDraft(user, id);
+  }
+
+  @Get('drafts/:id/pdf')
+  @Header('Content-Type', 'application/pdf')
+  async getDraftPdf(
+    @CurrentUser() user: CU,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Res() res: Response,
+  ) {
+    const slug = id.slice(0, 8);
+    res.setHeader('Content-Disposition', `inline; filename="tor-${slug}.pdf"`);
+    await this.pdf.render(user, id, res);
   }
 
   @Post('drafts/:id/advance')

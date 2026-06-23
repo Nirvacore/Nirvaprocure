@@ -47,6 +47,9 @@ const STATUS_STYLE: Record<ToRDraft['status'], { bg: string; text: string }> = {
   archived:  { bg: 'bg-brand-100',  text: 'text-brand-700' },
 };
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3000/v1';
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 const MOCK_TOR_DRAFTS: Record<string, ToRDraft> = {
   'tor-1': {
     id: 'tor-1',
@@ -125,6 +128,7 @@ export default function TorDetailPage() {
   );
 
   const draft = local ?? data;
+  const isLiveDraft = UUID_RE.test(id);
   const advanceKey = draft ? ADVANCE_LABEL_KEYS[draft.status] : undefined;
   const statusStyle = draft ? STATUS_STYLE[draft.status] : null;
   const fmtDate = draft
@@ -235,6 +239,17 @@ export default function TorDetailPage() {
                   <Printer className="w-4 h-4" />
                   {t('tor.action.print')}
                 </button>
+                {isLiveDraft && (
+                  <a
+                    href={`${API_BASE}/gov/tor/drafts/${id}/pdf`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-secondary inline-flex items-center gap-2 px-5"
+                  >
+                    <FileText className="w-4 h-4" />
+                    {t('detail.pdf')}
+                  </a>
+                )}
               </>
             )}
           </div>
