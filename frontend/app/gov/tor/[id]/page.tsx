@@ -201,6 +201,26 @@ export default function TorDetailPage() {
             )}
           </div>
 
+          {draft.linked_pr_id && (
+            <Link
+              href={`/pr/${draft.linked_pr_id}`}
+              className="no-print card hover:border-brand-300 transition-colors block"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                  <ShoppingCart className="w-5 h-5 text-blue-700" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-ink-soft mb-1">{t('tor.linked_pr.title')}</div>
+                  <div className="font-semibold text-ink leading-snug num">
+                    {draft.linked_pr_number ?? draft.linked_pr_id}
+                  </div>
+                  <div className="text-sm text-brand-600 mt-1">{t('tor.linked_pr.view')}</div>
+                </div>
+              </div>
+            </Link>
+          )}
+
           <div className="flex flex-wrap gap-2 no-print">
             {advanceKey && (
               <button
@@ -234,15 +254,6 @@ export default function TorDetailPage() {
                 {creatingPr ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingCart className="w-4 h-4" />}
                 {t('tor.action.create_pr')}
               </button>
-            )}
-            {draft.linked_pr_id && (
-              <Link
-                href={`/pr/${draft.linked_pr_id}`}
-                className="btn-secondary inline-flex items-center gap-2 px-5"
-              >
-                <ShoppingCart className="w-4 h-4" />
-                {t('tor.action.view_pr', { number: draft.linked_pr_number ?? draft.linked_pr_id })}
-              </Link>
             )}
             {draft.body_markdown && !editing && (
               <>

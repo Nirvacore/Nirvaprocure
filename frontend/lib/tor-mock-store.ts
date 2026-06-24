@@ -210,15 +210,24 @@ export function deleteMockTorTemplate(id: string) {
   writeCustomMockTemplates(readCustomMockTemplates().filter((row) => row.id !== id));
 }
 
+function mergeMockTorListPrLinks(rows: ToRListItem[]): ToRListItem[] {
+  return rows.map((row) => {
+    const link = readMockTorPrLink(row.id);
+    if (!link) return row;
+    return { ...row, linked_pr_id: link.pr_id, linked_pr_number: link.pr_number };
+  });
+}
+
 export function mergeMockTorList(base: ToRListItem[]): ToRListItem[] {
   const overrides = readMockTorStatusOverrides();
   const withOverrides = base.map((row) =>
     overrides[row.id] ? { ...row, status: overrides[row.id] } : row,
   );
   const extra = readMockTorListItems();
-  if (extra.length === 0) return withOverrides;
-  const extraIds = new Set(extra.map((row) => row.id));
-  return [...extra, ...withOverrides.filter((row) => !extraIds.has(row.id))];
+  const merged = extra.length === 0
+    ? withOverrides
+    : [...extra, ...withOverrides.filter((row) => !extra.some((e) => e.id === row.id))];
+  return mergeMockTorListPrLinks(merged);
 }
 
 export function advanceMockTorDraft(id: string, fallback: ToRDraft): ToRDraft {

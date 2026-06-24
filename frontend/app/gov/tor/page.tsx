@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ArrowLeft, FileText, Plus, Scale, Search } from 'lucide-react';
+import { ArrowLeft, FileText, Plus, Scale, Search, ShoppingCart } from 'lucide-react';
 import { gov as govApi, type ToRListItem } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
@@ -54,6 +54,12 @@ function TorCard({ row }: { row: ToRListItem }) {
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${status.bg} ${status.text}`}>
               {t(status.labelKey)}
             </span>
+            {row.linked_pr_id && (
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 inline-flex items-center gap-1">
+                <ShoppingCart className="w-3 h-3" />
+                {t('tor.linked_pr.badge', { number: row.linked_pr_number ?? row.linked_pr_id })}
+              </span>
+            )}
             <span className="text-xs text-ink-muted num">{fmtDate}</span>
           </div>
         </div>

@@ -188,11 +188,22 @@ test.describe('gov tor list', () => {
     await gotoAuthenticated(page, '/gov/tor/tor-2');
     await page.getByRole('button', { name: 'สร้างใบขอซื้อ (PR)' }).click();
     await expect(page.getByText('สร้าง PR จาก ToR แล้ว')).toBeVisible();
-    const prLink = page.getByRole('link', { name: /PR-TOR-/ });
+    await expect(page.getByText('เชื่อมกับใบขอซื้อแล้ว')).toBeVisible();
+    const prLink = page.getByRole('link', { name: 'เชื่อมกับใบขอซื้อแล้ว' });
     await expect(prLink).toBeVisible();
     await prLink.click();
     await expect(page.getByText('สร้างจาก ToR')).toBeVisible();
     await expect(page.getByText('จ้างเหมาบำรุงรักษาระบบเครือข่าย')).toBeVisible();
+  });
+
+  test('linked PR badge appears on ToR list after create-pr', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/tor-2');
+    await page.getByRole('button', { name: 'สร้างใบขอซื้อ (PR)' }).click();
+    await expect(page.getByText('สร้าง PR จาก ToR แล้ว')).toBeVisible();
+    await page.getByRole('link', { name: 'กลับไปรายการ ToR' }).click();
+    await expect(page).toHaveURL(/\/gov\/tor$/);
+    const torCard = page.getByRole('link', { name: /จ้างเหมา/ });
+    await expect(torCard.getByText(/PR-TOR-/)).toBeVisible();
   });
 
   test('templates page lists mock templates', async ({ page }) => {

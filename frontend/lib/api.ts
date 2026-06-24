@@ -544,6 +544,8 @@ export interface ToRListItem {
   procurement_kind: ToRBrief['procurement_kind'];
   status: 'draft' | 'review' | 'approved' | 'published';
   created_at: string;
+  linked_pr_id?: string | null;
+  linked_pr_number?: string | null;
 }
 export interface ToRTemplate {
   id: string;

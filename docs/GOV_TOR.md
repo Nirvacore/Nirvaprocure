@@ -135,7 +135,7 @@ Merge in order onto `main` (each PR targets the previous phase branch):
 
 | Direction | Mechanism |
 |---|---|
-| ToR → PR | `POST .../create-pr` sets `tor_drafts.linked_pr_id` |
+| ToR → PR | `POST .../create-pr` sets `tor_drafts.linked_pr_id`; list + detail show linked PR badge |
 | PR → ToR | `GET /pr/:id` returns `linked_tor` (by `linked_pr_id` or item `source_metadata.tor_draft_id`) |
 
 Or squash the stack into one release PR after final review.
@@ -182,7 +182,7 @@ frontend/lib/
 | POST | `/gov/tor/templates` | Create org template (`is_official: false`) |
 | PATCH | `/gov/tor/templates/:id` | Update custom template (blocks official) |
 | DELETE | `/gov/tor/templates/:id` | Soft-delete custom template (blocks official) |
-| GET | `/gov/tor/drafts` | Org draft list |
+| GET | `/gov/tor/drafts` | Org draft list (incl. `linked_pr_id` / `linked_pr_number`) |
 | POST | `/gov/tor/drafts` | Create draft (AI body + checklist) |
 | GET | `/gov/tor/drafts/:id` | Draft detail |
 | PATCH | `/gov/tor/drafts/:id` | Update `body_markdown` (+ checklist refresh) |

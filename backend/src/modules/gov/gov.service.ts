@@ -164,9 +164,11 @@ export class GovService {
   listDrafts(user: CurrentUser) {
     return withOrg(this.pool, user.orgId, async (c) => {
       const r = await c.query(
-        `SELECT id, title, status, brief_json, created_at
-         FROM tor_drafts
-         ORDER BY created_at DESC
+        `SELECT d.id, d.title, d.status, d.brief_json, d.created_at,
+                d.linked_pr_id, pr.pr_number AS linked_pr_number
+         FROM tor_drafts d
+         LEFT JOIN purchase_requests pr ON pr.id = d.linked_pr_id
+         ORDER BY d.created_at DESC
          LIMIT 100`,
       );
       return r.rows.map((row) => ({
@@ -175,6 +177,8 @@ export class GovService {
         procurement_kind: (row.brief_json as ToRBrief).procurement_kind,
         status: mapTorListStatus(row.status as string),
         created_at: row.created_at as string,
+        linked_pr_id: row.linked_pr_id as string | null,
+        linked_pr_number: row.linked_pr_number as string | null,
       }));
     });
   }
