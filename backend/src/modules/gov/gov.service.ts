@@ -20,6 +20,17 @@ const TOR_PREV_STATUS: Partial<Record<TorStatus, TorStatus>> = {
   review: 'draft',
 };
 
+const DEFAULT_TEMPLATE_BODY = [
+  '## ขอบเขตของงาน',
+  '{{scope}}',
+  '',
+  '## งบประมาณ',
+  '{{budget_minor}} {{currency}}',
+  '',
+  '## สิ่งที่ต้องส่งมอบ',
+  '{{deliverables}}',
+].join('\n');
+
 export interface ToRBrief {
   procurement_kind: ProcurementKind;
   budget_minor: number;
@@ -59,6 +70,38 @@ export class GovService {
          FROM tor_templates WHERE deleted_at IS NULL ORDER BY name`,
       );
       return r.rows;
+    });
+  }
+
+  createTemplate(
+    user: CurrentUser,
+    body: { name: string; procurement_kind: ProcurementKind; body_markdown?: string },
+  ) {
+    const markdown = body.body_markdown?.trim() || DEFAULT_TEMPLATE_BODY;
+    return withOrg(this.pool, user.orgId, async (c) => {
+      const r = await c.query(
+        `INSERT INTO tor_templates (org_id, name, procurement_kind, body_markdown, is_official)
+         VALUES ($1, $2, $3, $4, FALSE)
+         RETURNING id, name, procurement_kind, is_official`,
+        [user.orgId, body.name.trim(), body.procurement_kind, markdown],
+      );
+      return r.rows[0];
+    });
+  }
+
+  deleteTemplate(user: CurrentUser, id: string) {
+    return withOrg(this.pool, user.orgId, async (c) => {
+      const cur = await c.query(
+        `SELECT is_official FROM tor_templates WHERE id = $1 AND deleted_at IS NULL`, [id],
+      );
+      if (cur.rowCount === 0) throw new NotFoundException();
+      if (cur.rows[0].is_official) {
+        throw new BadRequestException('Official templates cannot be deleted');
+      }
+      await c.query(
+        `UPDATE tor_templates SET deleted_at = now() WHERE id = $1`, [id],
+      );
+      return { ok: true };
     });
   }
 

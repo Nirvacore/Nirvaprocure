@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Header, Param, ParseUUIDPipe, Patch, Post, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Header, Param, ParseUUIDPipe, Patch, Post, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import {
   ArrayMinSize, IsArray, IsIn, IsInt, IsObject, IsOptional, IsString, IsUUID, Min,
@@ -54,6 +54,17 @@ class UpdateDraftDto {
   body_markdown!: string;
 }
 
+class CreateTemplateDto {
+  @IsString() @MaxLength(200)
+  name!: string;
+
+  @IsIn(['goods', 'services', 'construction'])
+  procurement_kind!: ProcurementKind;
+
+  @IsOptional() @IsString() @MaxLength(20000)
+  body_markdown?: string;
+}
+
 @Controller('gov/tor')
 export class GovController {
   constructor(
@@ -64,6 +75,19 @@ export class GovController {
   @Get('templates')
   templates(@CurrentUser() user: CU) {
     return this.svc.listTemplates(user);
+  }
+
+  @Post('templates')
+  createTemplate(@CurrentUser() user: CU, @Body() dto: CreateTemplateDto) {
+    return this.svc.createTemplate(user, dto);
+  }
+
+  @Delete('templates/:id')
+  deleteTemplate(
+    @CurrentUser() user: CU,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ) {
+    return this.svc.deleteTemplate(user, id);
   }
 
   @Get('drafts')

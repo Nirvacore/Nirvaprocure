@@ -148,6 +148,25 @@ gov_templates="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" "$API/gov/tor/te
 echo "$gov_templates" | grep -qE '\[|procurement_kind' || { echo "FAIL: gov templates response unexpected"; echo "$gov_templates"; exit 1; }
 echo "    gov templates OK"
 
+echo "==> POST /gov/tor/templates"
+gov_new_tpl="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
+    -H 'Content-Type: application/json' \
+    -X POST \
+    -d '{"name":"Smoke custom template","procurement_kind":"goods"}' \
+    "$API/gov/tor/templates")"
+echo "$gov_new_tpl" | grep -q '"is_official":false' || { echo "FAIL: created template should be non-official"; echo "$gov_new_tpl"; exit 1; }
+echo "$gov_new_tpl" | grep -q 'Smoke custom template' || { echo "FAIL: created template name missing"; echo "$gov_new_tpl"; exit 1; }
+SMOKE_TPL_ID="$(printf '%s' "$gov_new_tpl" | sed -n 's/.*"id":"\([^"]*\)".*/\1/p' | head -1)"
+test -n "$SMOKE_TPL_ID" || { echo "FAIL: could not parse created template id"; echo "$gov_new_tpl"; exit 1; }
+echo "    gov template create OK ($SMOKE_TPL_ID)"
+
+echo "==> DELETE /gov/tor/templates/$SMOKE_TPL_ID"
+gov_del_tpl="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
+    -X DELETE \
+    "$API/gov/tor/templates/$SMOKE_TPL_ID")"
+echo "$gov_del_tpl" | grep -q '"ok":true' || { echo "FAIL: template delete did not return ok"; echo "$gov_del_tpl"; exit 1; }
+echo "    gov template delete OK"
+
 echo "==> GET /gov/tor/drafts"
 gov_drafts="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" "$API/gov/tor/drafts")"
 echo "$gov_drafts" | grep -qE '\[|"id"' || { echo "FAIL: gov drafts response unexpected"; echo "$gov_drafts"; exit 1; }

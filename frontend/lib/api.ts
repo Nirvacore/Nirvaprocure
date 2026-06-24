@@ -554,6 +554,12 @@ export interface ToRTemplate {
 export const gov = {
   list: () => request<ToRListItem[]>('GET', '/gov/tor/drafts'),
   templates: () => request<ToRTemplate[]>('GET', '/gov/tor/templates'),
+  createTemplate: (body: {
+    name: string;
+    procurement_kind: ToRBrief['procurement_kind'];
+    body_markdown?: string;
+  }) => request<ToRTemplate>('POST', '/gov/tor/templates', body),
+  deleteTemplate: (id: string) => request<{ ok: boolean }>('DELETE', `/gov/tor/templates/${id}`),
   createDraft: (body: { title: string; brief: ToRBrief; template_id?: string }) =>
     request<ToRDraft>('POST', '/gov/tor/drafts', body),
   getDraft: (id: string) => request<ToRDraft>('GET', `/gov/tor/drafts/${id}`),

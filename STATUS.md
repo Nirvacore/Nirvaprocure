@@ -47,7 +47,7 @@ Font per script auto-loaded by Next.js; the body font-stack swaps based on
 | `marketplace/`  | Shopee + Lazada + Makro + Alibaba URL parsers | (internal — called by /pr/import-link) |
 | `stock/`        | Warehouses, items, movements ledger, reorder cron | `GET /stock/on-hand`, `POST /stock/movements` |
 | `people/`       | Users + departments + roles CRUD | `GET/POST /people/users`, `/people/departments` |
-| `gov/`          | TOR templates + AI draft (Thai gov format) | `GET /gov/tor/templates`, `GET /gov/tor/drafts`, `POST /gov/tor/drafts`, `GET /gov/tor/drafts/:id`, `PATCH /gov/tor/drafts/:id`, `GET /gov/tor/drafts/:id/pdf`, `POST /gov/tor/drafts/:id/advance`, `POST /gov/tor/drafts/:id/revert`, `POST /gov/tor/drafts/:id/create-pr` |
+| `gov/`          | TOR templates + AI draft (Thai gov format) | `GET/POST/DELETE /gov/tor/templates`, `GET /gov/tor/drafts`, `POST /gov/tor/drafts`, `GET /gov/tor/drafts/:id`, `PATCH /gov/tor/drafts/:id`, `GET /gov/tor/drafts/:id/pdf`, `POST /gov/tor/drafts/:id/advance`, `POST /gov/tor/drafts/:id/revert`, `POST /gov/tor/drafts/:id/create-pr` |
 | `ai/`           | NirvaAI price-compare (OpenAI/Claude wrapper) | `POST /ai/price-compare` |
 | `finance/`      | NirvaFinance — invoice OCR via vision LLM | `POST /finance/invoice/ocr` |
 | `notifications/`| LINE push + webhook receive (HMAC) + FCM push | `POST /notifications/line/webhook`, `POST /notifications/fcm/token` |
@@ -84,7 +84,8 @@ app/
 ├── settings                4 tabs: workflows / users / departments / webhooks
 ├── stock                   Warehouse on-hand + reorder + movement modal
 ├── gov/tor                 ToR list (search/filter/export) — see `docs/GOV_TOR.md`
-├── gov/tor/templates       ToR template library browser
+├── gov/tor/templates       ToR template library browser + create/delete custom
+├── gov/tor/templates/new   Create org ToR template
 ├── gov/tor/new             TOR brief → AI draft + compliance checklist
 ├── analytics               Stat cards + dept bar chart + top suppliers + SLA
 ├── audit                   Cursor-paginated audit log + diff expand

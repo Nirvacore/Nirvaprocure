@@ -24,6 +24,17 @@ export const MOCK_TOR_TEMPLATES: ToRTemplate[] = [
   { id: 'tpl-construction', name: 'งานก่อสร้างขนาดเล็ก',       procurement_kind: 'construction', is_official: false },
 ];
 
+export const DEFAULT_TOR_TEMPLATE_BODY = [
+  '## ขอบเขตของงาน',
+  '{{scope}}',
+  '',
+  '## งบประมาณ',
+  '{{budget_minor}} {{currency}}',
+  '',
+  '## สิ่งที่ต้องส่งมอบ',
+  '{{deliverables}}',
+].join('\n');
+
 export const MOCK_TOR_BRIEFS: Record<string, ToRBrief> = {
   'tor-1': {
     procurement_kind: 'goods',

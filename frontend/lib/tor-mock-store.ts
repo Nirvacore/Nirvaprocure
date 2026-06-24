@@ -1,4 +1,4 @@
-import type { ToRDraft, ToRListItem } from './api';
+import type { ToRDraft, ToRListItem, ToRTemplate } from './api';
 import type { ToRBrief } from './api';
 import { MOCK_TOR_DRAFTS, MOCK_TOR_LIST, patchChecklistFromBody } from './tor-shared';
 
@@ -8,6 +8,7 @@ export const TOR_MOCK_STORAGE = {
   statusOverridesKey: 'tor-mock-status-overrides',
   prLinkPrefix: 'tor-mock-pr:',
   prToTorPrefix: 'pr-mock-tor-src:',
+  customTemplatesKey: 'tor-mock-custom-templates',
 } as const;
 
 const DRAFT_KEY_PREFIX = TOR_MOCK_STORAGE.draftPrefix;
@@ -15,6 +16,7 @@ const LIST_KEY = TOR_MOCK_STORAGE.listKey;
 const STATUS_OVERRIDES_KEY = TOR_MOCK_STORAGE.statusOverridesKey;
 const PR_LINK_PREFIX = TOR_MOCK_STORAGE.prLinkPrefix;
 const PR_TO_TOR_PREFIX = TOR_MOCK_STORAGE.prToTorPrefix;
+const CUSTOM_TEMPLATES_KEY = TOR_MOCK_STORAGE.customTemplatesKey;
 
 const TOR_NEXT_STATUS: Record<ToRDraft['status'], ToRDraft['status'] | null> = {
   draft:     'review',
@@ -131,6 +133,53 @@ function setMockTorStatusOverride(id: string, status: ToRListItem['status']) {
   } catch {
     // ignore
   }
+}
+
+function readCustomMockTemplates(): ToRTemplate[] {
+  try {
+    const raw = sessionStorage.getItem(CUSTOM_TEMPLATES_KEY);
+    return raw ? (JSON.parse(raw) as ToRTemplate[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeCustomMockTemplates(items: ToRTemplate[]) {
+  try {
+    sessionStorage.setItem(CUSTOM_TEMPLATES_KEY, JSON.stringify(items));
+  } catch {
+    // ignore
+  }
+}
+
+export function mergeMockTorTemplates(base: ToRTemplate[]): ToRTemplate[] {
+  const extra = readCustomMockTemplates();
+  if (extra.length === 0) return base;
+  const extraIds = new Set(extra.map((row) => row.id));
+  return [...extra, ...base.filter((row) => !extraIds.has(row.id))];
+}
+
+export function createMockTorTemplate(
+  name: string,
+  procurement_kind: ToRBrief['procurement_kind'],
+  _body_markdown?: string,
+): ToRTemplate {
+  const tpl: ToRTemplate = {
+    id: `tpl-custom-${Date.now()}`,
+    name: name.trim(),
+    procurement_kind,
+    is_official: false,
+  };
+  const items = readCustomMockTemplates().filter((row) => row.id !== tpl.id);
+  writeCustomMockTemplates([tpl, ...items]);
+  return tpl;
+}
+
+export function deleteMockTorTemplate(id: string) {
+  if (!id.startsWith('tpl-custom-')) {
+    throw new Error('Official templates cannot be deleted');
+  }
+  writeCustomMockTemplates(readCustomMockTemplates().filter((row) => row.id !== id));
 }
 
 export function mergeMockTorList(base: ToRListItem[]): ToRListItem[] {

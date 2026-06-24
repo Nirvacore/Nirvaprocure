@@ -1,19 +1,47 @@
 'use client';
 import Link from 'next/link';
-import { ArrowLeft, FileText, Scale } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, FileText, Loader2, Plus, Scale, Trash2 } from 'lucide-react';
 import { gov as govApi } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
 import { MOCK_TOR_TEMPLATES, TOR_KIND_LABEL_KEYS } from '@/lib/tor-shared';
+import { deleteMockTorTemplate, mergeMockTorTemplates } from '@/lib/tor-mock-store';
 import { Loading } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
+import { useToast } from '@/components/Toast';
 import { useT } from '@/lib/i18n/provider';
+
+function mockDeleteTorTemplate(id: string) {
+  deleteMockTorTemplate(id);
+  return { ok: true as const };
+}
+
+function isDeletableTemplate(tpl: { id: string; is_official: boolean }) {
+  return !tpl.is_official && tpl.id.startsWith('tpl-custom-');
+}
 
 export default function TorTemplatesPage() {
   const { t } = useT();
+  const { toast } = useToast();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const { data, loading, error, refresh } = useResource(
-    () => withMockFallback(() => govApi.templates(), MOCK_TOR_TEMPLATES),
+    () => withMockFallback(() => govApi.templates(), mergeMockTorTemplates(MOCK_TOR_TEMPLATES)),
   );
+
+  async function removeTemplate(id: string) {
+    if (!confirm(t('tor.templates.confirm.delete'))) return;
+    setDeletingId(id);
+    try {
+      await withMockFallback(() => govApi.deleteTemplate(id), mockDeleteTorTemplate(id));
+      toast(t('tor.templates.toast.deleted'), 'ok');
+      await refresh();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t('common.error'), 'err');
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   return (
     <section className="screen space-y-6 max-w-3xl mx-auto">
@@ -54,15 +82,34 @@ export default function TorTemplatesPage() {
                     </span>
                   </div>
                 </div>
+                {isDeletableTemplate(tpl) && (
+                  <button
+                    type="button"
+                    className="btn-sm p-2 text-red-600 hover:bg-red-50 rounded-lg flex-shrink-0"
+                    disabled={deletingId === tpl.id}
+                    aria-label={t('tor.templates.delete')}
+                    onClick={() => void removeTemplate(tpl.id)}
+                  >
+                    {deletingId === tpl.id
+                      ? <Loader2 className="w-4 h-4 animate-spin" />
+                      : <Trash2 className="w-4 h-4" />}
+                  </button>
+                )}
               </div>
             </div>
           ))}
         </div>
       )}
 
-      <Link href="/gov/tor/new" className="btn-primary inline-flex px-5">
-        {t('tor.list.new')}
-      </Link>
+      <div className="flex flex-wrap gap-3">
+        <Link href="/gov/tor/templates/new" className="btn-primary inline-flex items-center gap-2 px-5">
+          <Plus className="w-4 h-4" />
+          {t('tor.templates.create')}
+        </Link>
+        <Link href="/gov/tor/new" className="btn-secondary inline-flex px-5">
+          {t('tor.list.new')}
+        </Link>
+      </div>
     </section>
   );
 }

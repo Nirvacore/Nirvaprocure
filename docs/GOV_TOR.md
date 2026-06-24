@@ -10,7 +10,7 @@ Government **Terms of Reference (ToR / เอกสารขอบเขตข�
 | Pages | `frontend/app/gov/tor/` | List, create, detail (edit / advance / export) |
 | Shared mocks | `frontend/lib/tor-shared.ts` | Single source for offline mock data + checklist helpers |
 | Session store | `frontend/lib/tor-mock-store.ts` | `sessionStorage` merge for offline create/advance/edit |
-| API client | `frontend/lib/api.ts` | `gov.list`, `templates`, `createDraft`, `getDraft`, `updateDraft`, `advanceStatus` |
+| API client | `frontend/lib/api.ts` | `gov.list`, `templates`, `createTemplate`, `deleteTemplate`, `createDraft`, `getDraft`, `updateDraft`, `advanceStatus` |
 | i18n | `frontend/lib/i18n/dictionary.ts` | `tor.*` keys (8 locales) |
 | Schema | `database/phase2_gov_schema.sql` | `tor_templates`, `tor_drafts` |
 
@@ -107,8 +107,9 @@ Exported as `TOR_MOCK_STORAGE` in `tor-mock-store.ts`:
 | `tor-mock-list` | Extra list rows from offline create |
 | `tor-mock-status-overrides` | List status overrides after advance on seeded mocks |
 | `tor-mock-pr:{id}` | Linked PR id/number after create-pr from approved ToR |
+| `tor-mock-custom-templates` | Org templates created offline (merged into template list/picker) |
 
-`mergeMockTorList(MOCK_TOR_LIST)` applies overrides and prepends session-created rows before the API/mock base list.
+`mergeMockTorList(MOCK_TOR_LIST)` applies overrides and prepends session-created rows before the API/mock base list. `mergeMockTorTemplates(MOCK_TOR_TEMPLATES)` prepends session-created custom templates.
 
 ## Seed data vs frontend mocks
 
@@ -160,7 +161,8 @@ backend/src/modules/gov/
 
 frontend/app/gov/tor/
 ├── page.tsx            List: search, status/kind filters, sort, refresh on revisit
-├── templates/page.tsx  Template library browser (official + org templates)
+├── templates/page.tsx  Template library browser (official + org templates, delete custom)
+├── templates/new/      Create org template form
 ├── new/page.tsx        Template picker, brief form, live checklist, create
 └── [id]/page.tsx       Detail: advance, copy/download/print/PDF, inline edit, banner
 
@@ -175,6 +177,8 @@ frontend/lib/
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/gov/tor/templates` | Official + custom templates |
+| POST | `/gov/tor/templates` | Create org template (`is_official: false`) |
+| DELETE | `/gov/tor/templates/:id` | Soft-delete custom template (blocks official) |
 | GET | `/gov/tor/drafts` | Org draft list |
 | POST | `/gov/tor/drafts` | Create draft (AI body + checklist) |
 | GET | `/gov/tor/drafts/:id` | Draft detail |

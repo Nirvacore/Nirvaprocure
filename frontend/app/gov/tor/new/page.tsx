@@ -11,7 +11,7 @@ import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
 import { useToast } from '@/components/Toast';
 import { useT } from '@/lib/i18n/provider';
-import { storeMockTorDraft, appendMockTorListItem } from '@/lib/tor-mock-store';
+import { storeMockTorDraft, appendMockTorListItem, mergeMockTorTemplates } from '@/lib/tor-mock-store';
 import {
   MOCK_TOR_TEMPLATES, runBriefChecklist, TOR_CHECKLIST_LABEL_KEYS, TOR_KIND_LABEL_KEYS,
 } from '@/lib/tor-shared';
@@ -43,7 +43,7 @@ export default function NewTorPage() {
   const router = useRouter();
 
   const { data: templates } = useResource(
-    () => withMockFallback(() => govApi.templates(), MOCK_TOR_TEMPLATES),
+    () => withMockFallback(() => govApi.templates(), mergeMockTorTemplates(MOCK_TOR_TEMPLATES)),
   );
 
   const [templateId, setTemplateId] = useState<string>('');
