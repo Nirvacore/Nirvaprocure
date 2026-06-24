@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useState } from 'react';
-import { ArrowLeft, FileText, Loader2, Plus, Scale, Trash2 } from 'lucide-react';
+import { ArrowLeft, FileText, Loader2, Pencil, Plus, Scale, Trash2 } from 'lucide-react';
 import { gov as govApi } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
@@ -15,6 +15,10 @@ import { useT } from '@/lib/i18n/provider';
 function mockDeleteTorTemplate(id: string) {
   deleteMockTorTemplate(id);
   return { ok: true as const };
+}
+
+function isEditableTemplate(tpl: { id: string; is_official: boolean }) {
+  return !tpl.is_official && tpl.id.startsWith('tpl-custom-');
 }
 
 function isDeletableTemplate(tpl: { id: string; is_official: boolean }) {
@@ -82,19 +86,30 @@ export default function TorTemplatesPage() {
                     </span>
                   </div>
                 </div>
-                {isDeletableTemplate(tpl) && (
-                  <button
-                    type="button"
-                    className="btn-sm p-2 text-red-600 hover:bg-red-50 rounded-lg flex-shrink-0"
-                    disabled={deletingId === tpl.id}
-                    aria-label={t('tor.templates.delete')}
-                    onClick={() => void removeTemplate(tpl.id)}
-                  >
-                    {deletingId === tpl.id
-                      ? <Loader2 className="w-4 h-4 animate-spin" />
-                      : <Trash2 className="w-4 h-4" />}
-                  </button>
-                )}
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  {isEditableTemplate(tpl) && (
+                    <Link
+                      href={`/gov/tor/templates/${tpl.id}/edit`}
+                      className="btn-sm p-2 text-ink-soft hover:text-brand-600 hover:bg-brand-50 rounded-lg"
+                      aria-label={t('tor.templates.edit')}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Link>
+                  )}
+                  {isDeletableTemplate(tpl) && (
+                    <button
+                      type="button"
+                      className="btn-sm p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                      disabled={deletingId === tpl.id}
+                      aria-label={t('tor.templates.delete')}
+                      onClick={() => void removeTemplate(tpl.id)}
+                    >
+                      {deletingId === tpl.id
+                        ? <Loader2 className="w-4 h-4 animate-spin" />
+                        : <Trash2 className="w-4 h-4" />}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}

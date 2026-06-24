@@ -551,14 +551,22 @@ export interface ToRTemplate {
   procurement_kind: ToRBrief['procurement_kind'];
   is_official: boolean;
 }
+export interface ToRTemplateDetail extends ToRTemplate {
+  body_markdown: string;
+}
 export const gov = {
   list: () => request<ToRListItem[]>('GET', '/gov/tor/drafts'),
   templates: () => request<ToRTemplate[]>('GET', '/gov/tor/templates'),
+  getTemplate: (id: string) => request<ToRTemplateDetail>('GET', `/gov/tor/templates/${id}`),
   createTemplate: (body: {
     name: string;
     procurement_kind: ToRBrief['procurement_kind'];
     body_markdown?: string;
   }) => request<ToRTemplate>('POST', '/gov/tor/templates', body),
+  updateTemplate: (
+    id: string,
+    body: { name?: string; procurement_kind?: ToRBrief['procurement_kind']; body_markdown?: string },
+  ) => request<ToRTemplateDetail>('PATCH', `/gov/tor/templates/${id}`, body),
   deleteTemplate: (id: string) => request<{ ok: boolean }>('DELETE', `/gov/tor/templates/${id}`),
   createDraft: (body: { title: string; brief: ToRBrief; template_id?: string }) =>
     request<ToRDraft>('POST', '/gov/tor/drafts', body),

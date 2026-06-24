@@ -160,6 +160,15 @@ SMOKE_TPL_ID="$(printf '%s' "$gov_new_tpl" | sed -n 's/.*"id":"\([^"]*\)".*/\1/p
 test -n "$SMOKE_TPL_ID" || { echo "FAIL: could not parse created template id"; echo "$gov_new_tpl"; exit 1; }
 echo "    gov template create OK ($SMOKE_TPL_ID)"
 
+echo "==> PATCH /gov/tor/templates/$SMOKE_TPL_ID"
+gov_patched_tpl="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
+    -H 'Content-Type: application/json' \
+    -X PATCH \
+    -d '{"name":"Smoke custom template (edited)"}' \
+    "$API/gov/tor/templates/$SMOKE_TPL_ID")"
+echo "$gov_patched_tpl" | grep -q 'Smoke custom template (edited)' || { echo "FAIL: template patch did not persist name"; echo "$gov_patched_tpl"; exit 1; }
+echo "    gov template patch OK"
+
 echo "==> DELETE /gov/tor/templates/$SMOKE_TPL_ID"
 gov_del_tpl="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
     -X DELETE \

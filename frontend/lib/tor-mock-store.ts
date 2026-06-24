@@ -1,6 +1,8 @@
 import type { ToRDraft, ToRListItem, ToRTemplate } from './api';
 import type { ToRBrief } from './api';
-import { MOCK_TOR_DRAFTS, MOCK_TOR_LIST, patchChecklistFromBody } from './tor-shared';
+import { DEFAULT_TOR_TEMPLATE_BODY, MOCK_TOR_DRAFTS, MOCK_TOR_LIST, patchChecklistFromBody } from './tor-shared';
+
+type StoredMockTemplate = ToRTemplate & { body_markdown: string };
 
 export const TOR_MOCK_STORAGE = {
   draftPrefix: 'tor-mock:',
@@ -135,16 +137,16 @@ function setMockTorStatusOverride(id: string, status: ToRListItem['status']) {
   }
 }
 
-function readCustomMockTemplates(): ToRTemplate[] {
+function readCustomMockTemplates(): StoredMockTemplate[] {
   try {
     const raw = sessionStorage.getItem(CUSTOM_TEMPLATES_KEY);
-    return raw ? (JSON.parse(raw) as ToRTemplate[]) : [];
+    return raw ? (JSON.parse(raw) as StoredMockTemplate[]) : [];
   } catch {
     return [];
   }
 }
 
-function writeCustomMockTemplates(items: ToRTemplate[]) {
+function writeCustomMockTemplates(items: StoredMockTemplate[]) {
   try {
     sessionStorage.setItem(CUSTOM_TEMPLATES_KEY, JSON.stringify(items));
   } catch {
@@ -162,17 +164,43 @@ export function mergeMockTorTemplates(base: ToRTemplate[]): ToRTemplate[] {
 export function createMockTorTemplate(
   name: string,
   procurement_kind: ToRBrief['procurement_kind'],
-  _body_markdown?: string,
+  body_markdown?: string,
 ): ToRTemplate {
-  const tpl: ToRTemplate = {
+  const tpl: StoredMockTemplate = {
     id: `tpl-custom-${Date.now()}`,
     name: name.trim(),
     procurement_kind,
     is_official: false,
+    body_markdown: body_markdown?.trim() || DEFAULT_TOR_TEMPLATE_BODY,
   };
   const items = readCustomMockTemplates().filter((row) => row.id !== tpl.id);
   writeCustomMockTemplates([tpl, ...items]);
   return tpl;
+}
+
+export function getMockTorTemplate(id: string): StoredMockTemplate | null {
+  return readCustomMockTemplates().find((row) => row.id === id) ?? null;
+}
+
+export function updateMockTorTemplate(
+  id: string,
+  body: { name?: string; procurement_kind?: ToRBrief['procurement_kind']; body_markdown?: string },
+): StoredMockTemplate {
+  if (!id.startsWith('tpl-custom-')) {
+    throw new Error('Official templates cannot be edited');
+  }
+  const items = readCustomMockTemplates();
+  const idx = items.findIndex((row) => row.id === id);
+  if (idx < 0) throw new Error('Template not found');
+  const updated: StoredMockTemplate = {
+    ...items[idx],
+    ...(body.name !== undefined ? { name: body.name.trim() } : {}),
+    ...(body.procurement_kind !== undefined ? { procurement_kind: body.procurement_kind } : {}),
+    ...(body.body_markdown !== undefined ? { body_markdown: body.body_markdown } : {}),
+  };
+  items[idx] = updated;
+  writeCustomMockTemplates(items);
+  return updated;
 }
 
 export function deleteMockTorTemplate(id: string) {

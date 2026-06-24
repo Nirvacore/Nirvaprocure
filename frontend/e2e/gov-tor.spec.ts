@@ -233,6 +233,21 @@ test.describe('gov tor list', () => {
     await expect(page.getByLabel('แม่แบบ TOR')).toContainText('แม่แบบ picker E2E');
   });
 
+  test('edits custom template name and body', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/templates/new');
+    await page.getByLabel('ชื่อแม่แบบ').fill('แม่แบบก่อนแก้ไข');
+    await page.getByRole('button', { name: 'บันทึกแม่แบบ' }).click();
+    await page.getByLabel('แก้ไขแม่แบบ').click();
+    await expect(page.getByRole('heading', { name: 'แก้ไขแม่แบบ' })).toBeVisible();
+    await page.getByLabel('ชื่อแม่แบบ').fill('แม่แบบหลังแก้ไข');
+    await page.getByLabel('เนื้อหาแม่แบบ (Markdown)').fill('## ทดสอบแก้ไข\nเนื้อหาใหม่');
+    await page.getByRole('button', { name: 'บันทึกแม่แบบ' }).click();
+    await expect(page).toHaveURL(/\/gov\/tor\/templates$/);
+    await expect(page.getByText('บันทึกแม่แบบแล้ว')).toBeVisible();
+    await expect(page.getByText('แม่แบบหลังแก้ไข')).toBeVisible();
+    await expect(page.getByText('แม่แบบก่อนแก้ไข')).not.toBeVisible();
+  });
+
   test('clear filters resets list to all entries', async ({ page }) => {
     await gotoAuthenticated(page, '/gov/tor');
     await page.getByPlaceholder('ค้นหาชื่อโครงการ ToR…').fill('คลังสินค้า');

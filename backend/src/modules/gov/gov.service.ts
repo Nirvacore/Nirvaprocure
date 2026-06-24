@@ -105,6 +105,62 @@ export class GovService {
     });
   }
 
+  getTemplate(user: CurrentUser, id: string) {
+    return withOrg(this.pool, user.orgId, async (c) => {
+      const r = await c.query(
+        `SELECT id, name, procurement_kind, body_markdown, is_official
+         FROM tor_templates WHERE id = $1 AND deleted_at IS NULL`,
+        [id],
+      );
+      if (r.rowCount === 0) throw new NotFoundException();
+      return r.rows[0];
+    });
+  }
+
+  updateTemplate(
+    user: CurrentUser,
+    id: string,
+    body: { name?: string; procurement_kind?: ProcurementKind; body_markdown?: string },
+  ) {
+    return withOrg(this.pool, user.orgId, async (c) => {
+      const cur = await c.query(
+        `SELECT is_official FROM tor_templates WHERE id = $1 AND deleted_at IS NULL`, [id],
+      );
+      if (cur.rowCount === 0) throw new NotFoundException();
+      if (cur.rows[0].is_official) {
+        throw new BadRequestException('Official templates cannot be edited');
+      }
+
+      const fields: string[] = [];
+      const values: unknown[] = [id];
+      let idx = 2;
+
+      if (body.name !== undefined) {
+        fields.push(`name = $${idx++}`);
+        values.push(body.name.trim());
+      }
+      if (body.procurement_kind !== undefined) {
+        fields.push(`procurement_kind = $${idx++}`);
+        values.push(body.procurement_kind);
+      }
+      if (body.body_markdown !== undefined) {
+        fields.push(`body_markdown = $${idx++}`);
+        values.push(body.body_markdown);
+      }
+      if (fields.length === 0) {
+        throw new BadRequestException('No fields to update');
+      }
+
+      const r = await c.query(
+        `UPDATE tor_templates SET ${fields.join(', ')}
+         WHERE id = $1
+         RETURNING id, name, procurement_kind, body_markdown, is_official`,
+        values,
+      );
+      return r.rows[0];
+    });
+  }
+
   listDrafts(user: CurrentUser) {
     return withOrg(this.pool, user.orgId, async (c) => {
       const r = await c.query(

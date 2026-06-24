@@ -65,6 +65,17 @@ class CreateTemplateDto {
   body_markdown?: string;
 }
 
+class UpdateTemplateDto {
+  @IsOptional() @IsString() @MaxLength(200)
+  name?: string;
+
+  @IsOptional() @IsIn(['goods', 'services', 'construction'])
+  procurement_kind?: ProcurementKind;
+
+  @IsOptional() @IsString() @MaxLength(20000)
+  body_markdown?: string;
+}
+
 @Controller('gov/tor')
 export class GovController {
   constructor(
@@ -80,6 +91,23 @@ export class GovController {
   @Post('templates')
   createTemplate(@CurrentUser() user: CU, @Body() dto: CreateTemplateDto) {
     return this.svc.createTemplate(user, dto);
+  }
+
+  @Get('templates/:id')
+  getTemplate(
+    @CurrentUser() user: CU,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ) {
+    return this.svc.getTemplate(user, id);
+  }
+
+  @Patch('templates/:id')
+  updateTemplate(
+    @CurrentUser() user: CU,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateTemplateDto,
+  ) {
+    return this.svc.updateTemplate(user, id, dto);
   }
 
   @Delete('templates/:id')
