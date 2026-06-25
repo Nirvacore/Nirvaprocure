@@ -76,6 +76,11 @@ class _TorListPageState extends State<TorListPage> {
         title: Text(l10n.t('tor.list.heading')),
         actions: const [LangButton()],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/gov/tor/new'),
+        icon: const Icon(Icons.add),
+        label: Text(l10n.t('tor.list.new')),
+      ),
       body: Column(
         children: [
           Padding(

@@ -27,6 +27,7 @@ import 'pages/settings_page.dart';
 import 'pages/shell_page.dart';
 import 'pages/stock_page.dart';
 import 'pages/suppliers_page.dart';
+import 'pages/tor_create_page.dart';
 import 'pages/tor_detail_page.dart';
 import 'pages/tor_list_page.dart';
 import 'theme/tokens.dart';
@@ -109,6 +110,7 @@ final _router = GoRouter(
     GoRoute(path: '/scanner',       builder: (_, __) => const ScannerPage()),
     GoRoute(path: '/biometric',     builder: (_, __) => const BiometricPage()),
     GoRoute(path: '/gov/tor',       builder: (_, __) => const TorListPage()),
+    GoRoute(path: '/gov/tor/new',   builder: (_, __) => const TorCreatePage()),
     GoRoute(
       path: '/gov/tor/:id',
       builder: (_, state) => TorDetailPage(id: state.pathParameters['id']!),

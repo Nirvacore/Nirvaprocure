@@ -303,6 +303,25 @@ class Api {
     return TorDraft.fromJson(res.data as Map<String, dynamic>);
   }
 
+  static Future<List<TorTemplate>> listTorTemplates() async {
+    final res = await _dio.get('/gov/tor/templates');
+    final list = (res.data as List).cast<Map<String, dynamic>>();
+    return list.map(TorTemplate.fromJson).toList(growable: false);
+  }
+
+  static Future<TorDraft> createTorDraft({
+    required String title,
+    String? templateId,
+    required Map<String, dynamic> brief,
+  }) async {
+    final res = await _dio.post('/gov/tor/drafts', data: {
+      'title': title,
+      if (templateId != null && templateId.isNotEmpty) 'template_id': templateId,
+      'brief': brief,
+    });
+    return TorDraft.fromJson(res.data as Map<String, dynamic>);
+  }
+
   // ---------------------------------------------------------------------------
   // attachments
   // ---------------------------------------------------------------------------
@@ -558,6 +577,27 @@ class UserProfile {
         role:            j['role']             as String?,
         orgName:         j['org_name']         as String?,
         preferredLocale: j['preferred_locale'] as String?,
+      );
+}
+
+class TorTemplate {
+  TorTemplate({
+    required this.id,
+    required this.name,
+    required this.procurementKind,
+    required this.isOfficial,
+  });
+
+  final String id;
+  final String name;
+  final String procurementKind;
+  final bool isOfficial;
+
+  factory TorTemplate.fromJson(Map<String, dynamic> j) => TorTemplate(
+        id:               j['id'] as String,
+        name:             j['name'] as String,
+        procurementKind:  j['procurement_kind'] as String,
+        isOfficial:       j['is_official'] as bool? ?? false,
       );
 }
 
