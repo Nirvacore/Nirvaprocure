@@ -16,6 +16,7 @@ class TorDetailPage extends StatefulWidget {
 class _TorDetailPageState extends State<TorDetailPage> {
   TorDraft? _draft;
   bool _loading = true;
+  bool _workflowBusy = false;
 
   @override
   void initState() {
@@ -31,6 +32,60 @@ class _TorDetailPageState extends State<TorDetailPage> {
       _draft = null;
     }
     if (mounted) setState(() => _loading = false);
+  }
+
+  String? _advanceKey(String status) => switch (status) {
+        'draft' => 'tor.action.submit_review',
+        'review' => 'tor.action.approve',
+        'approved' => 'tor.action.archive',
+        _ => null,
+      };
+
+  String? _revertKey(String status) => switch (status) {
+        'review' => 'tor.action.send_back',
+        _ => null,
+      };
+
+  Future<void> _advance() async {
+    final l10n = L10n.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _workflowBusy = true);
+    try {
+      final updated = await Api.advanceTorDraft(widget.id);
+      if (!mounted) return;
+      setState(() => _draft = updated);
+      messenger.showSnackBar(SnackBar(content: Text(l10n.t('tor.toast.status'))));
+    } catch (err) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('${l10n.t('common.error')}: $err'),
+          backgroundColor: Tokens.danger,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _workflowBusy = false);
+    }
+  }
+
+  Future<void> _revert() async {
+    final l10n = L10n.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _workflowBusy = true);
+    try {
+      final updated = await Api.revertTorDraft(widget.id);
+      if (!mounted) return;
+      setState(() => _draft = updated);
+      messenger.showSnackBar(SnackBar(content: Text(l10n.t('tor.toast.status'))));
+    } catch (err) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('${l10n.t('common.error')}: $err'),
+          backgroundColor: Tokens.danger,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _workflowBusy = false);
+    }
   }
 
   @override
@@ -56,13 +111,58 @@ class _TorDetailPageState extends State<TorDetailPage> {
     final fmtDate = date != null
         ? DateFormat.yMMMd(l10n.locale.languageCode).add_jm().format(date)
         : draft.createdAt;
+    final advanceKey = _advanceKey(draft.status);
+    final revertKey = _revertKey(draft.status);
+    final hasActions = advanceKey != null || revertKey != null;
 
     return Scaffold(
       appBar: AppBar(title: Text(draft.title, maxLines: 1, overflow: TextOverflow.ellipsis)),
+      bottomNavigationBar: hasActions
+          ? SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                child: Row(
+                  children: [
+                    if (revertKey != null) ...[
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _workflowBusy ? null : _revert,
+                          icon: _workflowBusy
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.undo, size: 18),
+                          label: Text(l10n.t(revertKey)),
+                        ),
+                      ),
+                      if (advanceKey != null) const SizedBox(width: 10),
+                    ],
+                    if (advanceKey != null)
+                      Expanded(
+                        flex: revertKey != null ? 1 : 1,
+                        child: FilledButton.icon(
+                          onPressed: _workflowBusy ? null : _advance,
+                          icon: _workflowBusy && revertKey == null
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                )
+                              : const Icon(Icons.arrow_forward, size: 18),
+                          label: Text(l10n.t(advanceKey)),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            )
+          : null,
       body: RefreshIndicator(
         onRefresh: _load,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.fromLTRB(16, 16, 16, hasActions ? 8 : 16),
           children: [
             Row(
               children: [
@@ -152,7 +252,7 @@ class _TorDetailPageState extends State<TorDetailPage> {
               ),
               const SizedBox(height: 8),
               ...draft.complianceChecklist.entries.map(
-                (e) => _checklistRow(e.key, e.value),
+                (e) => _checklistRow(e.key, e.value, l10n),
               ),
             ],
           ],
@@ -194,7 +294,20 @@ class _TorDetailPageState extends State<TorDetailPage> {
     );
   }
 
-  Widget _checklistRow(String key, String status) {
+  String _checklistLabel(String key, L10n l10n) {
+    final mapped = switch (key) {
+      'scope' => 'tor.checklist.scope',
+      'budget' => 'tor.checklist.budget',
+      'deliverables' => 'tor.checklist.deliverables',
+      'evaluation' => 'tor.checklist.evaluation',
+      'timeline' => 'tor.checklist.timeline',
+      'qualifications' => 'tor.checklist.qualifications',
+      _ => null,
+    };
+    return mapped != null ? l10n.t(mapped) : key;
+  }
+
+  Widget _checklistRow(String key, String status, L10n l10n) {
     final icon = switch (status) {
       'passed' => (Icons.check_circle, Tokens.success),
       'failed' => (Icons.cancel, Tokens.danger),
@@ -206,7 +319,7 @@ class _TorDetailPageState extends State<TorDetailPage> {
         children: [
           Icon(icon.$1, size: 20, color: icon.$2),
           const SizedBox(width: 10),
-          Expanded(child: Text(key, style: const TextStyle(fontSize: 14))),
+          Expanded(child: Text(_checklistLabel(key, l10n), style: const TextStyle(fontSize: 14))),
         ],
       ),
     );

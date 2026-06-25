@@ -322,6 +322,16 @@ class Api {
     return TorDraft.fromJson(res.data as Map<String, dynamic>);
   }
 
+  static Future<TorDraft> advanceTorDraft(String id) async {
+    final res = await _dio.post('/gov/tor/drafts/$id/advance');
+    return TorDraft.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  static Future<TorDraft> revertTorDraft(String id) async {
+    final res = await _dio.post('/gov/tor/drafts/$id/revert');
+    return TorDraft.fromJson(res.data as Map<String, dynamic>);
+  }
+
   // ---------------------------------------------------------------------------
   // attachments
   // ---------------------------------------------------------------------------

@@ -251,8 +251,8 @@ frontend/lib/
 mobile/lib/
 ├── pages/tor_list_page.dart   List + filters + linked PR badge + FAB → create
 ├── pages/tor_create_page.dart Create draft (template, brief, AI body)
-├── pages/tor_detail_page.dart Detail + checklist + linked PR card
-└── api/endpoints.dart         TorTemplate, TorListItem, TorDraft, list/get/create API
+├── pages/tor_detail_page.dart Detail + checklist + linked PR card + workflow actions
+└── api/endpoints.dart         TorTemplate, TorListItem, TorDraft, list/get/create/advance/revert API
 
 frontend/e2e/gov-tor.spec.ts   30 scenarios (offline mock fallback)
 frontend/lib/tor-shared.test.ts
@@ -291,7 +291,7 @@ scripts/smoke.sh               Steps 10–15: full ToR API path
 | `tor.kind.*` | ✅ | ✅ | goods, services, construction |
 | `tor.templates.*` | ✅ | — | create, edit, save, delete |
 | `tor.linked_pr.*` | ✅ | ✅ | badge, title, view |
-| `tor.action.*` | ✅ | — | advance, revert, create_pr |
+| `tor.action.*` | ✅ | ✅ | submit_review, approve, send_back, archive |
 | `tor.checklist.*` | ✅ | ✅ | title, per-item labels, hint |
 | `tor.create.*` / form keys | ✅ | ✅ | heading, template, scope, cta |
 | `pr.linked_tor.*` | ✅ | — | PR detail back-link to ToR |
@@ -306,9 +306,9 @@ scripts/smoke.sh               Steps 10–15: full ToR API path
 | Unit | `frontend/lib/tor-shared.test.ts` | checklist scan/patch, sort |
 | E2E | `frontend/e2e/gov-tor.spec.ts` | 30 tests — list, create, templates, create-pr, linked badge |
 | Smoke | `scripts/smoke.sh` §10–15 | templates CRUD, drafts, PDF, PATCH, advance, revert, create-pr, list `linked_pr` |
-| Mobile | manual | `/gov/tor` list + `/gov/tor/new` create against live API |
+| Mobile | manual | list, create, detail workflow (advance/revert) against live API |
 
-### Phase 37 — Mobile create ToR (`cursor/phase37-mobile-tor-create-87fc`)
+### Phase 37 — Mobile create ToR (`cursor/phase37-mobile-tor-create-87fc`) — PR [#80](https://github.com/Nirvacore/Nirvaprocure/pull/80)
 
 - `POST /gov/tor/drafts` from Flutter (`Api.createTorDraft`)
 - `GET /gov/tor/templates` for optional template picker
@@ -316,11 +316,18 @@ scripts/smoke.sh               Steps 10–15: full ToR API path
 - FAB on list → create form → navigate to detail on success
 - 26 new i18n keys × 8 locales in `mobile/lib/l10n/dictionary.dart`
 
+### Phase 38 — Mobile advance/revert (`cursor/phase38-mobile-tor-advance-87fc`) — PR [#81](https://github.com/Nirvacore/Nirvaprocure/pull/81)
+
+- `POST .../advance` + `POST .../revert` (`Api.advanceTorDraft`, `Api.revertTorDraft`)
+- Bottom action bar on `TorDetailPage`: draft→review, review→approve/send back, approved→archive
+- Checklist rows use `tor.checklist.*` labels (not raw keys)
+- 11 new i18n keys × 8 locales (`tor.action.*`, `tor.toast.status`, checklist items)
+
 ---
 
 ## Horizon (intentionally out of scope for now)
 
-- Mobile: advance status, template admin
+- Mobile: create PR from ToR, template admin
 - ToR version history / diff view
 - Supplier portal read-only ToR publish
 - Webhook events: `tor.status_changed`, `tor.pr_linked`
