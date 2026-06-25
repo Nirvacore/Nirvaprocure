@@ -1,15 +1,18 @@
 import type { ToRDraft, ToRListItem } from './api';
+import type { ToRBrief } from './api';
 import { MOCK_TOR_LIST, patchChecklistFromBody } from './tor-shared';
 
 export const TOR_MOCK_STORAGE = {
   draftPrefix: 'tor-mock:',
   listKey: 'tor-mock-list',
   statusOverridesKey: 'tor-mock-status-overrides',
+  prLinkPrefix: 'tor-mock-pr:',
 } as const;
 
 const DRAFT_KEY_PREFIX = TOR_MOCK_STORAGE.draftPrefix;
 const LIST_KEY = TOR_MOCK_STORAGE.listKey;
 const STATUS_OVERRIDES_KEY = TOR_MOCK_STORAGE.statusOverridesKey;
+const PR_LINK_PREFIX = TOR_MOCK_STORAGE.prLinkPrefix;
 
 const TOR_NEXT_STATUS: Record<ToRDraft['status'], ToRDraft['status'] | null> = {
   draft:     'review',
@@ -41,10 +44,34 @@ export function storeMockTorDraft(draft: ToRDraft) {
 export function readMockTorDraft(id: string): ToRDraft | null {
   try {
     const raw = sessionStorage.getItem(`${DRAFT_KEY_PREFIX}${id}`);
-    return raw ? (JSON.parse(raw) as ToRDraft) : null;
+    if (!raw) return null;
+    return mergeMockTorPrLink(JSON.parse(raw) as ToRDraft);
   } catch {
     return null;
   }
+}
+
+export function readMockTorPrLink(id: string): { pr_id: string; pr_number: string } | null {
+  try {
+    const raw = sessionStorage.getItem(`${PR_LINK_PREFIX}${id}`);
+    return raw ? (JSON.parse(raw) as { pr_id: string; pr_number: string }) : null;
+  } catch {
+    return null;
+  }
+}
+
+function storeMockTorPrLink(id: string, link: { pr_id: string; pr_number: string }) {
+  try {
+    sessionStorage.setItem(`${PR_LINK_PREFIX}${id}`, JSON.stringify(link));
+  } catch {
+    // ignore
+  }
+}
+
+export function mergeMockTorPrLink(draft: ToRDraft): ToRDraft {
+  const link = readMockTorPrLink(draft.id);
+  if (!link) return draft;
+  return { ...draft, linked_pr_id: link.pr_id, linked_pr_number: link.pr_number };
 }
 
 /** Track mock list rows created in this browser session (offline create flow). */
@@ -108,6 +135,28 @@ export function revertMockTorDraft(id: string, fallback: ToRDraft): ToRDraft {
   const prev = TOR_PREV_STATUS[draft.status];
   if (!prev) throw new Error('TOR cannot be sent back from this status');
   return { ...draft, status: prev };
+}
+
+export function createMockPrFromTor(
+  id: string,
+  draft: ToRDraft,
+  _brief: ToRBrief,
+): ToRDraft {
+  const current = mergeMockTorPrLink(readMockTorDraft(id) ?? draft);
+  if (current.status !== 'approved') {
+    throw new Error('PR can only be created from an approved TOR');
+  }
+  if (current.linked_pr_id) {
+    throw new Error('A purchase request already exists for this TOR');
+  }
+
+  const prId = `pr-mock-tor-${Date.now()}`;
+  const prNumber = `PR-TOR-${String(Date.now()).slice(-6)}`;
+  const link = { pr_id: prId, pr_number: prNumber };
+  storeMockTorPrLink(id, link);
+  const updated = { ...current, linked_pr_id: link.pr_id, linked_pr_number: link.pr_number };
+  storeMockTorDraft(updated);
+  return updated;
 }
 
 export function updateMockTorDraftBody(id: string, fallback: ToRDraft, body_markdown: string): ToRDraft {

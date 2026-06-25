@@ -528,6 +528,8 @@ export interface ToRDraft {
   body_markdown: string | null;
   compliance_checklist: Record<string, 'passed' | 'failed' | 'na'>;
   created_at: string;
+  linked_pr_id?: string | null;
+  linked_pr_number?: string | null;
 }
 export interface ToRListItem {
   id: string;
@@ -552,6 +554,7 @@ export const gov = {
     request<ToRDraft>('PATCH', `/gov/tor/drafts/${id}`, body),
   advanceStatus: (id: string) => request<ToRDraft>('POST', `/gov/tor/drafts/${id}/advance`),
   revertStatus: (id: string) => request<ToRDraft>('POST', `/gov/tor/drafts/${id}/revert`),
+  createPrFromTor: (id: string) => request<ToRDraft>('POST', `/gov/tor/drafts/${id}/create-pr`),
 };
 
 // ---------------------------------------------------------------------------

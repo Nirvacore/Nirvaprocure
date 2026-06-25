@@ -1,8 +1,9 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Pool } from 'pg';
 import { PG_POOL } from '../../common/db/db.module';
 import { withOrg } from '../../common/db/with-org';
 import { OpenAiProvider } from '../ai/openai.provider';
+import { PrService } from '../pr/pr.service';
 import type { CurrentUser } from '../../common/auth/current-user.decorator';
 
 export type ProcurementKind = 'goods' | 'services' | 'construction';
@@ -48,6 +49,7 @@ export class GovService {
   constructor(
     @Inject(PG_POOL) private readonly pool: Pool,
     private readonly openai: OpenAiProvider,
+    private readonly pr: PrService,
   ) {}
 
   listTemplates(user: CurrentUser) {
@@ -103,12 +105,50 @@ export class GovService {
   getDraft(user: CurrentUser, id: string) {
     return withOrg(this.pool, user.orgId, async (c) => {
       const r = await c.query(
-        `SELECT id, title, status, body_markdown, compliance_checklist, created_at
+        `SELECT d.id, d.title, d.status, d.body_markdown, d.compliance_checklist, d.created_at,
+                d.linked_pr_id, pr.pr_number AS linked_pr_number
+         FROM tor_drafts d
+         LEFT JOIN purchase_requests pr ON pr.id = d.linked_pr_id
+         WHERE d.id = $1`, [id],
+      );
+      if (r.rowCount === 0) throw new NotFoundException();
+      return r.rows[0];
+    });
+  }
+
+  async createPrFromTor(user: CurrentUser, id: string) {
+    const row = await withOrg(this.pool, user.orgId, async (c) => {
+      const r = await c.query(
+        `SELECT id, title, status, body_markdown, compliance_checklist, created_at,
+                brief_json, linked_pr_id
          FROM tor_drafts WHERE id = $1`, [id],
       );
       if (r.rowCount === 0) throw new NotFoundException();
       return r.rows[0];
     });
+
+    const status = row.status as TorStatus;
+    if (status !== 'approved') {
+      throw new BadRequestException('PR can only be created from an approved TOR');
+    }
+    if (row.linked_pr_id) {
+      throw new ConflictException('A purchase request already exists for this TOR');
+    }
+
+    const brief = row.brief_json as ToRBrief;
+    const pr = await this.pr.create(user, this.buildPrPayloadFromTor(id, row.title as string, brief));
+
+    const updated = await withOrg(this.pool, user.orgId, async (c) => {
+      const r = await c.query(
+        `UPDATE tor_drafts SET linked_pr_id = $2, updated_at = now()
+         WHERE id = $1
+         RETURNING id, title, status, body_markdown, compliance_checklist, created_at, linked_pr_id`,
+        [id, pr.id],
+      );
+      return { ...r.rows[0], linked_pr_number: pr.pr_number };
+    });
+
+    return updated;
   }
 
   advanceDraftStatus(user: CurrentUser, id: string) {
@@ -182,6 +222,26 @@ export class GovService {
   // -----------------------------------------------------------------------
   // Internals
   // -----------------------------------------------------------------------
+
+  private buildPrPayloadFromTor(torId: string, title: string, brief: ToRBrief) {
+    const justification = `สร้างจาก ToR (${torId})\n\n${brief.scope ?? ''}`;
+    const deliverables = brief.deliverables?.length ? brief.deliverables : [brief.scope?.slice(0, 2000) || title];
+    const n = deliverables.length;
+    const base = Math.floor(brief.budget_minor / n);
+
+    return {
+      title,
+      justification,
+      items: deliverables.map((description, i) => ({
+        description,
+        quantity: 1,
+        unit: 'รายการ',
+        unit_price_minor: i === n - 1 ? brief.budget_minor - base * (n - 1) : base,
+        source: 'manual' as const,
+        source_metadata: { tor_draft_id: torId },
+      })),
+    };
+  }
 
   private runChecklist(brief: ToRBrief): Record<string, 'passed' | 'failed' | 'na'> {
     return {

@@ -196,5 +196,16 @@ gov_reverted="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
 echo "$gov_reverted" | grep -q '"status":"draft"' || { echo "FAIL: revert did not return draft status"; echo "$gov_reverted"; exit 1; }
 echo "    gov revert OK"
 
+# -----------------------------------------------------------------------------
+# 15. Create PR from approved seeded TOR (999…902)
+# -----------------------------------------------------------------------------
+TOR_APPROVED_ID='99999999-9999-9999-9999-999999999902'
+echo "==> POST /gov/tor/drafts/$TOR_APPROVED_ID/create-pr"
+gov_pr="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
+    -X POST "$API/gov/tor/drafts/$TOR_APPROVED_ID/create-pr")"
+echo "$gov_pr" | grep -q '"linked_pr_id"' || { echo "FAIL: create-pr did not link a PR"; echo "$gov_pr"; exit 1; }
+echo "$gov_pr" | grep -q 'linked_pr_number' || { echo "FAIL: create-pr missing linked_pr_number"; echo "$gov_pr"; exit 1; }
+echo "    gov create-pr OK"
+
 echo ""
-echo "✅ SMOKE PASSED — all 16 steps green"
+echo "✅ SMOKE PASSED — all 17 steps green"

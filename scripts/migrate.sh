@@ -23,6 +23,7 @@ MIGRATIONS=(
   phase1_schema.sql
   phase2_stock_schema.sql
   phase2_gov_schema.sql
+  phase2_gov_pr_link.sql
   phase4_portal_schema.sql
   phase4_2fa_schema.sql
   phase5_incentives_schema.sql

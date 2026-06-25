@@ -184,6 +184,13 @@ test.describe('gov tor list', () => {
     await expect(page.getByRole('button', { name: 'แก้ไขเนื้อหา' })).not.toBeVisible();
   });
 
+  test('creates PR from approved TOR', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/tor-2');
+    await page.getByRole('button', { name: 'สร้างใบขอซื้อ (PR)' }).click();
+    await expect(page.getByText('สร้าง PR จาก ToR แล้ว')).toBeVisible();
+    await expect(page.getByRole('link', { name: /PR-TOR-/ })).toBeVisible();
+  });
+
   test('clear filters resets list to all entries', async ({ page }) => {
     await gotoAuthenticated(page, '/gov/tor');
     await page.getByPlaceholder('ค้นหาชื่อโครงการ ToR…').fill('คลังสินค้า');
