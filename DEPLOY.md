@@ -105,3 +105,69 @@ Point DNS:
 - Sentry source maps upload
 - Cron schedules (use Fly machines `scheduled` flag or external service)
 - Backup encryption keys (Fly Postgres has automatic daily snapshots)
+
+---
+
+## VPS (Contabo / Ubuntu 24.04)
+
+Single-server deploy with Docker Compose. Fits a **Cloud VPS 20** in Singapore (~$16/mo
+including backup + location surcharge).
+
+### One-command bootstrap
+
+```bash
+# SSH into the VPS as root, then:
+git clone https://github.com/Nirvacore/Nirvaprocure.git /opt/nirvaprocure
+cd /opt/nirvaprocure
+./scripts/vps-setup.sh --ip-only
+```
+
+The script installs Docker, configures `ufw`, creates `.env` with random secrets,
+starts `docker-compose.prod.yml`, runs `migrate.sh`, and prints URLs.
+
+| Mode | Command | URLs |
+|---|---|---|
+| IP only (no domain) | `./scripts/vps-setup.sh --ip-only` | `http://YOUR_IP:3001` web, `:3000/v1` API |
+| Domain + HTTPS | `./scripts/vps-setup.sh --ssl nirvaprocure.com you@example.com` | `https://nirvaprocure.com`, `https://api.nirvaprocure.com/v1` |
+
+Before HTTPS mode, point DNS:
+
+- `nirvaprocure.com` → VPS IPv4 (`A`)
+- `api.nirvaprocure.com` → same IP (`A`)
+
+### Manual bring-up
+
+```bash
+cp .env.prod.example .env          # edit POSTGRES_PASSWORD, JWT_SECRET, URLs
+docker compose --env-file .env -f docker-compose.prod.yml \
+  -f docker-compose.prod-ip.yml up -d --build
+DATABASE_URL=postgres://nirva:$POSTGRES_PASSWORD@127.0.0.1:5432/nirvaprocure \
+  ./scripts/migrate.sh
+SMOKE_API_BASE=http://YOUR_IP:3000/v1 ./scripts/smoke.sh
+```
+
+### Files
+
+| Path | Purpose |
+|---|---|
+| `docker-compose.prod.yml` | Postgres + backend + web (+ optional Caddy profile `ssl`) |
+| `docker-compose.prod-ip.yml` | Expose :3000/:3001 for IP-only access |
+| `deploy/Caddyfile` | Reverse proxy + Let's Encrypt when `--ssl` |
+| `.env.prod.example` | Secret / URL template |
+| `scripts/vps-setup.sh` | Full bootstrap for Ubuntu 24.04 |
+
+### Security checklist
+
+- Change default seed password after first login
+- Keep Postgres on `127.0.0.1:5432` only (prod compose default)
+- Disable public VNC; use SSH keys
+- Contabo Auto Backup ($2.45/mo) covers VM snapshots — also run `scripts/backup.sh` for logical dumps
+
+### Day-2 on VPS
+
+| What | Command |
+|---|---|
+| Logs | `docker compose --env-file .env -f docker-compose.prod.yml logs -f backend` |
+| Update | `git pull && docker compose --env-file .env -f docker-compose.prod.yml -f docker-compose.prod-ip.yml up -d --build` |
+| Migrate | `DATABASE_URL=... ./scripts/migrate.sh` |
+| Smoke | `SMOKE_API_BASE=http://YOUR_IP:3000/v1 ./scripts/smoke.sh` |

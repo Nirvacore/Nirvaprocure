@@ -1,0 +1,14 @@
+# IP-only override: expose web + API on the host (no Caddy).
+# Use with docker-compose.prod.yml when you have no domain yet.
+#
+#   docker compose --env-file .env \
+#     -f docker-compose.prod.yml -f docker-compose.prod-ip.yml up -d --build
+
+services:
+  backend:
+    ports:
+      - "3000:3000"
+
+  web:
+    ports:
+      - "3001:3001"

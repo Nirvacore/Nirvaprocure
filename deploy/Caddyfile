@@ -1,0 +1,14 @@
+# Rendered at runtime via Caddy env placeholders.
+# Requires DOMAIN and ACME_EMAIL in docker-compose.prod.yml (profile ssl).
+
+{$DOMAIN} {
+	email {$ACME_EMAIL}
+	encode gzip
+	reverse_proxy web:3001
+}
+
+api.{$DOMAIN} {
+	email {$ACME_EMAIL}
+	encode gzip
+	reverse_proxy backend:3000
+}
