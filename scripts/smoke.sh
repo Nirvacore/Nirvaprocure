@@ -166,7 +166,19 @@ echo "$pdf_type" | grep -q 'application/pdf' || { echo "FAIL: TOR PDF not applic
 echo "    gov draft PDF OK"
 
 # -----------------------------------------------------------------------------
-# 12. Advance a seeded TOR draft (draft → review)
+# 12. Patch TOR draft body (draft/review only)
+# -----------------------------------------------------------------------------
+echo "==> PATCH /gov/tor/drafts/$TOR_DRAFT_ID"
+gov_patched="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
+    -H 'Content-Type: application/json' \
+    -X PATCH \
+    -d '{"body_markdown":"## Smoke edit\nUpdated by smoke test"}' \
+    "$API/gov/tor/drafts/$TOR_DRAFT_ID")"
+echo "$gov_patched" | grep -q 'Smoke edit' || { echo "FAIL: TOR patch did not persist body"; echo "$gov_patched"; exit 1; }
+echo "    gov patch OK"
+
+# -----------------------------------------------------------------------------
+# 13. Advance a seeded TOR draft (draft → review)
 # -----------------------------------------------------------------------------
 echo "==> POST /gov/tor/drafts/$TOR_DRAFT_ID/advance"
 gov_advanced="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
@@ -175,4 +187,4 @@ echo "$gov_advanced" | grep -q '"status":"review"' || { echo "FAIL: advance did 
 echo "    gov advance OK"
 
 echo ""
-echo "✅ SMOKE PASSED — all 14 steps green"
+echo "✅ SMOKE PASSED — all 15 steps green"

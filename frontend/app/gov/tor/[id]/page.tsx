@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
   ArrowLeft, Scale, FileText, CheckCircle2, XCircle, MinusCircle,
-  Copy, Download, Loader2, ChevronRight, Printer,
+  Copy, Download, Loader2, ChevronRight, Printer, Pencil,
 } from 'lucide-react';
 import { gov as govApi, type ToRDraft } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
@@ -16,6 +16,7 @@ import { useT } from '@/lib/i18n/provider';
 import type { TranslationKey } from '@/lib/i18n/dictionary';
 import {
   advanceMockTorDraft, readMockTorDraft, storeMockTorDraft, syncMockTorListStatus,
+  updateMockTorDraftBody,
 } from '@/lib/tor-mock-store';
 
 const CHECKLIST_LABEL_KEYS: Record<string, TranslationKey> = {
@@ -121,6 +122,9 @@ export default function TorDetailPage() {
   const { toast } = useToast();
   const [local, setLocal] = useState<ToRDraft | null>(null);
   const [advancing, setAdvancing] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [bodyEdit, setBodyEdit] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const { data, loading, error, refresh } = useResource(
     () => withMockFallback(() => govApi.getDraft(id), mockTorDraft(id)),
@@ -129,6 +133,7 @@ export default function TorDetailPage() {
 
   const draft = local ?? data;
   const isLiveDraft = UUID_RE.test(id);
+  const canEdit = draft?.status === 'draft' || draft?.status === 'review';
   const advanceKey = draft ? ADVANCE_LABEL_KEYS[draft.status] : undefined;
   const statusStyle = draft ? STATUS_STYLE[draft.status] : null;
   const fmtDate = draft
@@ -174,6 +179,30 @@ export default function TorDetailPage() {
     toast(t('tor.toast.downloaded'), 'ok');
   }
 
+  function startEdit() {
+    setBodyEdit(draft?.body_markdown ?? '');
+    setEditing(true);
+  }
+
+  async function saveBody() {
+    if (!draft) return;
+    setSaving(true);
+    try {
+      const updated = await withMockFallback(
+        () => govApi.updateDraft(id, { body_markdown: bodyEdit }),
+        updateMockTorDraftBody(id, mockTorDraft(id), bodyEdit),
+      );
+      storeMockTorDraft(updated);
+      setLocal(updated);
+      setEditing(false);
+      toast(t('tor.toast.saved'), 'ok');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t('common.error'), 'err');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <section className="screen space-y-6 max-w-4xl mx-auto">
       <Link href="/gov/tor" className="no-print btn-sm inline-flex items-center gap-2 text-ink-soft hover:text-ink -ml-2 px-2 rounded-lg">
@@ -213,7 +242,7 @@ export default function TorDetailPage() {
                 {t(advanceKey)}
               </button>
             )}
-            {draft.body_markdown && (
+            {draft.body_markdown && !editing && (
               <>
                 <button
                   type="button"
@@ -256,19 +285,59 @@ export default function TorDetailPage() {
 
           <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
             <div className="space-y-6">
-              {draft.body_markdown ? (
-                <div className="card">
-                  <h2 className="text-lg font-bold mb-3 flex items-center gap-2 text-ink">
+              <div className="card">
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <h2 className="text-lg font-bold flex items-center gap-2 text-ink">
                     <FileText className="w-5 h-5 text-ink-muted" />
                     {t('tor.draft.title')}
                   </h2>
+                  {canEdit && !editing && (
+                    <button
+                      type="button"
+                      onClick={startEdit}
+                      className="no-print btn-sm inline-flex items-center gap-2 text-ink-soft hover:text-ink"
+                    >
+                      <Pencil className="w-4 h-4" />
+                      {t('tor.action.edit')}
+                    </button>
+                  )}
+                </div>
+                {editing ? (
+                  <div className="no-print space-y-3">
+                    <textarea
+                      aria-label={t('tor.detail.body_label')}
+                      className="input min-h-[280px] w-full font-mono text-sm leading-relaxed"
+                      value={bodyEdit}
+                      onChange={(e) => setBodyEdit(e.target.value)}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void saveBody()}
+                        disabled={saving}
+                        className="btn-primary inline-flex items-center gap-2 px-5"
+                      >
+                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                        {t('common.save')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditing(false)}
+                        disabled={saving}
+                        className="btn-secondary px-5"
+                      >
+                        {t('common.cancel')}
+                      </button>
+                    </div>
+                  </div>
+                ) : draft.body_markdown ? (
                   <div className="prose prose-sm max-w-none whitespace-pre-wrap text-ink leading-relaxed">
                     {draft.body_markdown}
                   </div>
-                </div>
-              ) : (
-                <div className="card text-ink-soft">{t('tor.detail.no_body')}</div>
-              )}
+                ) : (
+                  <div className="text-ink-soft">{t('tor.detail.no_body')}</div>
+                )}
+              </div>
             </div>
 
             <div className="card h-fit lg:sticky lg:top-24 no-print">

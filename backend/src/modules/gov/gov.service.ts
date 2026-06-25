@@ -127,6 +127,27 @@ export class GovService {
     });
   }
 
+  updateDraftBody(user: CurrentUser, id: string, body_markdown: string) {
+    return withOrg(this.pool, user.orgId, async (c) => {
+      const cur = await c.query(
+        `SELECT status FROM tor_drafts WHERE id = $1`, [id],
+      );
+      if (cur.rowCount === 0) throw new NotFoundException();
+      const status = cur.rows[0].status as TorStatus;
+      if (status !== 'draft' && status !== 'review') {
+        throw new BadRequestException('TOR body can only be edited while draft or in review');
+      }
+
+      const r = await c.query(
+        `UPDATE tor_drafts SET body_markdown = $2, updated_at = now()
+         WHERE id = $1
+         RETURNING id, title, status, body_markdown, compliance_checklist, created_at`,
+        [id, body_markdown],
+      );
+      return r.rows[0];
+    });
+  }
+
   // -----------------------------------------------------------------------
   // Internals
   // -----------------------------------------------------------------------
