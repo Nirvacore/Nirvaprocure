@@ -235,5 +235,12 @@ echo "$gov_pr" | grep -q '"linked_pr_id"' || { echo "FAIL: create-pr did not lin
 echo "$gov_pr" | grep -q 'linked_pr_number' || { echo "FAIL: create-pr missing linked_pr_number"; echo "$gov_pr"; exit 1; }
 echo "    gov create-pr OK"
 
+echo "==> GET /gov/tor/drafts (linked_pr on approved seed)"
+gov_drafts_linked="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" "$API/gov/tor/drafts")"
+echo "$gov_drafts_linked" | grep -q "$TOR_APPROVED_ID" || { echo "FAIL: approved TOR missing from list"; echo "$gov_drafts_linked"; exit 1; }
+echo "$gov_drafts_linked" | grep -q 'linked_pr_id' || { echo "FAIL: drafts list should expose linked_pr_id"; echo "$gov_drafts_linked"; exit 1; }
+echo "$gov_drafts_linked" | grep -q 'linked_pr_number' || { echo "FAIL: drafts list should expose linked_pr_number"; echo "$gov_drafts_linked"; exit 1; }
+echo "    gov drafts linked_pr fields OK"
+
 echo ""
-echo "✅ SMOKE PASSED — all 17 steps green"
+echo "✅ SMOKE PASSED — all 18 steps green"

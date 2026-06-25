@@ -83,7 +83,7 @@ app/
 ├── approvals               Inbox + optimistic undo + urgent badges
 ├── settings                4 tabs: workflows / users / departments / webhooks
 ├── stock                   Warehouse on-hand + reorder + movement modal
-├── gov/tor                 ToR list (search/filter/export) — see `docs/GOV_TOR.md`
+├── gov/tor                 ToR list (search/filter/export/linked PR) — **full include:** `docs/GOV_TOR.md`
 ├── gov/tor/templates       ToR template library browser + create/delete custom
 ├── gov/tor/templates/new   Create org ToR template
 ├── gov/tor/templates/[id]/edit  Edit org ToR template
@@ -103,7 +103,7 @@ PrComments, MovementModal, WorkflowEditor, WebhooksPanel, etc).
 
 Architecture: `ShellRoute` wraps 4 bottom-nav tabs (Home, Approvals, PRs, More) with `BottomAppBar` + centered FAB (create PR). Sub-pages live outside the shell so bottom nav hides when drilling in — same pattern as LINE/Grab.
 
-All 26 screens support 8-locale i18n via `L10nScope` / `LangButton` (319 keys × 8 locales at parity). Full dark mode support via toggle in Profile page — all tile containers use `colorScheme.surface` (no hardcoded `Colors.white` in card backgrounds). Zero deprecated `withOpacity` calls — all migrated to `withAlpha(int)`. Zero `Colors.grey.shade*` or bare `Colors.grey` — fully migrated to `Tokens.gray100/200/500/700` + `const Color(0xFFD1D5DB/F9FAFB)`. Navigation audit complete: `context.go()` for tab switches only, `context.push()` for all drill-in pages. Login page: centered logo + password show/hide toggle. All `CircularProgressIndicator` use `strokeWidth: 2`. Home page: time-of-day greeting (morning/afternoon/evening) via `DateTime.now().hour`. Added `import '../theme/tokens.dart'` to suppliers_page, audit_page, biometric_page, notifications_page (compile fix).
+All 27 screens support 8-locale i18n via `L10nScope` / `LangButton` (335 keys × 8 locales at parity). Full dark mode support via toggle in Profile page — all tile containers use `colorScheme.surface` (no hardcoded `Colors.white` in card backgrounds). Zero deprecated `withOpacity` calls — all migrated to `withAlpha(int)`. Zero `Colors.grey.shade*` or bare `Colors.grey` — fully migrated to `Tokens.gray100/200/500/700` + `const Color(0xFFD1D5DB/F9FAFB)`. Navigation audit complete: `context.go()` for tab switches only, `context.push()` for all drill-in pages. Login page: centered logo + password show/hide toggle. All `CircularProgressIndicator` use `strokeWidth: 2`. Home page: time-of-day greeting (morning/afternoon/evening) via `DateTime.now().hour`. Added `import '../theme/tokens.dart'` to suppliers_page, audit_page, biometric_page, notifications_page (compile fix).
 Shares brand tokens and 56px tap-target rule with web. Uses dio interceptor
 for automatic JWT refresh; flutter_secure_storage for tokens.
 
