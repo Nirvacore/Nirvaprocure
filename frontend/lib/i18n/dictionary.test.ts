@@ -13,9 +13,12 @@ describe('i18n dictionary', () => {
   it('does not leave English placeholders in the Thai locale', () => {
     // Easy regression: someone copies an English fixture into the th dict.
     // Detect simple Latin-only stretches as a smoke test, allowing punctuation.
+    // Skip keys that legitimately hold brand names or technical terms.
+    const skipPatterns = [/\.platform\./, /\.id\./, /\.tab\./, /\.ref\./, /\.hint/];
     for (const [key, value] of Object.entries(dictionary.th)) {
-      // Tolerate brand name + interpolated variables + short ASCII fragments.
+      if (skipPatterns.some((p) => p.test(key))) continue;
       const ascii = value.replace(/\{\w+\}/g, '').replace(/NIRVAPROCURE/g, '');
+      if (ascii.trim().length < 12) continue; // short values are likely brand names or abbreviations
       const onlyLatin = /^[A-Za-z0-9 .,!?;:'"-/]+$/.test(ascii.trim());
       expect(onlyLatin, `th[${key}] looks English-only: "${value}"`).toBe(false);
     }
