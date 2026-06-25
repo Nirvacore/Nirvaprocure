@@ -195,4 +195,5 @@ frontend/lib/
 
 - `frontend/lib/tor-shared.test.ts` — unit tests for checklist scan/patch + sort
 - `frontend/e2e/gov-tor.spec.ts` — list filters, create, detail actions, edit, checklist banner
+- `mobile/lib/pages/tor_list_page.dart` + `tor_detail_page.dart` — read-only ToR list/detail with linked PR badge
 - `scripts/smoke.sh` — templates, drafts, PDF, PATCH (asserts `has_timeline`), advance against live API

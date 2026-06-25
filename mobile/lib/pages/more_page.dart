@@ -121,6 +121,8 @@ class _MorePageState extends State<MorePage> {
                 color: const Color(0xFF8B5CF6), onTap: () => context.push('/charts')),
             _Tile(icon: Icons.qr_code_scanner, label: l10n.t('more.scanner'),
                 color: const Color(0xFF0891B2), onTap: () => context.push('/scanner')),
+            _Tile(icon: Icons.balance, label: l10n.t('more.tor'),
+                color: const Color(0xFF4F46E5), onTap: () => context.push('/gov/tor')),
             _Tile(icon: Icons.fingerprint, label: l10n.t('more.biometric'),
                 color: const Color(0xFFDC2626), onTap: () => context.push('/biometric')),
           ],

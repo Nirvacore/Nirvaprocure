@@ -290,6 +290,20 @@ class Api {
   }
 
   // ---------------------------------------------------------------------------
+  // NirvaGov ToR
+  // ---------------------------------------------------------------------------
+  static Future<List<TorListItem>> listTorDrafts() async {
+    final res = await _dio.get('/gov/tor/drafts');
+    final list = (res.data as List).cast<Map<String, dynamic>>();
+    return list.map(TorListItem.fromJson).toList(growable: false);
+  }
+
+  static Future<TorDraft> getTorDraft(String id) async {
+    final res = await _dio.get('/gov/tor/drafts/$id');
+    return TorDraft.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  // ---------------------------------------------------------------------------
   // attachments
   // ---------------------------------------------------------------------------
   static Future<List<AttachmentInfo>> listAttachments(String prId) async {
@@ -545,4 +559,80 @@ class UserProfile {
         orgName:         j['org_name']         as String?,
         preferredLocale: j['preferred_locale'] as String?,
       );
+}
+
+class TorListItem {
+  TorListItem({
+    required this.id,
+    required this.title,
+    required this.procurementKind,
+    required this.status,
+    required this.createdAt,
+    this.linkedPrId,
+    this.linkedPrNumber,
+  });
+
+  final String id;
+  final String title;
+  final String procurementKind;
+  final String status;
+  final String createdAt;
+  final String? linkedPrId;
+  final String? linkedPrNumber;
+
+  factory TorListItem.fromJson(Map<String, dynamic> j) => TorListItem(
+        id:               j['id'] as String,
+        title:            j['title'] as String,
+        procurementKind:  j['procurement_kind'] as String,
+        status:           j['status'] as String,
+        createdAt:        j['created_at'] as String,
+        linkedPrId:       j['linked_pr_id'] as String?,
+        linkedPrNumber:   j['linked_pr_number'] as String?,
+      );
+}
+
+class TorDraft extends TorListItem {
+  TorDraft({
+    required super.id,
+    required super.title,
+    required super.procurementKind,
+    required super.status,
+    required super.createdAt,
+    super.linkedPrId,
+    super.linkedPrNumber,
+    this.bodyMarkdown,
+    this.complianceChecklist = const {},
+  });
+
+  final String? bodyMarkdown;
+  final Map<String, String> complianceChecklist;
+
+  factory TorDraft.fromJson(Map<String, dynamic> j) {
+    final checklistRaw = j['compliance_checklist'];
+    final checklist = checklistRaw is Map
+        ? checklistRaw.map((k, v) => MapEntry('$k', '$v'))
+        : <String, String>{};
+    return TorDraft(
+      id:               j['id'] as String,
+      title:            j['title'] as String,
+      procurementKind:  _readProcurementKind(j),
+      status:           _mapTorDetailStatus(j['status'] as String),
+      createdAt:        j['created_at'] as String,
+      linkedPrId:       j['linked_pr_id'] as String?,
+      linkedPrNumber:   j['linked_pr_number'] as String?,
+      bodyMarkdown:     j['body_markdown'] as String?,
+      complianceChecklist: checklist,
+    );
+  }
+
+  static String _readProcurementKind(Map<String, dynamic> j) {
+    final brief = j['brief_json'];
+    if (brief is Map && brief['procurement_kind'] is String) {
+      return brief['procurement_kind'] as String;
+    }
+    return j['procurement_kind'] as String? ?? 'goods';
+  }
+
+  static String _mapTorDetailStatus(String status) =>
+      status == 'archived' ? 'published' : status;
 }
