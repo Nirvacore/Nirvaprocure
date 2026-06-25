@@ -46,6 +46,12 @@ export interface PrLineItem {
   supplier_id: string | null;
   source: Source | null;
   source_url: string | null;
+  source_metadata?: Record<string, unknown> | null;
+}
+export interface LinkedTorRef {
+  id: string;
+  title: string;
+  status: 'draft' | 'review' | 'approved' | 'archived';
 }
 export interface ApprovalDecision {
   step_no: number;
@@ -64,6 +70,7 @@ export interface PrDetail extends PrSummary {
   justification: string;
   items: PrLineItem[];
   approval: ApprovalTrail | null;
+  linked_tor?: LinkedTorRef | null;
 }
 export interface InboxEntry {
   instance_id: string;
@@ -528,6 +535,8 @@ export interface ToRDraft {
   body_markdown: string | null;
   compliance_checklist: Record<string, 'passed' | 'failed' | 'na'>;
   created_at: string;
+  linked_pr_id?: string | null;
+  linked_pr_number?: string | null;
 }
 export interface ToRListItem {
   id: string;
@@ -535,6 +544,8 @@ export interface ToRListItem {
   procurement_kind: ToRBrief['procurement_kind'];
   status: 'draft' | 'review' | 'approved' | 'published';
   created_at: string;
+  linked_pr_id?: string | null;
+  linked_pr_number?: string | null;
 }
 export interface ToRTemplate {
   id: string;
@@ -542,13 +553,31 @@ export interface ToRTemplate {
   procurement_kind: ToRBrief['procurement_kind'];
   is_official: boolean;
 }
+export interface ToRTemplateDetail extends ToRTemplate {
+  body_markdown: string;
+}
 export const gov = {
   list: () => request<ToRListItem[]>('GET', '/gov/tor/drafts'),
   templates: () => request<ToRTemplate[]>('GET', '/gov/tor/templates'),
+  getTemplate: (id: string) => request<ToRTemplateDetail>('GET', `/gov/tor/templates/${id}`),
+  createTemplate: (body: {
+    name: string;
+    procurement_kind: ToRBrief['procurement_kind'];
+    body_markdown?: string;
+  }) => request<ToRTemplate>('POST', '/gov/tor/templates', body),
+  updateTemplate: (
+    id: string,
+    body: { name?: string; procurement_kind?: ToRBrief['procurement_kind']; body_markdown?: string },
+  ) => request<ToRTemplateDetail>('PATCH', `/gov/tor/templates/${id}`, body),
+  deleteTemplate: (id: string) => request<{ ok: boolean }>('DELETE', `/gov/tor/templates/${id}`),
   createDraft: (body: { title: string; brief: ToRBrief; template_id?: string }) =>
     request<ToRDraft>('POST', '/gov/tor/drafts', body),
   getDraft: (id: string) => request<ToRDraft>('GET', `/gov/tor/drafts/${id}`),
+  updateDraft: (id: string, body: { body_markdown: string }) =>
+    request<ToRDraft>('PATCH', `/gov/tor/drafts/${id}`, body),
   advanceStatus: (id: string) => request<ToRDraft>('POST', `/gov/tor/drafts/${id}/advance`),
+  revertStatus: (id: string) => request<ToRDraft>('POST', `/gov/tor/drafts/${id}/revert`),
+  createPrFromTor: (id: string) => request<ToRDraft>('POST', `/gov/tor/drafts/${id}/create-pr`),
 };
 
 // ---------------------------------------------------------------------------

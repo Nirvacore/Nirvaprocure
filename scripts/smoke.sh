@@ -148,6 +148,34 @@ gov_templates="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" "$API/gov/tor/te
 echo "$gov_templates" | grep -qE '\[|procurement_kind' || { echo "FAIL: gov templates response unexpected"; echo "$gov_templates"; exit 1; }
 echo "    gov templates OK"
 
+echo "==> POST /gov/tor/templates"
+gov_new_tpl="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
+    -H 'Content-Type: application/json' \
+    -X POST \
+    -d '{"name":"Smoke custom template","procurement_kind":"goods"}' \
+    "$API/gov/tor/templates")"
+echo "$gov_new_tpl" | grep -q '"is_official":false' || { echo "FAIL: created template should be non-official"; echo "$gov_new_tpl"; exit 1; }
+echo "$gov_new_tpl" | grep -q 'Smoke custom template' || { echo "FAIL: created template name missing"; echo "$gov_new_tpl"; exit 1; }
+SMOKE_TPL_ID="$(printf '%s' "$gov_new_tpl" | sed -n 's/.*"id":"\([^"]*\)".*/\1/p' | head -1)"
+test -n "$SMOKE_TPL_ID" || { echo "FAIL: could not parse created template id"; echo "$gov_new_tpl"; exit 1; }
+echo "    gov template create OK ($SMOKE_TPL_ID)"
+
+echo "==> PATCH /gov/tor/templates/$SMOKE_TPL_ID"
+gov_patched_tpl="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
+    -H 'Content-Type: application/json' \
+    -X PATCH \
+    -d '{"name":"Smoke custom template (edited)"}' \
+    "$API/gov/tor/templates/$SMOKE_TPL_ID")"
+echo "$gov_patched_tpl" | grep -q 'Smoke custom template (edited)' || { echo "FAIL: template patch did not persist name"; echo "$gov_patched_tpl"; exit 1; }
+echo "    gov template patch OK"
+
+echo "==> DELETE /gov/tor/templates/$SMOKE_TPL_ID"
+gov_del_tpl="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
+    -X DELETE \
+    "$API/gov/tor/templates/$SMOKE_TPL_ID")"
+echo "$gov_del_tpl" | grep -q '"ok":true' || { echo "FAIL: template delete did not return ok"; echo "$gov_del_tpl"; exit 1; }
+echo "    gov template delete OK"
+
 echo "==> GET /gov/tor/drafts"
 gov_drafts="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" "$API/gov/tor/drafts")"
 echo "$gov_drafts" | grep -qE '\[|"id"' || { echo "FAIL: gov drafts response unexpected"; echo "$gov_drafts"; exit 1; }
@@ -166,7 +194,20 @@ echo "$pdf_type" | grep -q 'application/pdf' || { echo "FAIL: TOR PDF not applic
 echo "    gov draft PDF OK"
 
 # -----------------------------------------------------------------------------
-# 12. Advance a seeded TOR draft (draft → review)
+# 12. Patch TOR draft body (draft/review only)
+# -----------------------------------------------------------------------------
+echo "==> PATCH /gov/tor/drafts/$TOR_DRAFT_ID"
+gov_patched="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
+    -H 'Content-Type: application/json' \
+    -X PATCH \
+    -d '{"body_markdown":"## Smoke edit\nUpdated by smoke test\n\n## ระยะเวลาดำเนินการ\n12 เดือน (2026-01-01 ถึง 2026-12-31)"}' \
+    "$API/gov/tor/drafts/$TOR_DRAFT_ID")"
+echo "$gov_patched" | grep -q 'Smoke edit' || { echo "FAIL: TOR patch did not persist body"; echo "$gov_patched"; exit 1; }
+echo "$gov_patched" | grep -q '"has_timeline":"passed"' || { echo "FAIL: PATCH should refresh has_timeline to passed"; echo "$gov_patched"; exit 1; }
+echo "    gov patch OK"
+
+# -----------------------------------------------------------------------------
+# 13. Advance a seeded TOR draft (draft → review)
 # -----------------------------------------------------------------------------
 echo "==> POST /gov/tor/drafts/$TOR_DRAFT_ID/advance"
 gov_advanced="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
@@ -174,5 +215,32 @@ gov_advanced="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
 echo "$gov_advanced" | grep -q '"status":"review"' || { echo "FAIL: advance did not return review status"; echo "$gov_advanced"; exit 1; }
 echo "    gov advance OK"
 
+# -----------------------------------------------------------------------------
+# 14. Send back TOR draft (review → draft)
+# -----------------------------------------------------------------------------
+echo "==> POST /gov/tor/drafts/$TOR_DRAFT_ID/revert"
+gov_reverted="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
+    -X POST "$API/gov/tor/drafts/$TOR_DRAFT_ID/revert")"
+echo "$gov_reverted" | grep -q '"status":"draft"' || { echo "FAIL: revert did not return draft status"; echo "$gov_reverted"; exit 1; }
+echo "    gov revert OK"
+
+# -----------------------------------------------------------------------------
+# 15. Create PR from approved seeded TOR (999…902)
+# -----------------------------------------------------------------------------
+TOR_APPROVED_ID='99999999-9999-9999-9999-999999999902'
+echo "==> POST /gov/tor/drafts/$TOR_APPROVED_ID/create-pr"
+gov_pr="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" \
+    -X POST "$API/gov/tor/drafts/$TOR_APPROVED_ID/create-pr")"
+echo "$gov_pr" | grep -q '"linked_pr_id"' || { echo "FAIL: create-pr did not link a PR"; echo "$gov_pr"; exit 1; }
+echo "$gov_pr" | grep -q 'linked_pr_number' || { echo "FAIL: create-pr missing linked_pr_number"; echo "$gov_pr"; exit 1; }
+echo "    gov create-pr OK"
+
+echo "==> GET /gov/tor/drafts (linked_pr on approved seed)"
+gov_drafts_linked="$(curl -fsS -b "$cookie_jar" "${auth_header[@]}" "$API/gov/tor/drafts")"
+echo "$gov_drafts_linked" | grep -q "$TOR_APPROVED_ID" || { echo "FAIL: approved TOR missing from list"; echo "$gov_drafts_linked"; exit 1; }
+echo "$gov_drafts_linked" | grep -q 'linked_pr_id' || { echo "FAIL: drafts list should expose linked_pr_id"; echo "$gov_drafts_linked"; exit 1; }
+echo "$gov_drafts_linked" | grep -q 'linked_pr_number' || { echo "FAIL: drafts list should expose linked_pr_number"; echo "$gov_drafts_linked"; exit 1; }
+echo "    gov drafts linked_pr fields OK"
+
 echo ""
-echo "✅ SMOKE PASSED — all 14 steps green"
+echo "✅ SMOKE PASSED — all 18 steps green"

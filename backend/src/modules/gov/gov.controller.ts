@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Header, Param, ParseUUIDPipe, Post, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Header, Param, ParseUUIDPipe, Patch, Post, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import {
   ArrayMinSize, IsArray, IsIn, IsInt, IsObject, IsOptional, IsString, IsUUID, Min,
@@ -49,6 +49,33 @@ class CreateDraftDto {
   brief!: BriefDto;
 }
 
+class UpdateDraftDto {
+  @IsString() @MaxLength(50000)
+  body_markdown!: string;
+}
+
+class CreateTemplateDto {
+  @IsString() @MaxLength(200)
+  name!: string;
+
+  @IsIn(['goods', 'services', 'construction'])
+  procurement_kind!: ProcurementKind;
+
+  @IsOptional() @IsString() @MaxLength(20000)
+  body_markdown?: string;
+}
+
+class UpdateTemplateDto {
+  @IsOptional() @IsString() @MaxLength(200)
+  name?: string;
+
+  @IsOptional() @IsIn(['goods', 'services', 'construction'])
+  procurement_kind?: ProcurementKind;
+
+  @IsOptional() @IsString() @MaxLength(20000)
+  body_markdown?: string;
+}
+
 @Controller('gov/tor')
 export class GovController {
   constructor(
@@ -59,6 +86,36 @@ export class GovController {
   @Get('templates')
   templates(@CurrentUser() user: CU) {
     return this.svc.listTemplates(user);
+  }
+
+  @Post('templates')
+  createTemplate(@CurrentUser() user: CU, @Body() dto: CreateTemplateDto) {
+    return this.svc.createTemplate(user, dto);
+  }
+
+  @Get('templates/:id')
+  getTemplate(
+    @CurrentUser() user: CU,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ) {
+    return this.svc.getTemplate(user, id);
+  }
+
+  @Patch('templates/:id')
+  updateTemplate(
+    @CurrentUser() user: CU,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateTemplateDto,
+  ) {
+    return this.svc.updateTemplate(user, id, dto);
+  }
+
+  @Delete('templates/:id')
+  deleteTemplate(
+    @CurrentUser() user: CU,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ) {
+    return this.svc.deleteTemplate(user, id);
   }
 
   @Get('drafts')
@@ -91,11 +148,36 @@ export class GovController {
     await this.pdf.render(user, id, res);
   }
 
+  @Patch('drafts/:id')
+  updateDraft(
+    @CurrentUser() user: CU,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateDraftDto,
+  ) {
+    return this.svc.updateDraftBody(user, id, dto.body_markdown);
+  }
+
   @Post('drafts/:id/advance')
   advanceDraft(
     @CurrentUser() user: CU,
     @Param('id', new ParseUUIDPipe()) id: string,
   ) {
     return this.svc.advanceDraftStatus(user, id);
+  }
+
+  @Post('drafts/:id/revert')
+  revertDraft(
+    @CurrentUser() user: CU,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ) {
+    return this.svc.revertDraftStatus(user, id);
+  }
+
+  @Post('drafts/:id/create-pr')
+  createPrFromTor(
+    @CurrentUser() user: CU,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ) {
+    return this.svc.createPrFromTor(user, id);
   }
 }

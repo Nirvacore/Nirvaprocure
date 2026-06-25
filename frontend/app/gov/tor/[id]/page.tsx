@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
   ArrowLeft, Scale, FileText, CheckCircle2, XCircle, MinusCircle,
-  Copy, Download, Loader2, ChevronRight, Printer,
+  Copy, Download, Loader2, ChevronRight, Printer, Pencil, Undo2, ShoppingCart,
 } from 'lucide-react';
 import { gov as govApi, type ToRDraft } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
@@ -13,107 +13,28 @@ import { Loading } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
 import { useToast } from '@/components/Toast';
 import { useT } from '@/lib/i18n/provider';
-import type { TranslationKey } from '@/lib/i18n/dictionary';
 import {
-  advanceMockTorDraft, readMockTorDraft, storeMockTorDraft, syncMockTorListStatus,
+  advanceMockTorDraft, createMockPrFromTor, readMockTorDraft, revertMockTorDraft,
+  storeMockTorDraft, syncMockTorListStatus, updateMockTorDraftBody, mergeMockTorPrLink,
 } from '@/lib/tor-mock-store';
+import {
+  MOCK_TOR_BRIEFS,
+  mockTorDraft,
+  TOR_ADVANCE_LABEL_KEYS,
+  TOR_CHECKLIST_LABEL_KEYS,
+  TOR_DETAIL_STATUS_LABEL_KEYS,
+  TOR_DETAIL_STATUS_STYLE,
+  TOR_REVERT_LABEL_KEYS,
+  TOR_UUID_RE,
+} from '@/lib/tor-shared';
 
-const CHECKLIST_LABEL_KEYS: Record<string, TranslationKey> = {
-  has_scope:             'tor.checklist.scope',
-  has_budget:            'tor.checklist.budget',
-  has_deliverables:      'tor.checklist.deliverables',
-  has_evaluation_method: 'tor.checklist.evaluation',
-  has_timeline:          'tor.checklist.timeline',
-  has_qualifications:    'tor.checklist.qualifications',
-};
-
-const STATUS_LABEL_KEYS: Record<ToRDraft['status'], TranslationKey> = {
-  draft:     'tor.status.draft',
-  review:    'tor.status.review',
-  approved:  'tor.status.approved',
-  archived:  'tor.status.archived',
-};
-
-const ADVANCE_LABEL_KEYS: Partial<Record<ToRDraft['status'], TranslationKey>> = {
-  draft:    'tor.action.submit_review',
-  review:   'tor.action.approve',
-  approved: 'tor.action.archive',
-};
-
-const STATUS_STYLE: Record<ToRDraft['status'], { bg: string; text: string }> = {
-  draft:     { bg: 'bg-gray-100',   text: 'text-ink-soft' },
-  review:    { bg: 'bg-amber-100',  text: 'text-amber-800' },
-  approved:  { bg: 'bg-green-100',  text: 'text-green-800' },
-  archived:  { bg: 'bg-brand-100',  text: 'text-brand-700' },
-};
+const CHECKLIST_LABEL_KEYS = TOR_CHECKLIST_LABEL_KEYS;
+const STATUS_LABEL_KEYS = TOR_DETAIL_STATUS_LABEL_KEYS;
+const ADVANCE_LABEL_KEYS = TOR_ADVANCE_LABEL_KEYS;
+const REVERT_LABEL_KEYS = TOR_REVERT_LABEL_KEYS;
+const STATUS_STYLE = TOR_DETAIL_STATUS_STYLE;
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3000/v1';
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-const MOCK_TOR_DRAFTS: Record<string, ToRDraft> = {
-  'tor-1': {
-    id: 'tor-1',
-    title: 'จัดซื้อเครื่องคอมพิวเตอร์ จำนวน 20 เครื่อง',
-    status: 'draft',
-    body_markdown: [
-      '## ๑. ความเป็นมา',
-      'หน่วยงานมีความจำเป็นต้องจัดซื้อเครื่องคอมพิวเตอร์เพื่อทดแทนอุปกรณ์เดิม',
-      '',
-      '## ๒. วัตถุประสงค์',
-      'เพื่อสนับสนุนการปฏิบัติงานของเจ้าหน้าที่',
-    ].join('\n'),
-    compliance_checklist: {
-      has_scope: 'passed',
-      has_budget: 'passed',
-      has_deliverables: 'passed',
-      has_evaluation_method: 'passed',
-      has_timeline: 'failed',
-      has_qualifications: 'na',
-    },
-    created_at: '2026-06-10T09:00:00Z',
-  },
-  'tor-2': {
-    id: 'tor-2',
-    title: 'จ้างเหมาบำรุงรักษาระบบเครือข่าย',
-    status: 'approved',
-    body_markdown: '## ขอบเขตของงาน\nบำรุงรักษาระบบเครือข่ายภายในหน่วยงานเป็นระยะเวลา 12 เดือน',
-    compliance_checklist: {
-      has_scope: 'passed',
-      has_budget: 'passed',
-      has_deliverables: 'passed',
-      has_evaluation_method: 'passed',
-      has_timeline: 'passed',
-      has_qualifications: 'na',
-    },
-    created_at: '2026-06-05T14:30:00Z',
-  },
-  'tor-3': {
-    id: 'tor-3',
-    title: 'ก่อสร้างอาคารคลังสินค้า',
-    status: 'archived',
-    body_markdown: '## ขอบเขตของงาน\nก่อสร้างอาคารคลังสินค้าขนาด 500 ตร.ม.',
-    compliance_checklist: {
-      has_scope: 'passed',
-      has_budget: 'passed',
-      has_deliverables: 'passed',
-      has_evaluation_method: 'passed',
-      has_timeline: 'passed',
-      has_qualifications: 'passed',
-    },
-    created_at: '2026-05-28T11:00:00Z',
-  },
-};
-
-function mockTorDraft(id: string): ToRDraft {
-  return readMockTorDraft(id) ?? MOCK_TOR_DRAFTS[id] ?? {
-    id,
-    title: `ToR ${id}`,
-    status: 'draft',
-    body_markdown: null,
-    compliance_checklist: {},
-    created_at: new Date().toISOString(),
-  };
-}
 
 export default function TorDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -121,16 +42,29 @@ export default function TorDetailPage() {
   const { toast } = useToast();
   const [local, setLocal] = useState<ToRDraft | null>(null);
   const [advancing, setAdvancing] = useState(false);
+  const [reverting, setReverting] = useState(false);
+  const [creatingPr, setCreatingPr] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [bodyEdit, setBodyEdit] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const { data, loading, error, refresh } = useResource(
-    () => withMockFallback(() => govApi.getDraft(id), mockTorDraft(id)),
+    () => withMockFallback(
+      () => govApi.getDraft(id),
+      mergeMockTorPrLink(mockTorDraft(id, readMockTorDraft(id))),
+    ),
     [id],
   );
 
   const draft = local ?? data;
-  const isLiveDraft = UUID_RE.test(id);
+  const isLiveDraft = TOR_UUID_RE.test(id);
+  const canEdit = draft?.status === 'draft' || draft?.status === 'review';
   const advanceKey = draft ? ADVANCE_LABEL_KEYS[draft.status] : undefined;
+  const revertKey = draft ? REVERT_LABEL_KEYS[draft.status] : undefined;
   const statusStyle = draft ? STATUS_STYLE[draft.status] : null;
+  const failedChecklistCount = draft
+    ? Object.values(draft.compliance_checklist).filter((s) => s === 'failed').length
+    : 0;
   const fmtDate = draft
     ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(draft.created_at))
     : '';
@@ -141,7 +75,7 @@ export default function TorDetailPage() {
     try {
       const updated = await withMockFallback(
         () => govApi.advanceStatus(id),
-        advanceMockTorDraft(id, mockTorDraft(id)),
+        advanceMockTorDraft(id, mockTorDraft(id, readMockTorDraft(id))),
       );
       storeMockTorDraft(updated);
       syncMockTorListStatus(id, updated.status);
@@ -151,6 +85,48 @@ export default function TorDetailPage() {
       toast(err instanceof Error ? err.message : t('common.error'), 'err');
     } finally {
       setAdvancing(false);
+    }
+  }
+
+  async function revertStatus() {
+    if (!draft || !revertKey) return;
+    setReverting(true);
+    try {
+      const updated = await withMockFallback(
+        () => govApi.revertStatus(id),
+        revertMockTorDraft(id, mockTorDraft(id, readMockTorDraft(id))),
+      );
+      storeMockTorDraft(updated);
+      syncMockTorListStatus(id, updated.status);
+      setLocal(updated);
+      toast(t('tor.toast.status'), 'ok');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t('common.error'), 'err');
+    } finally {
+      setReverting(false);
+    }
+  }
+
+  async function createPrFromTor() {
+    if (!draft) return;
+    const brief = MOCK_TOR_BRIEFS[id];
+    if (!brief) {
+      toast(t('common.error'), 'err');
+      return;
+    }
+    setCreatingPr(true);
+    try {
+      const updated = await withMockFallback(
+        () => govApi.createPrFromTor(id),
+        createMockPrFromTor(id, draft, brief),
+      );
+      storeMockTorDraft(updated);
+      setLocal(updated);
+      toast(t('tor.toast.pr_created'), 'ok');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t('common.error'), 'err');
+    } finally {
+      setCreatingPr(false);
     }
   }
 
@@ -172,6 +148,30 @@ export default function TorDetailPage() {
     anchor.click();
     URL.revokeObjectURL(url);
     toast(t('tor.toast.downloaded'), 'ok');
+  }
+
+  function startEdit() {
+    setBodyEdit(draft?.body_markdown ?? '');
+    setEditing(true);
+  }
+
+  async function saveBody() {
+    if (!draft) return;
+    setSaving(true);
+    try {
+      const updated = await withMockFallback(
+        () => govApi.updateDraft(id, { body_markdown: bodyEdit }),
+        updateMockTorDraftBody(id, mockTorDraft(id, readMockTorDraft(id)), bodyEdit),
+      );
+      storeMockTorDraft(updated);
+      setLocal(updated);
+      setEditing(false);
+      toast(t('tor.toast.saved'), 'ok');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t('common.error'), 'err');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -201,19 +201,61 @@ export default function TorDetailPage() {
             )}
           </div>
 
+          {draft.linked_pr_id && (
+            <Link
+              href={`/pr/${draft.linked_pr_id}`}
+              className="no-print card hover:border-brand-300 transition-colors block"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                  <ShoppingCart className="w-5 h-5 text-blue-700" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-ink-soft mb-1">{t('tor.linked_pr.title')}</div>
+                  <div className="font-semibold text-ink leading-snug num">
+                    {draft.linked_pr_number ?? draft.linked_pr_id}
+                  </div>
+                  <div className="text-sm text-brand-600 mt-1">{t('tor.linked_pr.view')}</div>
+                </div>
+              </div>
+            </Link>
+          )}
+
           <div className="flex flex-wrap gap-2 no-print">
             {advanceKey && (
               <button
                 type="button"
                 onClick={() => void advanceStatus()}
-                disabled={advancing}
+                disabled={advancing || reverting || creatingPr}
                 className="btn-primary inline-flex items-center gap-2 px-5"
               >
                 {advancing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronRight className="w-4 h-4" />}
                 {t(advanceKey)}
               </button>
             )}
-            {draft.body_markdown && (
+            {revertKey && (
+              <button
+                type="button"
+                onClick={() => void revertStatus()}
+                disabled={advancing || reverting || creatingPr}
+                className="btn-secondary inline-flex items-center gap-2 px-5"
+              >
+                {reverting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Undo2 className="w-4 h-4" />}
+                {t(revertKey)}
+              </button>
+            )}
+            {draft.status === 'approved' && !draft.linked_pr_id && MOCK_TOR_BRIEFS[id] && (
+              <button
+                type="button"
+                onClick={() => void createPrFromTor()}
+                disabled={advancing || reverting || creatingPr}
+                className="btn-primary inline-flex items-center gap-2 px-5"
+              >
+                {creatingPr ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingCart className="w-4 h-4" />}
+                {t('tor.action.create_pr')}
+              </button>
+            )}
+            {draft.body_markdown && !editing && (
               <>
                 <button
                   type="button"
@@ -254,21 +296,77 @@ export default function TorDetailPage() {
             )}
           </div>
 
+          {failedChecklistCount > 0 && canEdit && !editing && (
+            <div className="no-print card border-amber-200 bg-amber-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <p className="text-sm text-amber-900">
+                {t('tor.checklist.failed_banner', { count: failedChecklistCount })}
+              </p>
+              <button
+                type="button"
+                onClick={startEdit}
+                className="btn-secondary inline-flex items-center gap-2 px-4 shrink-0"
+              >
+                <Pencil className="w-4 h-4" />
+                {t('tor.action.edit')}
+              </button>
+            </div>
+          )}
+
           <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
             <div className="space-y-6">
-              {draft.body_markdown ? (
-                <div className="card">
-                  <h2 className="text-lg font-bold mb-3 flex items-center gap-2 text-ink">
+              <div className="card">
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <h2 className="text-lg font-bold flex items-center gap-2 text-ink">
                     <FileText className="w-5 h-5 text-ink-muted" />
                     {t('tor.draft.title')}
                   </h2>
+                  {canEdit && !editing && (
+                    <button
+                      type="button"
+                      onClick={startEdit}
+                      className="no-print btn-sm inline-flex items-center gap-2 text-ink-soft hover:text-ink"
+                    >
+                      <Pencil className="w-4 h-4" />
+                      {t('tor.action.edit')}
+                    </button>
+                  )}
+                </div>
+                {editing ? (
+                  <div className="no-print space-y-3">
+                    <textarea
+                      aria-label={t('tor.detail.body_label')}
+                      className="input min-h-[280px] w-full font-mono text-sm leading-relaxed"
+                      value={bodyEdit}
+                      onChange={(e) => setBodyEdit(e.target.value)}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void saveBody()}
+                        disabled={saving}
+                        className="btn-primary inline-flex items-center gap-2 px-5"
+                      >
+                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                        {t('common.save')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditing(false)}
+                        disabled={saving}
+                        className="btn-secondary px-5"
+                      >
+                        {t('common.cancel')}
+                      </button>
+                    </div>
+                  </div>
+                ) : draft.body_markdown ? (
                   <div className="prose prose-sm max-w-none whitespace-pre-wrap text-ink leading-relaxed">
                     {draft.body_markdown}
                   </div>
-                </div>
-              ) : (
-                <div className="card text-ink-soft">{t('tor.detail.no_body')}</div>
-              )}
+                ) : (
+                  <div className="text-ink-soft">{t('tor.detail.no_body')}</div>
+                )}
+              </div>
             </div>
 
             <div className="card h-fit lg:sticky lg:top-24 no-print">

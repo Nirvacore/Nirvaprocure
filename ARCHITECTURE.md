@@ -36,7 +36,7 @@ backend/src/
     ├── marketplace/ Shopee + Lazada + Makro + Alibaba parsers
     ├── stock/      NirvaStock — warehouses, items, movements ledger, reorder cron
     ├── people/     NirvaPeople — users + departments + roles CRUD
-    ├── gov/        NirvaGov — TOR templates + AI draft (Thai government format)
+    ├── gov/        NirvaGov — ToR templates, drafts, workflow, PR link — see `docs/GOV_TOR.md` (full include)
     ├── ai/         NirvaAI — OpenAI/Claude wrapper with stub mode
     ├── finance/    NirvaFinance — invoice OCR via vision LLM
     ├── notifications/ LINE push + LINE webhook (verifies HMAC)

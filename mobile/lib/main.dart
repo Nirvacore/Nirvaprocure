@@ -27,6 +27,8 @@ import 'pages/settings_page.dart';
 import 'pages/shell_page.dart';
 import 'pages/stock_page.dart';
 import 'pages/suppliers_page.dart';
+import 'pages/tor_detail_page.dart';
+import 'pages/tor_list_page.dart';
 import 'theme/tokens.dart';
 
 void main() => runApp(const NirvaProcureApp());
@@ -106,6 +108,11 @@ final _router = GoRouter(
     GoRoute(path: '/charts',        builder: (_, __) => const ChartsPage()),
     GoRoute(path: '/scanner',       builder: (_, __) => const ScannerPage()),
     GoRoute(path: '/biometric',     builder: (_, __) => const BiometricPage()),
+    GoRoute(path: '/gov/tor',       builder: (_, __) => const TorListPage()),
+    GoRoute(
+      path: '/gov/tor/:id',
+      builder: (_, state) => TorDetailPage(id: state.pathParameters['id']!),
+    ),
   ],
   redirect: (context, state) async {
     final token = await ApiClient.instance.getToken();

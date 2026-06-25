@@ -135,7 +135,26 @@ export class PrService {
           decisions: decisions.rows,
         };
       }
-      return { ...this.toPr(pr.rows[0]), items: items.rows, approval: trail };
+
+      let linkedTor = null;
+      const byLink = await c.query(
+        `SELECT id, title, status FROM tor_drafts WHERE linked_pr_id = $1 LIMIT 1`,
+        [id],
+      );
+      if (byLink.rowCount && byLink.rowCount > 0) {
+        linkedTor = byLink.rows[0];
+      } else {
+        const torId = items.rows[0]?.source_metadata?.tor_draft_id as string | undefined;
+        if (torId) {
+          const byMeta = await c.query(
+            `SELECT id, title, status FROM tor_drafts WHERE id = $1`,
+            [torId],
+          );
+          if (byMeta.rowCount && byMeta.rowCount > 0) linkedTor = byMeta.rows[0];
+        }
+      }
+
+      return { ...this.toPr(pr.rows[0]), items: items.rows, approval: trail, linked_tor: linkedTor };
     });
   }
 
