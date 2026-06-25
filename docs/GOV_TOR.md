@@ -105,9 +105,9 @@ draft → review → approved → archived
 
 | Transition | Endpoint | Web | Mobile |
 |---|---|---|---|
-| Forward | `POST .../advance` | ✅ | — |
-| Send back | `POST .../revert` | ✅ | — |
-| Create PR | `POST .../create-pr` | ✅ | — (view link only) |
+| Forward | `POST .../advance` | ✅ | ✅ (Phase 38) |
+| Send back | `POST .../revert` | ✅ | ✅ (Phase 38) |
+| Create PR | `POST .../create-pr` | ✅ | ✅ (Phase 39) |
 
 | DB status | List UI label |
 |---|---|
@@ -252,7 +252,7 @@ mobile/lib/
 ├── pages/tor_list_page.dart   List + filters + linked PR badge + FAB → create
 ├── pages/tor_create_page.dart Create draft (template, brief, AI body)
 ├── pages/tor_detail_page.dart Detail + checklist + linked PR card + workflow actions
-└── api/endpoints.dart         TorTemplate, TorListItem, TorDraft, list/get/create/advance/revert API
+└── api/endpoints.dart         TorTemplate, TorListItem, TorDraft, list/get/create/advance/revert/create-pr API
 
 frontend/e2e/gov-tor.spec.ts   30 scenarios (offline mock fallback)
 frontend/lib/tor-shared.test.ts
@@ -291,7 +291,7 @@ scripts/smoke.sh               Steps 10–15: full ToR API path
 | `tor.kind.*` | ✅ | ✅ | goods, services, construction |
 | `tor.templates.*` | ✅ | — | create, edit, save, delete |
 | `tor.linked_pr.*` | ✅ | ✅ | badge, title, view |
-| `tor.action.*` | ✅ | ✅ | submit_review, approve, send_back, archive |
+| `tor.action.*` | ✅ | ✅ | submit_review, approve, send_back, archive, create_pr |
 | `tor.checklist.*` | ✅ | ✅ | title, per-item labels, hint |
 | `tor.create.*` / form keys | ✅ | ✅ | heading, template, scope, cta |
 | `pr.linked_tor.*` | ✅ | — | PR detail back-link to ToR |
@@ -306,7 +306,7 @@ scripts/smoke.sh               Steps 10–15: full ToR API path
 | Unit | `frontend/lib/tor-shared.test.ts` | checklist scan/patch, sort |
 | E2E | `frontend/e2e/gov-tor.spec.ts` | 30 tests — list, create, templates, create-pr, linked badge |
 | Smoke | `scripts/smoke.sh` §10–15 | templates CRUD, drafts, PDF, PATCH, advance, revert, create-pr, list `linked_pr` |
-| Mobile | manual | list, create, detail workflow (advance/revert) against live API |
+| Mobile | manual | list, create, detail workflow + create PR against live API |
 
 ### Phase 37 — Mobile create ToR (`cursor/phase37-mobile-tor-create-87fc`) — PR [#80](https://github.com/Nirvacore/Nirvaprocure/pull/80)
 
@@ -323,11 +323,18 @@ scripts/smoke.sh               Steps 10–15: full ToR API path
 - Checklist rows use `tor.checklist.*` labels (not raw keys)
 - 11 new i18n keys × 8 locales (`tor.action.*`, `tor.toast.status`, checklist items)
 
+### Phase 39 — Mobile create PR from ToR (`cursor/phase39-mobile-tor-create-pr-87fc`) — PR [#82](https://github.com/Nirvacore/Nirvaprocure/pull/82)
+
+- `POST .../create-pr` (`Api.createPrFromTor`)
+- Primary button on approved ToR detail when no `linked_pr_id` yet
+- After success: linked PR card appears; toast `tor.toast.pr_created`
+- 2 new i18n keys × 8 locales (`tor.action.create_pr`, `tor.toast.pr_created`)
+
 ---
 
 ## Horizon (intentionally out of scope for now)
 
-- Mobile: create PR from ToR, template admin
+- Mobile: template admin
 - ToR version history / diff view
 - Supplier portal read-only ToR publish
 - Webhook events: `tor.status_changed`, `tor.pr_linked`

@@ -332,6 +332,11 @@ class Api {
     return TorDraft.fromJson(res.data as Map<String, dynamic>);
   }
 
+  static Future<TorDraft> createPrFromTor(String id) async {
+    final res = await _dio.post('/gov/tor/drafts/$id/create-pr');
+    return TorDraft.fromJson(res.data as Map<String, dynamic>);
+  }
+
   // ---------------------------------------------------------------------------
   // attachments
   // ---------------------------------------------------------------------------

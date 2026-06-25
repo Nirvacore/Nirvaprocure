@@ -88,6 +88,98 @@ class _TorDetailPageState extends State<TorDetailPage> {
     }
   }
 
+  Future<void> _createPr() async {
+    final l10n = L10n.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _workflowBusy = true);
+    try {
+      final updated = await Api.createPrFromTor(widget.id);
+      if (!mounted) return;
+      setState(() => _draft = updated);
+      messenger.showSnackBar(SnackBar(content: Text(l10n.t('tor.toast.pr_created'))));
+    } catch (err) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('${l10n.t('common.error')}: $err'),
+          backgroundColor: Tokens.danger,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _workflowBusy = false);
+    }
+  }
+
+  Widget? _buildBottomBar(L10n l10n, TorDraft draft) {
+    final advanceKey = _advanceKey(draft.status);
+    final revertKey = _revertKey(draft.status);
+    final canCreatePr = draft.status == 'approved' && draft.linkedPrId == null;
+    if (advanceKey == null && revertKey == null && !canCreatePr) return null;
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (canCreatePr) ...[
+              FilledButton.icon(
+                onPressed: _workflowBusy ? null : _createPr,
+                icon: _workflowBusy
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(Icons.shopping_cart_outlined, size: 18),
+                label: Text(l10n.t('tor.action.create_pr')),
+              ),
+              if (advanceKey != null || revertKey != null) const SizedBox(height: 8),
+            ],
+            if (advanceKey != null || revertKey != null)
+              Row(
+                children: [
+                  if (revertKey != null) ...[
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _workflowBusy ? null : _revert,
+                        icon: const Icon(Icons.undo, size: 18),
+                        label: Text(l10n.t(revertKey)),
+                      ),
+                    ),
+                    if (advanceKey != null) const SizedBox(width: 10),
+                  ],
+                  if (advanceKey != null)
+                    Expanded(
+                      child: canCreatePr
+                          ? OutlinedButton.icon(
+                              onPressed: _workflowBusy ? null : _advance,
+                              icon: const Icon(Icons.archive_outlined, size: 18),
+                              label: Text(l10n.t(advanceKey)),
+                            )
+                          : FilledButton.icon(
+                              onPressed: _workflowBusy ? null : _advance,
+                              icon: _workflowBusy && revertKey == null
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Icon(Icons.arrow_forward, size: 18),
+                              label: Text(l10n.t(advanceKey)),
+                            ),
+                    ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = L10n.of(context);
@@ -111,58 +203,16 @@ class _TorDetailPageState extends State<TorDetailPage> {
     final fmtDate = date != null
         ? DateFormat.yMMMd(l10n.locale.languageCode).add_jm().format(date)
         : draft.createdAt;
-    final advanceKey = _advanceKey(draft.status);
-    final revertKey = _revertKey(draft.status);
-    final hasActions = advanceKey != null || revertKey != null;
+    final bottomBar = _buildBottomBar(l10n, draft);
+    final hasBottomBar = bottomBar != null;
 
     return Scaffold(
       appBar: AppBar(title: Text(draft.title, maxLines: 1, overflow: TextOverflow.ellipsis)),
-      bottomNavigationBar: hasActions
-          ? SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                child: Row(
-                  children: [
-                    if (revertKey != null) ...[
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _workflowBusy ? null : _revert,
-                          icon: _workflowBusy
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Icon(Icons.undo, size: 18),
-                          label: Text(l10n.t(revertKey)),
-                        ),
-                      ),
-                      if (advanceKey != null) const SizedBox(width: 10),
-                    ],
-                    if (advanceKey != null)
-                      Expanded(
-                        flex: revertKey != null ? 1 : 1,
-                        child: FilledButton.icon(
-                          onPressed: _workflowBusy ? null : _advance,
-                          icon: _workflowBusy && revertKey == null
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                )
-                              : const Icon(Icons.arrow_forward, size: 18),
-                          label: Text(l10n.t(advanceKey)),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            )
-          : null,
+      bottomNavigationBar: bottomBar,
       body: RefreshIndicator(
         onRefresh: _load,
         child: ListView(
-          padding: EdgeInsets.fromLTRB(16, 16, 16, hasActions ? 8 : 16),
+          padding: EdgeInsets.fromLTRB(16, 16, 16, hasBottomBar ? 8 : 16),
           children: [
             Row(
               children: [
