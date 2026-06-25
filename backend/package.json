@@ -11,8 +11,10 @@
     "test:watch": "jest --watch"
   },
   "jest": {
-    "preset": "ts-jest",
     "testEnvironment": "node",
+    "transform": {
+      "^.+\\.tsx?$": ["ts-jest", { "diagnostics": false }]
+    },
     "moduleFileExtensions": [
       "ts",
       "tsx",
