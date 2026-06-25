@@ -100,6 +100,17 @@ test.describe('gov tor list', () => {
     expect(text).toContain('๑. ความเป็นมา');
   });
 
+  test('sends back TOR from review to draft', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/tor-1');
+    await page.getByRole('button', { name: 'ส่งตรวจสอบ' }).click();
+    await expect(page.getByText('อัปเดตสถานะแล้ว')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'ส่งกลับแก้ไข' })).toBeVisible();
+    await page.getByRole('button', { name: 'ส่งกลับแก้ไข' }).click();
+    await expect(page.getByText('อัปเดตสถานะแล้ว').first()).toBeVisible();
+    await expect(page.getByText('ร่าง').first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'ส่งตรวจสอบ' })).toBeVisible();
+  });
+
   test('advanced status reflects on list after navigating back', async ({ page }) => {
     await gotoAuthenticated(page, '/gov/tor/tor-1');
     await page.getByRole('button', { name: 'ส่งตรวจสอบ' }).click();
@@ -156,5 +167,127 @@ test.describe('gov tor list', () => {
     await gotoAuthenticated(page, '/gov/tor/tor-1');
     await expect(page.getByRole('link', { name: 'ดาวน์โหลด PDF' })).not.toBeVisible();
     await expect(page.getByRole('button', { name: 'พิมพ์ / บันทึก PDF' })).toBeVisible();
+  });
+
+  test('edits and saves TOR body markdown', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/tor-1');
+    await page.getByRole('button', { name: 'แก้ไขเนื้อหา' }).last().click();
+    await page.getByLabel('เนื้อหาร่าง ToR').fill('## ทดสอบแก้ไข\nเนื้อหาใหม่จาก E2E');
+    await page.getByRole('button', { name: 'บันทึก' }).click();
+    await expect(page.getByText('บันทึกเนื้อหาแล้ว')).toBeVisible();
+    await expect(page.getByText('ทดสอบแก้ไข')).toBeVisible();
+    await expect(page.getByText('เนื้อหาใหม่จาก E2E')).toBeVisible();
+  });
+
+  test('edit button hidden on approved TOR', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/tor-2');
+    await expect(page.getByRole('button', { name: 'แก้ไขเนื้อหา' })).not.toBeVisible();
+  });
+
+  test('creates PR from approved TOR', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/tor-2');
+    await page.getByRole('button', { name: 'สร้างใบขอซื้อ (PR)' }).click();
+    await expect(page.getByText('สร้าง PR จาก ToR แล้ว')).toBeVisible();
+    await expect(page.getByText('เชื่อมกับใบขอซื้อแล้ว')).toBeVisible();
+    const prLink = page.getByRole('link', { name: 'เชื่อมกับใบขอซื้อแล้ว' });
+    await expect(prLink).toBeVisible();
+    await prLink.click();
+    await expect(page.getByText('สร้างจาก ToR')).toBeVisible();
+    await expect(page.getByText('จ้างเหมาบำรุงรักษาระบบเครือข่าย')).toBeVisible();
+  });
+
+  test('linked PR badge appears on ToR list after create-pr', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/tor-2');
+    await page.getByRole('button', { name: 'สร้างใบขอซื้อ (PR)' }).click();
+    await expect(page.getByText('สร้าง PR จาก ToR แล้ว')).toBeVisible();
+    await page.getByRole('link', { name: 'กลับไปรายการ ToR' }).click();
+    await expect(page).toHaveURL(/\/gov\/tor$/);
+    const torCard = page.getByRole('link', { name: /จ้างเหมา/ });
+    await expect(torCard.getByText(/PR-TOR-/)).toBeVisible();
+  });
+
+  test('templates page lists mock templates', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/templates');
+    await expect(page.getByRole('heading', { name: 'แม่แบบ ToR' })).toBeVisible();
+    await expect(page.getByText('จัดซื้อครุภัณฑ์ทั่วไป')).toBeVisible();
+    await expect(page.getByText('งานก่อสร้างขนาดเล็ก')).toBeVisible();
+    await expect(page.getByText('ภายในองค์กร')).toBeVisible();
+  });
+
+  test('creates custom template and shows it on list', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/templates/new');
+    await expect(page.getByRole('heading', { name: 'สร้างแม่แบบใหม่' })).toBeVisible();
+    await page.getByLabel('ชื่อแม่แบบ').fill('แม่แบบทดสอบ E2E');
+    await page.getByRole('button', { name: 'บันทึกแม่แบบ' }).click();
+    await expect(page).toHaveURL(/\/gov\/tor\/templates$/);
+    await expect(page.getByText('สร้างแม่แบบแล้ว')).toBeVisible();
+    await expect(page.getByText('แม่แบบทดสอบ E2E')).toBeVisible();
+  });
+
+  test('deletes custom template from list', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/templates/new');
+    await page.getByLabel('ชื่อแม่แบบ').fill('แม่แบบลบ E2E');
+    await page.getByRole('button', { name: 'บันทึกแม่แบบ' }).click();
+    await expect(page.getByText('แม่แบบลบ E2E')).toBeVisible();
+    page.once('dialog', (dialog) => dialog.accept());
+    await page.getByLabel('ลบแม่แบบ').click();
+    await expect(page.getByText('ลบแม่แบบแล้ว')).toBeVisible();
+    await expect(page.getByText('แม่แบบลบ E2E')).not.toBeVisible();
+  });
+
+  test('custom template appears in ToR create picker', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/templates/new');
+    await page.getByLabel('ชื่อแม่แบบ').fill('แม่แบบ picker E2E');
+    await page.getByRole('button', { name: 'บันทึกแม่แบบ' }).click();
+    await page.getByRole('link', { name: 'สร้าง ToR ใหม่' }).click();
+    await expect(page).toHaveURL(/\/gov\/tor\/new$/);
+    await expect(page.getByLabel('แม่แบบ TOR')).toContainText('แม่แบบ picker E2E');
+  });
+
+  test('edits custom template name and body', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/templates/new');
+    await page.getByLabel('ชื่อแม่แบบ').fill('แม่แบบก่อนแก้ไข');
+    await page.getByRole('button', { name: 'บันทึกแม่แบบ' }).click();
+    await page.getByLabel('แก้ไขแม่แบบ').click();
+    await expect(page.getByRole('heading', { name: 'แก้ไขแม่แบบ' })).toBeVisible();
+    await page.getByLabel('ชื่อแม่แบบ').fill('แม่แบบหลังแก้ไข');
+    await page.getByLabel('เนื้อหาแม่แบบ (Markdown)').fill('## ทดสอบแก้ไข\nเนื้อหาใหม่');
+    await page.getByRole('button', { name: 'บันทึกแม่แบบ' }).click();
+    await expect(page).toHaveURL(/\/gov\/tor\/templates$/);
+    await expect(page.getByText('บันทึกแม่แบบแล้ว')).toBeVisible();
+    await expect(page.getByText('แม่แบบหลังแก้ไข')).toBeVisible();
+    await expect(page.getByText('แม่แบบก่อนแก้ไข')).not.toBeVisible();
+  });
+
+  test('clear filters resets list to all entries', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor');
+    await page.getByPlaceholder('ค้นหาชื่อโครงการ ToR…').fill('คลังสินค้า');
+    await page.getByTestId('tor-kind-filters').getByRole('button', { name: 'งานก่อสร้าง' }).click();
+    await expect(page.getByText('ก่อสร้างอาคารคลังสินค้า')).toBeVisible();
+    await expect(page.getByText('จัดซื้อเครื่องคอมพิวเตอร์')).not.toBeVisible();
+    await page.getByRole('button', { name: 'ล้างตัวกรอง' }).click();
+    await expect(page.getByText('จัดซื้อเครื่องคอมพิวเตอร์ จำนวน 20 เครื่อง')).toBeVisible();
+    await expect(page.getByText('จ้างเหมาบำรุงรักษาระบบเครือข่าย')).toBeVisible();
+    await expect(page.getByText('ก่อสร้างอาคารคลังสินค้า')).toBeVisible();
+  });
+
+  test('failed checklist banner offers edit on draft TOR', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/tor-1');
+    await expect(page.getByText('มี 1 รายการที่ยังไม่ผ่าน')).toBeVisible();
+    await page.getByRole('button', { name: 'แก้ไขเนื้อหา' }).first().click();
+    await expect(page.getByLabel('เนื้อหาร่าง ToR')).toBeVisible();
+  });
+
+  test('editing body with timeline text clears failed checklist banner', async ({ page }) => {
+    await gotoAuthenticated(page, '/gov/tor/tor-1');
+    await expect(page.getByText('มี 1 รายการที่ยังไม่ผ่าน')).toBeVisible();
+    await page.getByRole('button', { name: 'แก้ไขเนื้อหา' }).first().click();
+    const body = await page.getByLabel('เนื้อหาร่าง ToR').inputValue();
+    await page.getByLabel('เนื้อหาร่าง ToR').fill(
+      `${body}\n\n## ระยะเวลาดำเนินการ\n12 เดือน (2026-01-01 ถึง 2026-12-31)`,
+    );
+    await page.getByRole('button', { name: 'บันทึก' }).click();
+    await expect(page.getByText('บันทึกเนื้อหาแล้ว')).toBeVisible();
+    await expect(page.getByText('มี 1 รายการที่ยังไม่ผ่าน')).not.toBeVisible();
   });
 });

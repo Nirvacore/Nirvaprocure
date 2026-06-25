@@ -3,9 +3,10 @@ import { GovController } from './gov.controller';
 import { GovService } from './gov.service';
 import { GovPdfService } from './gov-pdf.service';
 import { AiModule } from '../ai/ai.module';
+import { PrModule } from '../pr/pr.module';
 
 @Module({
-  imports: [AiModule],
+  imports: [AiModule, PrModule],
   controllers: [GovController],
   providers: [GovService, GovPdfService],
 })

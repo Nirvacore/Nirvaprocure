@@ -1,8 +1,9 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Pool } from 'pg';
 import { PG_POOL } from '../../common/db/db.module';
 import { withOrg } from '../../common/db/with-org';
 import { OpenAiProvider } from '../ai/openai.provider';
+import { PrService } from '../pr/pr.service';
 import type { CurrentUser } from '../../common/auth/current-user.decorator';
 
 export type ProcurementKind = 'goods' | 'services' | 'construction';
@@ -14,6 +15,21 @@ const TOR_NEXT_STATUS: Record<TorStatus, TorStatus | null> = {
   approved:  'archived',
   archived:  null,
 };
+
+const TOR_PREV_STATUS: Partial<Record<TorStatus, TorStatus>> = {
+  review: 'draft',
+};
+
+const DEFAULT_TEMPLATE_BODY = [
+  '## ขอบเขตของงาน',
+  '{{scope}}',
+  '',
+  '## งบประมาณ',
+  '{{budget_minor}} {{currency}}',
+  '',
+  '## สิ่งที่ต้องส่งมอบ',
+  '{{deliverables}}',
+].join('\n');
 
 export interface ToRBrief {
   procurement_kind: ProcurementKind;
@@ -44,6 +60,7 @@ export class GovService {
   constructor(
     @Inject(PG_POOL) private readonly pool: Pool,
     private readonly openai: OpenAiProvider,
+    private readonly pr: PrService,
   ) {}
 
   listTemplates(user: CurrentUser) {
@@ -56,12 +73,102 @@ export class GovService {
     });
   }
 
+  createTemplate(
+    user: CurrentUser,
+    body: { name: string; procurement_kind: ProcurementKind; body_markdown?: string },
+  ) {
+    const markdown = body.body_markdown?.trim() || DEFAULT_TEMPLATE_BODY;
+    return withOrg(this.pool, user.orgId, async (c) => {
+      const r = await c.query(
+        `INSERT INTO tor_templates (org_id, name, procurement_kind, body_markdown, is_official)
+         VALUES ($1, $2, $3, $4, FALSE)
+         RETURNING id, name, procurement_kind, is_official`,
+        [user.orgId, body.name.trim(), body.procurement_kind, markdown],
+      );
+      return r.rows[0];
+    });
+  }
+
+  deleteTemplate(user: CurrentUser, id: string) {
+    return withOrg(this.pool, user.orgId, async (c) => {
+      const cur = await c.query(
+        `SELECT is_official FROM tor_templates WHERE id = $1 AND deleted_at IS NULL`, [id],
+      );
+      if (cur.rowCount === 0) throw new NotFoundException();
+      if (cur.rows[0].is_official) {
+        throw new BadRequestException('Official templates cannot be deleted');
+      }
+      await c.query(
+        `UPDATE tor_templates SET deleted_at = now() WHERE id = $1`, [id],
+      );
+      return { ok: true };
+    });
+  }
+
+  getTemplate(user: CurrentUser, id: string) {
+    return withOrg(this.pool, user.orgId, async (c) => {
+      const r = await c.query(
+        `SELECT id, name, procurement_kind, body_markdown, is_official
+         FROM tor_templates WHERE id = $1 AND deleted_at IS NULL`,
+        [id],
+      );
+      if (r.rowCount === 0) throw new NotFoundException();
+      return r.rows[0];
+    });
+  }
+
+  updateTemplate(
+    user: CurrentUser,
+    id: string,
+    body: { name?: string; procurement_kind?: ProcurementKind; body_markdown?: string },
+  ) {
+    return withOrg(this.pool, user.orgId, async (c) => {
+      const cur = await c.query(
+        `SELECT is_official FROM tor_templates WHERE id = $1 AND deleted_at IS NULL`, [id],
+      );
+      if (cur.rowCount === 0) throw new NotFoundException();
+      if (cur.rows[0].is_official) {
+        throw new BadRequestException('Official templates cannot be edited');
+      }
+
+      const fields: string[] = [];
+      const values: unknown[] = [id];
+      let idx = 2;
+
+      if (body.name !== undefined) {
+        fields.push(`name = $${idx++}`);
+        values.push(body.name.trim());
+      }
+      if (body.procurement_kind !== undefined) {
+        fields.push(`procurement_kind = $${idx++}`);
+        values.push(body.procurement_kind);
+      }
+      if (body.body_markdown !== undefined) {
+        fields.push(`body_markdown = $${idx++}`);
+        values.push(body.body_markdown);
+      }
+      if (fields.length === 0) {
+        throw new BadRequestException('No fields to update');
+      }
+
+      const r = await c.query(
+        `UPDATE tor_templates SET ${fields.join(', ')}
+         WHERE id = $1
+         RETURNING id, name, procurement_kind, body_markdown, is_official`,
+        values,
+      );
+      return r.rows[0];
+    });
+  }
+
   listDrafts(user: CurrentUser) {
     return withOrg(this.pool, user.orgId, async (c) => {
       const r = await c.query(
-        `SELECT id, title, status, brief_json, created_at
-         FROM tor_drafts
-         ORDER BY created_at DESC
+        `SELECT d.id, d.title, d.status, d.brief_json, d.created_at,
+                d.linked_pr_id, pr.pr_number AS linked_pr_number
+         FROM tor_drafts d
+         LEFT JOIN purchase_requests pr ON pr.id = d.linked_pr_id
+         ORDER BY d.created_at DESC
          LIMIT 100`,
       );
       return r.rows.map((row) => ({
@@ -70,6 +177,8 @@ export class GovService {
         procurement_kind: (row.brief_json as ToRBrief).procurement_kind,
         status: mapTorListStatus(row.status as string),
         created_at: row.created_at as string,
+        linked_pr_id: row.linked_pr_id as string | null,
+        linked_pr_number: row.linked_pr_number as string | null,
       }));
     });
   }
@@ -99,12 +208,50 @@ export class GovService {
   getDraft(user: CurrentUser, id: string) {
     return withOrg(this.pool, user.orgId, async (c) => {
       const r = await c.query(
-        `SELECT id, title, status, body_markdown, compliance_checklist, created_at
+        `SELECT d.id, d.title, d.status, d.body_markdown, d.compliance_checklist, d.created_at,
+                d.linked_pr_id, pr.pr_number AS linked_pr_number
+         FROM tor_drafts d
+         LEFT JOIN purchase_requests pr ON pr.id = d.linked_pr_id
+         WHERE d.id = $1`, [id],
+      );
+      if (r.rowCount === 0) throw new NotFoundException();
+      return r.rows[0];
+    });
+  }
+
+  async createPrFromTor(user: CurrentUser, id: string) {
+    const row = await withOrg(this.pool, user.orgId, async (c) => {
+      const r = await c.query(
+        `SELECT id, title, status, body_markdown, compliance_checklist, created_at,
+                brief_json, linked_pr_id
          FROM tor_drafts WHERE id = $1`, [id],
       );
       if (r.rowCount === 0) throw new NotFoundException();
       return r.rows[0];
     });
+
+    const status = row.status as TorStatus;
+    if (status !== 'approved') {
+      throw new BadRequestException('PR can only be created from an approved TOR');
+    }
+    if (row.linked_pr_id) {
+      throw new ConflictException('A purchase request already exists for this TOR');
+    }
+
+    const brief = row.brief_json as ToRBrief;
+    const pr = await this.pr.create(user, this.buildPrPayloadFromTor(id, row.title as string, brief));
+
+    const updated = await withOrg(this.pool, user.orgId, async (c) => {
+      const r = await c.query(
+        `UPDATE tor_drafts SET linked_pr_id = $2, updated_at = now()
+         WHERE id = $1
+         RETURNING id, title, status, body_markdown, compliance_checklist, created_at, linked_pr_id`,
+        [id, pr.id],
+      );
+      return { ...r.rows[0], linked_pr_number: pr.pr_number };
+    });
+
+    return updated;
   }
 
   advanceDraftStatus(user: CurrentUser, id: string) {
@@ -127,9 +274,77 @@ export class GovService {
     });
   }
 
+  revertDraftStatus(user: CurrentUser, id: string) {
+    return withOrg(this.pool, user.orgId, async (c) => {
+      const cur = await c.query(
+        `SELECT status FROM tor_drafts WHERE id = $1`, [id],
+      );
+      if (cur.rowCount === 0) throw new NotFoundException();
+      const current = cur.rows[0].status as TorStatus;
+      const prev = TOR_PREV_STATUS[current];
+      if (!prev) throw new BadRequestException('TOR cannot be sent back from this status');
+
+      const r = await c.query(
+        `UPDATE tor_drafts SET status = $2, updated_at = now()
+         WHERE id = $1
+         RETURNING id, title, status, body_markdown, compliance_checklist, created_at`,
+        [id, prev],
+      );
+      return r.rows[0];
+    });
+  }
+
+  updateDraftBody(user: CurrentUser, id: string, body_markdown: string) {
+    return withOrg(this.pool, user.orgId, async (c) => {
+      const cur = await c.query(
+        `SELECT status, compliance_checklist, brief_json FROM tor_drafts WHERE id = $1`, [id],
+      );
+      if (cur.rowCount === 0) throw new NotFoundException();
+      const status = cur.rows[0].status as TorStatus;
+      if (status !== 'draft' && status !== 'review') {
+        throw new BadRequestException('TOR body can only be edited while draft or in review');
+      }
+
+      const brief = cur.rows[0].brief_json as ToRBrief;
+      const checklist = this.patchChecklistFromBody(
+        cur.rows[0].compliance_checklist ?? {},
+        body_markdown,
+        brief?.procurement_kind,
+      );
+
+      const r = await c.query(
+        `UPDATE tor_drafts SET body_markdown = $2, compliance_checklist = $3, updated_at = now()
+         WHERE id = $1
+         RETURNING id, title, status, body_markdown, compliance_checklist, created_at`,
+        [id, body_markdown, JSON.stringify(checklist)],
+      );
+      return r.rows[0];
+    });
+  }
+
   // -----------------------------------------------------------------------
   // Internals
   // -----------------------------------------------------------------------
+
+  private buildPrPayloadFromTor(torId: string, title: string, brief: ToRBrief) {
+    const justification = `สร้างจาก ToR (${torId})\n\n${brief.scope ?? ''}`;
+    const deliverables = brief.deliverables?.length ? brief.deliverables : [brief.scope?.slice(0, 2000) || title];
+    const n = deliverables.length;
+    const base = Math.floor(brief.budget_minor / n);
+
+    return {
+      title,
+      justification,
+      items: deliverables.map((description, i) => ({
+        description,
+        quantity: 1,
+        unit: 'รายการ',
+        unit_price_minor: i === n - 1 ? brief.budget_minor - base * (n - 1) : base,
+        source: 'manual' as const,
+        source_metadata: { tor_draft_id: torId },
+      })),
+    };
+  }
 
   private runChecklist(brief: ToRBrief): Record<string, 'passed' | 'failed' | 'na'> {
     return {
@@ -144,6 +359,40 @@ export class GovService {
         ? ((brief.qualifications?.length ?? 0) > 0 ? 'passed' : 'failed')
         : 'na',
     };
+  }
+
+  private patchChecklistFromBody(
+    checklist: Record<string, 'passed' | 'failed' | 'na'>,
+    body: string,
+    procurementKind?: ProcurementKind,
+  ): Record<string, 'passed' | 'failed' | 'na'> {
+    const trimmed = body.trim();
+    const scanned: Record<string, 'passed' | 'failed' | 'na'> = {
+      has_scope: (trimmed.length > 80 || (/ขอบเขต|scope/i.test(trimmed) && trimmed.length > 30))
+        ? 'passed' : 'failed',
+      has_budget: /งบประมาณ|ราคากลาง|วงเงิน|budget|THB|บาท/i.test(trimmed) || /\d{1,3}(,\d{3})+/.test(trimmed)
+        ? 'passed' : 'failed',
+      has_deliverables: /ส่งมอบ|deliverable|รายการ|^\s*[-*•]/m.test(trimmed)
+        ? 'passed' : 'failed',
+      has_evaluation_method: /เกณฑ์การพิจารณา|evaluation|ราคาต่ำสุด|most.advantageous|lowest.price/i.test(trimmed)
+        ? 'passed' : 'failed',
+      has_timeline: /ระยะเวลา|timeline|เดือน|วัน|start|end/i.test(trimmed) || /\d{4}-\d{2}-\d{2}/.test(trimmed)
+        ? 'passed' : 'failed',
+      has_qualifications: procurementKind === 'construction'
+        ? (/คุณสมบัติ|qualification/i.test(trimmed) ? 'passed' : 'failed')
+        : 'na',
+    };
+
+    const next = { ...checklist };
+    for (const key of Object.keys(scanned)) {
+      const current = next[key];
+      const fresh = scanned[key];
+      if (fresh === 'na') continue;
+      if (current === 'na' && key !== 'has_qualifications') continue;
+      if (key === 'has_qualifications' && current === 'na' && procurementKind !== 'construction') continue;
+      next[key] = fresh;
+    }
+    return next;
   }
 
   private async generateBody(title: string, brief: ToRBrief): Promise<string> {

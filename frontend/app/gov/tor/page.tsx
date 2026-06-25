@@ -2,39 +2,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ArrowLeft, FileText, Plus, Scale, Search } from 'lucide-react';
+import { ArrowLeft, FileText, Plus, Scale, Search, ShoppingCart } from 'lucide-react';
 import { gov as govApi, type ToRListItem } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
 import { mergeMockTorList } from '@/lib/tor-mock-store';
+import { MOCK_TOR_LIST, sortTorList, TOR_KIND_LABEL_KEYS, TOR_LIST_STATUS_STYLE } from '@/lib/tor-shared';
 import { Loading } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
 import { useT } from '@/lib/i18n/provider';
 import type { TranslationKey } from '@/lib/i18n/dictionary';
-
-const MOCK_TOR_LIST: ToRListItem[] = [
-  {
-    id: 'tor-1',
-    title: 'จัดซื้อเครื่องคอมพิวเตอร์ จำนวน 20 เครื่อง',
-    procurement_kind: 'goods',
-    status: 'draft',
-    created_at: '2026-06-10T09:00:00Z',
-  },
-  {
-    id: 'tor-2',
-    title: 'จ้างเหมาบำรุงรักษาระบบเครือข่าย',
-    procurement_kind: 'services',
-    status: 'approved',
-    created_at: '2026-06-05T14:30:00Z',
-  },
-  {
-    id: 'tor-3',
-    title: 'ก่อสร้างอาคารคลังสินค้า',
-    procurement_kind: 'construction',
-    status: 'published',
-    created_at: '2026-05-28T11:00:00Z',
-  },
-];
 
 type StatusFilter = '' | ToRListItem['status'];
 type KindFilter = '' | ToRListItem['procurement_kind'];
@@ -54,18 +31,8 @@ const KIND_FILTERS: { key: KindFilter; labelKey: TranslationKey }[] = [
   { key: 'construction', labelKey: 'tor.kind.construction' },
 ];
 
-const KIND_LABEL_KEYS: Record<ToRListItem['procurement_kind'], TranslationKey> = {
-  goods: 'tor.kind.goods',
-  services: 'tor.kind.services',
-  construction: 'tor.kind.construction',
-};
-
-const STATUS_STYLE: Record<ToRListItem['status'], { bg: string; text: string; labelKey: TranslationKey }> = {
-  draft:     { bg: 'bg-gray-100',   text: 'text-ink-soft',   labelKey: 'tor.status.draft' },
-  review:    { bg: 'bg-amber-100',  text: 'text-amber-800',  labelKey: 'tor.status.review' },
-  approved:  { bg: 'bg-green-100',  text: 'text-green-800',  labelKey: 'tor.status.approved' },
-  published: { bg: 'bg-brand-100',  text: 'text-brand-700',  labelKey: 'tor.status.published' },
-};
+const KIND_LABEL_KEYS = TOR_KIND_LABEL_KEYS;
+const STATUS_STYLE = TOR_LIST_STATUS_STYLE;
 
 function TorCard({ row }: { row: ToRListItem }) {
   const { t, locale } = useT();
@@ -87,6 +54,12 @@ function TorCard({ row }: { row: ToRListItem }) {
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${status.bg} ${status.text}`}>
               {t(status.labelKey)}
             </span>
+            {row.linked_pr_id && (
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 inline-flex items-center gap-1">
+                <ShoppingCart className="w-3 h-3" />
+                {t('tor.linked_pr.badge', { number: row.linked_pr_number ?? row.linked_pr_id })}
+              </span>
+            )}
             <span className="text-xs text-ink-muted num">{fmtDate}</span>
           </div>
         </div>
@@ -103,7 +76,7 @@ export default function TorListPage() {
   const [kindFilter, setKindFilter] = useState<KindFilter>('');
   const [query, setQuery] = useState('');
   const { data, loading, error, refresh } = useResource(
-    () => withMockFallback(() => govApi.list(), mergeMockTorList(MOCK_TOR_LIST)),
+    () => withMockFallback(() => govApi.list(), sortTorList(mergeMockTorList(MOCK_TOR_LIST))),
   );
 
   useEffect(() => {
@@ -124,6 +97,15 @@ export default function TorListPage() {
     return rows;
   }, [data, statusFilter, kindFilter, query]);
 
+  const hasActiveFilters = Boolean(statusFilter || kindFilter || query.trim());
+  const totalCount = data?.length ?? 0;
+
+  function clearFilters() {
+    setStatusFilter('');
+    setKindFilter('');
+    setQuery('');
+  }
+
   const noMatches = Boolean(data && data.length > 0 && filtered.length === 0);
   const emptyMessageKey: TranslationKey = query.trim()
     ? 'tor.list.search.empty'
@@ -143,10 +125,16 @@ export default function TorListPage() {
             {t('tor.list.heading')}
           </h1>
         </div>
-        <Link href="/gov/tor/new" className="btn-primary px-5">
-          <Plus className="w-5 h-5" />
-          {t('tor.list.new')}
-        </Link>
+        <div className="flex gap-2 flex-wrap">
+          <Link href="/gov/tor/new" className="btn-primary px-5">
+            <Plus className="w-5 h-5" />
+            {t('tor.list.new')}
+          </Link>
+          <Link href="/gov/tor/templates" className="btn-secondary px-5">
+            <FileText className="w-5 h-5" />
+            {t('tor.templates.heading')}
+          </Link>
+        </div>
       </div>
 
       {data && data.length > 0 && (
@@ -195,6 +183,21 @@ export default function TorListPage() {
               </button>
             ))}
           </div>
+
+          {hasActiveFilters && (
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <p className="text-sm text-ink-soft num">
+                {t('tor.list.results', { count: filtered.length, total: totalCount })}
+              </p>
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="btn-sm text-brand-600 hover:text-brand-700 font-medium"
+              >
+                {t('tor.list.clear_filters')}
+              </button>
+            </div>
+          )}
         </>
       )}
 
@@ -217,6 +220,15 @@ export default function TorListPage() {
         <div className="card text-center py-12">
           <FileText className="w-10 h-10 text-ink-muted mx-auto mb-3" />
           <p className="text-lg font-bold mb-1">{t(emptyMessageKey)}</p>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="btn-secondary inline-flex px-5 mt-4"
+            >
+              {t('tor.list.clear_filters')}
+            </button>
+          )}
         </div>
       )}
 
