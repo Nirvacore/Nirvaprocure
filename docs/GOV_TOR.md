@@ -249,10 +249,12 @@ frontend/lib/
 └── api.ts                     gov.*
 
 mobile/lib/
-├── pages/tor_list_page.dart   List + filters + linked PR badge + FAB → create
-├── pages/tor_create_page.dart Create draft (template, brief, AI body)
-├── pages/tor_detail_page.dart Detail + checklist + linked PR card + workflow actions
-└── api/endpoints.dart         TorTemplate, TorListItem, TorDraft, list/get/create/advance/revert/create-pr API
+├── pages/tor_list_page.dart      List + filters + templates icon + FAB → create
+├── pages/tor_create_page.dart    Create draft (template, brief, AI body)
+├── pages/tor_detail_page.dart    Detail + workflow + create PR
+├── pages/tor_templates_page.dart  Template library (list, delete)
+├── pages/tor_template_form_page.dart Create / edit org template
+└── api/endpoints.dart            Full ToR + template CRUD API
 
 frontend/e2e/gov-tor.spec.ts   30 scenarios (offline mock fallback)
 frontend/lib/tor-shared.test.ts

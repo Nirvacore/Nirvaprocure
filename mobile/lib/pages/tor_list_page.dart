@@ -74,7 +74,14 @@ class _TorListPageState extends State<TorListPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.t('tor.list.heading')),
-        actions: const [LangButton()],
+        actions: [
+          IconButton(
+            onPressed: () => context.push('/gov/tor/templates'),
+            icon: const Icon(Icons.description_outlined),
+            tooltip: l10n.t('tor.templates.heading'),
+          ),
+          const LangButton(),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/gov/tor/new'),

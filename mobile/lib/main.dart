@@ -28,6 +28,8 @@ import 'pages/shell_page.dart';
 import 'pages/stock_page.dart';
 import 'pages/suppliers_page.dart';
 import 'pages/tor_create_page.dart';
+import 'pages/tor_template_form_page.dart';
+import 'pages/tor_templates_page.dart';
 import 'pages/tor_detail_page.dart';
 import 'pages/tor_list_page.dart';
 import 'theme/tokens.dart';
@@ -109,6 +111,12 @@ final _router = GoRouter(
     GoRoute(path: '/charts',        builder: (_, __) => const ChartsPage()),
     GoRoute(path: '/scanner',       builder: (_, __) => const ScannerPage()),
     GoRoute(path: '/biometric',     builder: (_, __) => const BiometricPage()),
+    GoRoute(path: '/gov/tor/templates',       builder: (_, __) => const TorTemplatesPage()),
+    GoRoute(path: '/gov/tor/templates/new',  builder: (_, __) => const TorTemplateFormPage()),
+    GoRoute(
+      path: '/gov/tor/templates/:id/edit',
+      builder: (_, state) => TorTemplateFormPage(templateId: state.pathParameters['id']!),
+    ),
     GoRoute(path: '/gov/tor',       builder: (_, __) => const TorListPage()),
     GoRoute(path: '/gov/tor/new',   builder: (_, __) => const TorCreatePage()),
     GoRoute(

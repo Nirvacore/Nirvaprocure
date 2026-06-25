@@ -309,6 +309,42 @@ class Api {
     return list.map(TorTemplate.fromJson).toList(growable: false);
   }
 
+  static Future<TorTemplateDetail> getTorTemplate(String id) async {
+    final res = await _dio.get('/gov/tor/templates/$id');
+    return TorTemplateDetail.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  static Future<TorTemplate> createTorTemplate({
+    required String name,
+    required String procurementKind,
+    String? bodyMarkdown,
+  }) async {
+    final res = await _dio.post('/gov/tor/templates', data: {
+      'name': name,
+      'procurement_kind': procurementKind,
+      if (bodyMarkdown != null) 'body_markdown': bodyMarkdown,
+    });
+    return TorTemplate.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  static Future<TorTemplateDetail> updateTorTemplate(
+    String id, {
+    String? name,
+    String? procurementKind,
+    String? bodyMarkdown,
+  }) async {
+    final res = await _dio.patch('/gov/tor/templates/$id', data: {
+      if (name != null) 'name': name,
+      if (procurementKind != null) 'procurement_kind': procurementKind,
+      if (bodyMarkdown != null) 'body_markdown': bodyMarkdown,
+    });
+    return TorTemplateDetail.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  static Future<void> deleteTorTemplate(String id) async {
+    await _dio.delete('/gov/tor/templates/$id');
+  }
+
   static Future<TorDraft> createTorDraft({
     required String title,
     String? templateId,
@@ -608,11 +644,33 @@ class TorTemplate {
   final String procurementKind;
   final bool isOfficial;
 
+  bool get isEditable => !isOfficial;
+
   factory TorTemplate.fromJson(Map<String, dynamic> j) => TorTemplate(
         id:               j['id'] as String,
         name:             j['name'] as String,
         procurementKind:  j['procurement_kind'] as String,
         isOfficial:       j['is_official'] as bool? ?? false,
+      );
+}
+
+class TorTemplateDetail extends TorTemplate {
+  TorTemplateDetail({
+    required super.id,
+    required super.name,
+    required super.procurementKind,
+    required super.isOfficial,
+    required this.bodyMarkdown,
+  });
+
+  final String bodyMarkdown;
+
+  factory TorTemplateDetail.fromJson(Map<String, dynamic> j) => TorTemplateDetail(
+        id:               j['id'] as String,
+        name:             j['name'] as String,
+        procurementKind:  j['procurement_kind'] as String,
+        isOfficial:       j['is_official'] as bool? ?? false,
+        bodyMarkdown:     (j['body_markdown'] as String?) ?? '',
       );
 }
 
