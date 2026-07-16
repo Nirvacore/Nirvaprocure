@@ -55,7 +55,7 @@ cd mobile && flutter pub get && flutter run
 | Mobile | Flutter 3.22 · GoRouter · Dio · 26 screens · 8 locales |
 | Frontend | Next.js 14 · Tailwind · TypeScript · 8 locales · dark mode |
 | Backend | NestJS 10 · PostgreSQL 16 · 35 modules · JWT + 2FA |
-| Infra | Docker · Fly.io · GitHub Actions CI |
+| Infra | Docker · Fly.io · VPS (Contabo) · GitHub Actions CI |
 | Integrations | LINE Messaging API · Shopee/Lazada/Makro parsers · FCM push |
 
 ---
@@ -67,7 +67,7 @@ cd mobile && flutter pub get && flutter run
 ├── frontend/     Next.js web app
 ├── mobile/       Flutter mobile app
 ├── database/     19 SQL schema migrations
-├── scripts/      migrate.sh · smoke.sh · backup.sh · k6 load tests
+├── scripts/      migrate.sh · smoke.sh · backup.sh · vps-setup.sh · k6 load tests
 ├── docs/         ISP · IR runbook · BCP · Risk register · PDPA
 ├── api/          OpenAPI spec
 └── .github/      CI workflows · Dependabot · PR template
