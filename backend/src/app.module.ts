@@ -31,6 +31,8 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AttachmentsModule } from './modules/attachments/attachments.module';
 import { PoModule } from './modules/po/po.module';
+import { SupplierModule } from './modules/supplier/supplier.module';
+import { PurchaseRequestModule } from './modules/purchase-request/purchase-request.module';
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import { PoModule } from './modules/po/po.module';
     AuthModule,
     UsersModule,
     SuppliersModule,
+    SupplierModule, // New catalog module
+    PurchaseRequestModule, // New PR workflow
     PrModule,
     ApprovalsModule,
     NotificationsModule,
