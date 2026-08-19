@@ -20,6 +20,8 @@ Only executable source, schemas, manifests, tests, workflows, and deployment def
 | Audited source branch | main |
 | Documentation branch | agent/phase-0-source-audit-20260819 |
 | Audited commit | a3e596dc40fc3b3f0af8419b40d189004341b51c |
+| Package manager | npm + Flutter pub |
+| Repository shape | backend/frontend/mobile multi-application repository |
 | Strategic role | legacy procurement product to reconcile into platform |
 | Classification | COMPARE_MERGE_MISSING_ARCHIVE |
 | Stack | NestJS 10, PostgreSQL, Next.js 14, Flutter, Docker, GitHub Actions |

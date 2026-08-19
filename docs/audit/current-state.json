@@ -5,6 +5,8 @@
   "auditedCommit": "a3e596dc40fc3b3f0af8419b40d189004341b51c",
   "auditedSourceBranch": "main",
   "documentationBranch": "agent/phase-0-source-audit-20260819",
+  "packageManager": "npm + Flutter pub",
+  "repositoryShape": "backend/frontend/mobile multi-application repository",
   "classification": "COMPARE_MERGE_MISSING_ARCHIVE",
   "strategicRole": "legacy procurement product to reconcile into platform",
   "evidenceRule": "source-backed; documentation alone is not implementation proof",
