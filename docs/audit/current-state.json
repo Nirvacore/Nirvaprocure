@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "repository": "Nirvacore/Nirvaprocure",
+  "auditedAt": "2026-08-19",
+  "auditedCommit": "a3e596dc40fc3b3f0af8419b40d189004341b51c",
+  "auditedSourceBranch": "main",
+  "documentationBranch": "agent/phase-0-source-audit-20260819",
+  "classification": "COMPARE_MERGE_MISSING_ARCHIVE",
+  "strategicRole": "legacy procurement product to reconcile into platform",
+  "evidenceRule": "source-backed; documentation alone is not implementation proof",
+  "safety": {
+    "businessCodeChanged": false,
+    "schemaMigrated": false,
+    "codeDeleted": false,
+    "secretsRotated": false,
+    "productionConfigurationChanged": false
+  },
+  "evidence": [
+    {
+      "path": "backend/src",
+      "finding": "28 NestJS modules and 27 controllers."
+    },
+    {
+      "path": "database",
+      "finding": "40 CREATE TABLE statements across versioned SQL files."
+    },
+    {
+      "path": "frontend/app",
+      "finding": "25 Next.js pages."
+    },
+    {
+      "path": "mobile",
+      "finding": "Flutter application source."
+    },
+    {
+      "path": "api/openapi.yaml",
+      "finding": "API contract."
+    },
+    {
+      "path": ".github/workflows",
+      "finding": "Web/backend and mobile CI definitions."
+    }
+  ],
+  "capabilities": [
+    {
+      "name": "Procurement workflow",
+      "status": "implemented",
+      "finding": "PR, PO, suppliers, receiving, stock, approval, portal, risk, budget, and audit source exists."
+    },
+    {
+      "name": "Mobile client",
+      "status": "implemented",
+      "finding": "Flutter source and CI exist."
+    },
+    {
+      "name": "AI augmentation",
+      "status": "partial",
+      "finding": "AI-run/anomaly/suggestion code exists; central governance is absent."
+    },
+    {
+      "name": "Events",
+      "status": "partial",
+      "finding": "Webhooks and notifications exist; no transactional outbox/event bus was found."
+    }
+  ],
+  "gaps": [
+    "Procurement ownership overlaps extensively with nirvacore-v1.",
+    "Uses an independent PostgreSQL schema, identity model, approvals, and audit records.",
+    "Feature/data parity has not been proven record-by-record.",
+    "AI capabilities are product-local and not governed by shared prompt/model/eval controls."
+  ]
+}
