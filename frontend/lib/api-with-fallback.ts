@@ -1,24 +1,41 @@
 'use client';
-import { ApiError } from './api';
 
 /**
- * Wrap an API call so that genuine network failures (server not reachable)
- * silently fall back to a provided mock value. We DO surface real backend
- * errors (4xx/5xx) — those are bugs and the UI should show the ErrorBanner.
- *
- * Set NEXT_PUBLIC_DISABLE_MOCK_FALLBACK=true to disable the fallback (use in
- * staging/prod where we want to see network failures loudly).
+ * A deliberately generic error for unavailable or malformed API data. Keeping
+ * the original backend error out of the UI avoids exposing response details.
  */
-export async function withMockFallback<T>(real: () => Promise<T>, mock: T): Promise<T> {
+export class ProcureDataUnavailableError extends Error {
+  readonly code = 'PROCURE_DATA_UNAVAILABLE';
+
+  constructor() {
+    super('Procurement data is temporarily unavailable. Please try again.');
+    this.name = 'ProcureDataUnavailableError';
+  }
+}
+
+/** Demo data can only be enabled during a local development build. */
+export function isLocalDemoMode(): boolean {
+  return process.env.NODE_ENV === 'development'
+    && process.env.NEXT_PUBLIC_ENABLE_LOCAL_DEMO === 'true';
+}
+
+/**
+ * Fail closed when the backend cannot supply trusted data. Callers can pass a
+ * lazy fixture supplier when they need to prove that a non-demo path did not
+ * read demo data.
+ */
+export async function withMockFallback<T>(
+  real: () => Promise<T>,
+  demoFixture: T | (() => T),
+): Promise<T> {
   try {
     return await real();
-  } catch (err) {
-    const isReachable = err instanceof ApiError;
-    const disableFallback = process.env.NEXT_PUBLIC_DISABLE_MOCK_FALLBACK === 'true';
-    if (isReachable || disableFallback) throw err;
-    if (typeof console !== 'undefined') {
-      console.warn('[api] backend unreachable, using mock data:', (err as Error).message);
+  } catch {
+    if (isLocalDemoMode()) {
+      return typeof demoFixture === 'function'
+        ? (demoFixture as () => T)()
+        : demoFixture;
     }
-    return mock;
+    throw new ProcureDataUnavailableError();
   }
 }
