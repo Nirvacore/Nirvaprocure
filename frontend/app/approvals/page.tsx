@@ -36,7 +36,7 @@ export default function ApprovalsPage() {
   const { data, loading, error, refresh } = useResource(async () => {
     return await withMockFallback(
       async () => (await approvalsApi.inbox()).map(toInbox),
-      mockInbox,
+      () => mockInbox,
     );
   });
 

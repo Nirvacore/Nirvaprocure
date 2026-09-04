@@ -63,7 +63,7 @@ export default function PrDetailPage() {
   const { data: pr, loading, error, refresh } = useResource(
     () => withMockFallback(
       async () => toDetail(await prApi.get(id)),
-      mockDetailById[id] ?? mockDetailById['1'],
+      () => mockDetailById[id] ?? mockDetailById['1'],
     ),
     [id],
   );

@@ -64,7 +64,7 @@ export default function PrListPage() {
         const res = await prApi.list({ limit: PAGE_SIZE, cursor: cursor ?? undefined });
         return { data: res.data.map(toRow), next_cursor: res.next_cursor };
       },
-      MOCK_PAGE,
+      () => MOCK_PAGE,
     ),
     [cursor],
   );

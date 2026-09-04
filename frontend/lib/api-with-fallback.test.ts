@@ -1,5 +1,7 @@
 import { ApiError } from './api';
 import { withMockFallback } from './api-with-fallback';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 const originalNodeEnv = process.env.NODE_ENV;
 const originalDemoFlag = process.env.NEXT_PUBLIC_ENABLE_LOCAL_DEMO;
@@ -61,5 +63,13 @@ describe('withMockFallback', () => {
     )).resolves.toEqual({ source: 'demo' });
 
     expect(fixtureReads).toBe(1);
+  });
+
+  it('keeps core procurement page fixtures lazy', () => {
+    const pageSource = (path: string) => readFileSync(resolve(process.cwd(), path), 'utf8');
+
+    expect(pageSource('app/pr/page.tsx')).toContain('() => MOCK_PAGE');
+    expect(pageSource('app/pr/[id]/page.tsx')).toContain("() => mockDetailById[id] ?? mockDetailById['1']");
+    expect(pageSource('app/approvals/page.tsx')).toContain('() => mockInbox');
   });
 });
