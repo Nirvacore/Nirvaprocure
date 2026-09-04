@@ -9,3 +9,4 @@ const demoPos: PoRow[] = [
 ];
 
 export function loadDemoPos(filter?: string): PoRow[] { return filter ? demoPos.filter((p) => p.status === filter) : demoPos; }
+export function loadDemoPo(id: string): PoRow { return demoPos.find((p) => p.id === id) ?? demoPos[0]; }

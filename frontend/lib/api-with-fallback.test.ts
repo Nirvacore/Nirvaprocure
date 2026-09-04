@@ -74,6 +74,8 @@ describe('withMockFallback', () => {
     expect(pageSource('app/page.tsx')).toContain("import('@/lib/dashboard-demo-fixtures')");
     expect(pageSource('app/analytics/page.tsx')).toContain("import('@/lib/dashboard-demo-fixtures')");
     expect(pageSource('app/search/page.tsx')).toContain("import('@/lib/search-demo-fixtures')");
+    expect(pageSource('app/po/[id]/page.tsx')).toContain("import('@/lib/po-demo-fixtures')");
+    expect(pageSource('app/po/[id]/page.tsx')).not.toContain('const MOCK_POS');
   });
 
   it('loads core procurement fixture data only through dynamic imports', () => {
