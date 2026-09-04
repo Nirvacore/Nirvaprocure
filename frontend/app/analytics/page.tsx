@@ -46,13 +46,13 @@ const MOCK_RISKS: SupplierRiskRow[] = [
 export default function AnalyticsPage() {
   const { t } = useT();
   const { data, loading, error, refresh } = useResource(
-    () => withMockFallback(() => analyticsApi.summary(), MOCK),
+    () => withMockFallback(() => analyticsApi.summary(), () => MOCK),
   );
 
   const { data: aiSummary } = useResource(
     () => withMockFallback(
       () => aiRuns.list(1).then(r => r.summary),
-      MOCK_AI,
+      () => MOCK_AI,
     ),
   );
 
@@ -61,7 +61,7 @@ export default function AnalyticsPage() {
 
   const { data: risks, loading: risksLoading, refresh: refreshRisks } = useResource(
     () => risksShown
-      ? withMockFallback(() => supplierRisk.list(), MOCK_RISKS)
+      ? withMockFallback(() => supplierRisk.list(), () => MOCK_RISKS)
       : Promise.resolve(null),
     [risksShown],
   );

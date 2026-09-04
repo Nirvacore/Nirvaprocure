@@ -69,8 +69,8 @@ export default function SearchPage() {
     async () => {
       if (debounced.length < 2) return { prs: [], suppliers: [] };
       const [prRes, supplierRows] = await Promise.all([
-        withMockFallback(() => prApi.list({ limit: 50 }), { data: MOCK_PRS, next_cursor: null }),
-        withMockFallback(() => suppliersApi.list(), MOCK_SUPPLIERS),
+        withMockFallback(() => prApi.list({ limit: 50 }), () => ({ data: MOCK_PRS, next_cursor: null })),
+        withMockFallback(() => suppliersApi.list(), () => MOCK_SUPPLIERS),
       ]);
       return filterResults(debounced, prRes.data, supplierRows);
     },

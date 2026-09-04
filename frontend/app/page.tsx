@@ -30,7 +30,7 @@ export default function HomePage() {
   const monthYear = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(new Date());
 
   const { data: summary, loading } = useResource(
-    () => withMockFallback(() => analyticsApi.summary(), MOCK_SUMMARY),
+    () => withMockFallback(() => analyticsApi.summary(), () => MOCK_SUMMARY),
   );
 
   const counts = summary?.pr_counts ?? {};
