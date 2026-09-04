@@ -71,11 +71,9 @@ describe('withMockFallback', () => {
     expect(pageSource('app/pr/page.tsx')).toContain('loadDemoPrPage');
     expect(pageSource('app/pr/[id]/page.tsx')).toContain('loadDemoPrDetail');
     expect(pageSource('app/approvals/page.tsx')).toContain('loadDemoApprovalInbox');
-    expect(pageSource('app/page.tsx')).toContain('() => MOCK_SUMMARY');
-    expect(pageSource('app/analytics/page.tsx')).toContain('() => MOCK_AI');
-    expect(pageSource('app/analytics/page.tsx')).toContain('() => MOCK_RISKS');
-    expect(pageSource('app/search/page.tsx')).toContain('() => ({ data: MOCK_PRS, next_cursor: null })');
-    expect(pageSource('app/search/page.tsx')).toContain('() => MOCK_SUPPLIERS');
+    expect(pageSource('app/page.tsx')).toContain("import('@/lib/dashboard-demo-fixtures')");
+    expect(pageSource('app/analytics/page.tsx')).toContain("import('@/lib/dashboard-demo-fixtures')");
+    expect(pageSource('app/search/page.tsx')).toContain("import('@/lib/search-demo-fixtures')");
   });
 
   it('loads core procurement fixture data only through dynamic imports', () => {

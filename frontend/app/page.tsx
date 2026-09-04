@@ -10,17 +10,8 @@ import { useAuth } from '@/components/AuthProvider';
 import { useInboxCount } from '@/lib/mock-hooks';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
-import { analytics as analyticsApi, type AnalyticsSummary } from '@/lib/api';
+import { analytics as analyticsApi } from '@/lib/api';
 import { Loading } from '@/components/Loading';
-
-const MOCK_SUMMARY: AnalyticsSummary = {
-  month_start: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10),
-  pr_counts: { in_approval: 3, approved: 8, rejected: 1, draft: 2 },
-  approved_spend_minor: 4_829_000,
-  avg_approval_hours: 19.3,
-  top_suppliers: [],
-  by_department: [],
-};
 
 export default function HomePage() {
   const { t, locale } = useT();
@@ -30,7 +21,10 @@ export default function HomePage() {
   const monthYear = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(new Date());
 
   const { data: summary, loading } = useResource(
-    () => withMockFallback(() => analyticsApi.summary(), () => MOCK_SUMMARY),
+    () => withMockFallback(() => analyticsApi.summary(), async () => {
+      const { loadHomeSummary } = await import('@/lib/dashboard-demo-fixtures');
+      return loadHomeSummary();
+    }),
   );
 
   const counts = summary?.pr_counts ?? {};
