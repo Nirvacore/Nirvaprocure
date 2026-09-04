@@ -68,8 +68,19 @@ describe('withMockFallback', () => {
   it('keeps core procurement page fixtures lazy', () => {
     const pageSource = (path: string) => readFileSync(resolve(process.cwd(), path), 'utf8');
 
-    expect(pageSource('app/pr/page.tsx')).toContain('() => MOCK_PAGE');
-    expect(pageSource('app/pr/[id]/page.tsx')).toContain("() => mockDetailById[id] ?? mockDetailById['1']");
-    expect(pageSource('app/approvals/page.tsx')).toContain('() => mockInbox');
+    expect(pageSource('app/pr/page.tsx')).toContain('loadDemoPrPage');
+    expect(pageSource('app/pr/[id]/page.tsx')).toContain('loadDemoPrDetail');
+    expect(pageSource('app/approvals/page.tsx')).toContain('loadDemoApprovalInbox');
+    expect(pageSource('app/page.tsx')).toContain('() => MOCK_SUMMARY');
+    expect(pageSource('app/analytics/page.tsx')).toContain('() => MOCK_AI');
+    expect(pageSource('app/analytics/page.tsx')).toContain('() => MOCK_RISKS');
+    expect(pageSource('app/search/page.tsx')).toContain('() => ({ data: MOCK_PRS, next_cursor: null })');
+    expect(pageSource('app/search/page.tsx')).toContain('() => MOCK_SUPPLIERS');
+  });
+
+  it('loads core procurement fixture data only through dynamic imports', () => {
+    const fixtureLoader = readFileSync(resolve(process.cwd(), 'lib/core-procurement-demo-fixtures.ts'), 'utf8');
+    expect(fixtureLoader).not.toMatch(/^import\s+[^t].*mock-data/m);
+    expect(fixtureLoader.match(/await import\('\.\/mock-data'\)/g)).toHaveLength(3);
   });
 });

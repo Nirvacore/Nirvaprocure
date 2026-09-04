@@ -2,7 +2,9 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ArrowLeft, Clock, MessageSquare, GitBranch, Package, Check, Download } from 'lucide-react';
-import { mockDetailById, srcLabel, type PrDetail, type Source } from '@/lib/mock-data';
+import type { PrDetail } from '@/lib/mock-data';
+import { srcLabel, type Source } from '@/lib/procurement-source';
+import { loadDemoPrDetail } from '@/lib/core-procurement-demo-fixtures';
 import { StatusPill } from '@/components/StatusPill';
 import { fmtBaht } from '@/lib/format';
 import { useResource } from '@/lib/use-resource';
@@ -63,7 +65,7 @@ export default function PrDetailPage() {
   const { data: pr, loading, error, refresh } = useResource(
     () => withMockFallback(
       async () => toDetail(await prApi.get(id)),
-      () => mockDetailById[id] ?? mockDetailById['1'],
+      () => loadDemoPrDetail(id),
     ),
     [id],
   );

@@ -26,14 +26,14 @@ export function isLocalDemoMode(): boolean {
  */
 export async function withMockFallback<T>(
   real: () => Promise<T>,
-  demoFixture: T | (() => T),
+  demoFixture: T | (() => T | Promise<T>),
 ): Promise<T> {
   try {
     return await real();
   } catch {
     if (isLocalDemoMode()) {
       return typeof demoFixture === 'function'
-        ? (demoFixture as () => T)()
+        ? await (demoFixture as () => T | Promise<T>)()
         : demoFixture;
     }
     throw new ProcureDataUnavailableError();

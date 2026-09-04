@@ -2,7 +2,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Plus, ChevronRight, SearchX, Loader2 } from 'lucide-react';
-import { mockPrs, srcLabel, type Source } from '@/lib/mock-data';
+import { srcLabel, type Source } from '@/lib/procurement-source';
+import { loadDemoPrPage } from '@/lib/core-procurement-demo-fixtures';
 import { StatusPill, type PrStatus } from '@/components/StatusPill';
 import { fmtBaht } from '@/lib/format';
 import { withMockFallback } from '@/lib/api-with-fallback';
@@ -50,8 +51,6 @@ function toRow(p: PrSummary): Row {
   };
 }
 
-const MOCK_PAGE: PrPage = { data: mockPrs as Row[], next_cursor: null };
-
 export default function PrListPage() {
   const { t } = useT();
   const [filter, setFilter]       = useState<Filter>('all');
@@ -64,7 +63,7 @@ export default function PrListPage() {
         const res = await prApi.list({ limit: PAGE_SIZE, cursor: cursor ?? undefined });
         return { data: res.data.map(toRow), next_cursor: res.next_cursor };
       },
-      () => MOCK_PAGE,
+      loadDemoPrPage,
     ),
     [cursor],
   );
