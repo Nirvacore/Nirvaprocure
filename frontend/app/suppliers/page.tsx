@@ -1,293 +1,294 @@
 'use client';
+import React, { useEffect, useState } from 'react';
+import { Building2, Search, Plus, AlertTriangle, CheckCircle2, XCircle, ShieldAlert } from 'lucide-react';
+import { useT } from '@/lib/i18n/provider';
+import { suppliers as suppliersApi, type SupplierRow } from '@/lib/api';
+import { useResource } from '@/lib/use-resource';
+import { withMockFallback } from '@/lib/api-with-fallback';
+import { Loading } from '@/components/Loading';
+import { ErrorBanner } from '@/components/ErrorBanner';
+import Link from 'next/link';
 
-import { useEffect, useState } from 'react';
-import { Search, MapPin, Star, Tag, ShoppingCart } from 'lucide-react';
+// ---------------------------------------------------------------------------
+// Risk badge
+// ---------------------------------------------------------------------------
+type RiskTier = 'low' | 'medium' | 'high' | 'critical';
 
-interface Supplier {
-  id: string;
-  name: string;
-  nameTh: string;
-  type: 'marketplace' | 'direct' | 'international';
-  rating?: number;
-  country: string;
-  tags: string[];
-  categories: string[];
+const RISK_STYLE: Record<RiskTier, { bg: string; text: string; icon: React.ComponentType<{ className?: string }> }> = {
+  low:      { bg: 'bg-green-100',  text: 'text-green-700',  icon: CheckCircle2 },
+  medium:   { bg: 'bg-amber-100',  text: 'text-amber-700',  icon: AlertTriangle },
+  high:     { bg: 'bg-orange-100', text: 'text-orange-700', icon: AlertTriangle },
+  critical: { bg: 'bg-red-100',    text: 'text-red-700',    icon: ShieldAlert },
+};
+
+function RiskBadge({ tier }: { tier: RiskTier | null }) {
+  const { t } = useT();
+  if (!tier) {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+        {t('suppliers.risk.none')}
+      </span>
+    );
+  }
+  const { bg, text, icon: Icon } = RISK_STYLE[tier];
+  const label = t(`suppliers.risk.${tier}` as Parameters<typeof t>[0]);
+  return (
+    <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${bg} ${text}`}>
+      <Icon className="w-3 h-3" />
+      {label}
+    </span>
+  );
 }
 
-interface Product {
-  id: string;
-  supplierId: string;
-  name: string;
-  nameTh: string;
-  sku: string;
-  price: number;
-  currency: 'THB' | 'USD' | 'CNY';
-  minOrder: number;
-  leadTimeDays: number;
-  rating?: number;
-  category: string;
+// ---------------------------------------------------------------------------
+// Add supplier modal
+// ---------------------------------------------------------------------------
+interface AddModalProps {
+  onClose: () => void;
+  onCreated: (row: SupplierRow) => void;
 }
 
-export default function SuppliersPage() {
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [filteredSuppliers, setFilteredSuppliers] = useState<Supplier[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [categories, setCategories] = useState<string[]>([]);
-  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
-  const [supplierProducts, setSupplierProducts] = useState<Product[]>([]);
+function AddModal({ onClose, onCreated }: AddModalProps) {
+  const { t } = useT();
+  const [form, setForm] = useState({
+    code: '', name: '', contact_name: '', contact_email: '',
+    contact_phone: '', category: '', tax_id: '',
+  });
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState('');
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [suppliersRes, categoriesRes] = await Promise.all([
-          fetch('/api/suppliers'),
-          fetch('/api/suppliers/categories'),
-        ]);
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm(f => ({ ...f, [k]: e.target.value }));
 
-        const supplierData = await suppliersRes.json();
-        const categoryData = await categoriesRes.json();
-
-        setSuppliers(supplierData.suppliers || []);
-        setFilteredSuppliers(supplierData.suppliers || []);
-        setCategories(categoryData.categories || []);
-      } catch (error) {
-        console.error('Failed to load suppliers:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
-
-  useEffect(() => {
-    let filtered = suppliers;
-
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (s) =>
-          s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          s.nameTh.includes(searchQuery) ||
-          s.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
+  const save = async () => {
+    if (!form.code.trim() || !form.name.trim()) {
+      setErr('รหัสและชื่อบริษัทจำเป็นต้องกรอก');
+      return;
     }
-
-    if (selectedCategory) {
-      filtered = filtered.filter((s) => s.categories.includes(selectedCategory));
-    }
-
-    setFilteredSuppliers(filtered);
-  }, [searchQuery, selectedCategory, suppliers]);
-
-  const handleViewProducts = async (supplier: Supplier) => {
+    setSaving(true);
+    setErr('');
     try {
-      const res = await fetch(`/api/suppliers/${supplier.id}/products`);
-      const data = await res.json();
-      setSupplierProducts(data.products || []);
-      setSelectedSupplier(supplier);
-    } catch (error) {
-      console.error('Failed to load products:', error);
+      const row = await suppliersApi.create({
+        code: form.code.trim(),
+        name: form.name.trim(),
+        contact_name:  form.contact_name  || undefined,
+        contact_email: form.contact_email || undefined,
+        contact_phone: form.contact_phone || undefined,
+        category:      form.category      || undefined,
+        tax_id:        form.tax_id        || undefined,
+      });
+      onCreated(row);
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
+    } finally {
+      setSaving(false);
     }
   };
 
-  if (loading) {
-    return <div className="p-8 text-center">Loading suppliers...</div>;
-  }
-
-  // Detail view
-  if (selectedSupplier) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        {/* Header */}
-        <div className="bg-white border-b">
-          <div className="max-w-7xl mx-auto px-6 py-6">
-            <button
-              onClick={() => setSelectedSupplier(null)}
-              className="mb-4 text-blue-600 hover:text-blue-700 font-medium"
-            >
-              ← Back to Suppliers
-            </button>
-            <div className="flex items-start justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900">{selectedSupplier.name}</h1>
-                <p className="text-slate-600 mt-1">{selectedSupplier.nameTh}</p>
-              </div>
-              <div className="flex items-center gap-4">
-                {selectedSupplier.rating && (
-                  <div className="flex items-center gap-2">
-                    <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                    <span className="font-bold text-lg">{selectedSupplier.rating}</span>
-                  </div>
-                )}
-                <div className="text-right">
-                  <p className="text-sm text-slate-600">Country</p>
-                  <p className="font-semibold">{selectedSupplier.country}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Products */}
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <h2 className="text-2xl font-bold mb-6">Products ({supplierProducts.length})</h2>
-          {supplierProducts.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-lg">
-              <p className="text-slate-500">No products available</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {supplierProducts.map((product) => (
-                <div key={product.id} className="bg-white rounded-lg shadow p-6 border border-slate-200">
-                  <h3 className="font-bold text-slate-900">{product.name}</h3>
-                  <p className="text-sm text-slate-600">{product.nameTh}</p>
-                  <p className="text-xs text-slate-500 mt-1">SKU: {product.sku}</p>
-                  <div className="space-y-2 mt-4 pt-4 border-t">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-slate-600">Price</span>
-                      <span className="font-bold">{product.price} {product.currency}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-600">Min Order</span>
-                      <span>{product.minOrder} units</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-600">Lead Time</span>
-                      <span>{product.leadTimeDays} days</span>
-                    </div>
-                  </div>
-                  <button className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg flex items-center justify-center gap-2">
-                    <ShoppingCart className="w-4 h-4" />
-                    Create PR
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // List view
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <h1 className="text-3xl font-bold">Supplier Catalog</h1>
-          <p className="text-slate-600 mt-2">ค้นหาและเลือกซัพพลายเออร์เพื่อจัดซื้อวัสดุและอุปกรณ์</p>
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-lift w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-gray-100">
+          <h2 className="text-lg font-semibold">{t('suppliers.new.title')}</h2>
         </div>
-      </div>
-
-      {/* Search & Filter */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-6 space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search suppliers..."
-              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+        <div className="p-6 space-y-4">
+          {err && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{err}</p>}
+          <div className="grid grid-cols-2 gap-4">
+            <label className="block">
+              <span className="label">{t('suppliers.new.code')} *</span>
+              <input className="input mt-1" value={form.code} onChange={set('code')}
+                placeholder="SUP-001" maxLength={30} />
+            </label>
+            <label className="block">
+              <span className="label">{t('suppliers.new.category')}</span>
+              <input className="input mt-1" value={form.category} onChange={set('category')}
+                placeholder="สำนักงาน, IT, อาหาร…" maxLength={100} />
+            </label>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setSelectedCategory('')}
-              className={`px-4 py-2 rounded-full text-sm font-medium ${selectedCategory === '' ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700'}`}
-            >
-              All
-            </button>
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-2 rounded-full text-sm font-medium capitalize ${selectedCategory === cat ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700'}`}
-              >
-                {cat.replace('-', ' ')}
-              </button>
-            ))}
+          <label className="block">
+            <span className="label">{t('suppliers.new.name')} *</span>
+            <input className="input mt-1 w-full" value={form.name} onChange={set('name')}
+              placeholder="บริษัท ABC จำกัด" maxLength={200} />
+          </label>
+          <label className="block">
+            <span className="label">{t('suppliers.new.contact')}</span>
+            <input className="input mt-1 w-full" value={form.contact_name} onChange={set('contact_name')}
+              placeholder="คุณสมชาย" maxLength={200} />
+          </label>
+          <div className="grid grid-cols-2 gap-4">
+            <label className="block">
+              <span className="label">{t('suppliers.new.email')}</span>
+              <input className="input mt-1" type="email" value={form.contact_email} onChange={set('contact_email')}
+                placeholder="sales@abc.co.th" />
+            </label>
+            <label className="block">
+              <span className="label">{t('suppliers.new.phone')}</span>
+              <input className="input mt-1" value={form.contact_phone} onChange={set('contact_phone')}
+                placeholder="02-xxx-xxxx" maxLength={30} />
+            </label>
           </div>
+          <label className="block">
+            <span className="label">{t('suppliers.new.tax_id')}</span>
+            <input className="input mt-1 w-full" value={form.tax_id} onChange={set('tax_id')}
+              placeholder="0105555000000" maxLength={20} />
+          </label>
         </div>
-      </div>
-
-      {/* Supplier Grid */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {filteredSuppliers.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-slate-500">No suppliers found</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredSuppliers.map((supplier) => (
-              <div key={supplier.id} className="bg-white rounded-lg shadow hover:shadow-lg transition border border-slate-200">
-                <div className="p-6 border-b">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h2 className="text-lg font-bold">{supplier.name}</h2>
-                      <p className="text-sm text-slate-600">{supplier.nameTh}</p>
-                    </div>
-                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
-                      {supplier.type}
-                    </span>
-                  </div>
-                  <div className="flex gap-4 text-sm">
-                    {supplier.rating && (
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                        {supplier.rating}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1 text-slate-600">
-                      <MapPin className="w-4 h-4" />
-                      {supplier.country}
-                    </div>
-                  </div>
-                </div>
-                <div className="p-6">
-                  {supplier.categories.length > 0 && (
-                    <div className="mb-3">
-                      <p className="text-xs font-semibold text-slate-500 mb-2">CATEGORIES</p>
-                      <div className="flex flex-wrap gap-1">
-                        {supplier.categories.slice(0, 3).map((cat) => (
-                          <span key={cat} className="px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded">
-                            {cat.replace('-', ' ')}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {supplier.tags.length > 0 && (
-                    <div>
-                      <p className="text-xs font-semibold text-slate-500 mb-2">TAGS</p>
-                      <div className="flex flex-wrap gap-1">
-                        {supplier.tags.map((tag) => (
-                          <span key={tag} className="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded">
-                            <Tag className="w-3 h-3" />
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="p-6 border-t">
-                  <button
-                    onClick={() => handleViewProducts(supplier)}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg"
-                  >
-                    View Products
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="p-6 border-t border-gray-100 flex justify-end gap-3">
+          <button className="btn-ghost" onClick={onClose} disabled={saving}>
+            {t('suppliers.new.cancel')}
+          </button>
+          <button className="btn-primary" onClick={save} disabled={saving}>
+            {saving ? '…' : t('suppliers.new.save')}
+          </button>
+        </div>
       </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Supplier card
+// ---------------------------------------------------------------------------
+function SupplierCard({ row }: { row: SupplierRow }) {
+  const { t, locale } = useT();
+  const fmt = (n: number) =>
+    new Intl.NumberFormat(locale, { style: 'currency', currency: 'THB', maximumFractionDigits: 0 })
+      .format(n / 100);
+
+  return (
+    <Link href={`/suppliers/${row.id}`} className="card hover:border-brand-300 transition-colors block">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
+            <Building2 className="w-5 h-5 text-gray-500" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-semibold text-gray-900 truncate">{row.name}</span>
+              {!row.is_active && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 flex items-center gap-1">
+                  <XCircle className="w-3 h-3" />{t('suppliers.inactive')}
+                </span>
+              )}
+            </div>
+            <div className="text-sm text-gray-500 mt-0.5">
+              <span className="font-mono text-xs bg-gray-100 px-1.5 py-0.5 rounded mr-2">{row.code}</span>
+              {row.category && <span className="mr-2">{row.category}</span>}
+            </div>
+            {row.contact_email && (
+              <div className="text-sm text-gray-500 mt-1">{row.contact_email}</div>
+            )}
+          </div>
+        </div>
+        <RiskBadge tier={row.risk_tier as RiskTier | null} />
+      </div>
+      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-4 text-sm text-gray-600">
+        <span>{t('suppliers.pr_count').replace('{n}', String(row.total_pr_count))}</span>
+        <span className="text-gray-300">|</span>
+        <span className="font-medium text-gray-800">{fmt(row.total_spent_minor)}</span>
+      </div>
+    </Link>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
+export default function SuppliersPage() {
+  const { t } = useT();
+  const [query, setQuery]           = useState('');
+  const [debouncedQuery, setDebounced] = useState('');
+  const [showAdd, setShowAdd]       = useState(false);
+
+  // Debounce search input
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(query), 300);
+    return () => clearTimeout(id);
+  }, [query]);
+
+  const { data, loading, error, refresh } = useResource(
+    () => withMockFallback(
+      () => suppliersApi.list(debouncedQuery || undefined),
+      async () => {
+        const { suppliers } = await (await import('@/lib/search-demo-fixtures')).loadSearchDemo();
+        return debouncedQuery
+          ? suppliers.filter(s =>
+              s.name.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
+              s.code.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
+              (s.contact_email ?? '').toLowerCase().includes(debouncedQuery.toLowerCase()))
+          : suppliers;
+      },
+    ),
+    [debouncedQuery],
+  );
+
+  const rows     = data ?? [];
+  const active   = rows.filter(r => r.is_active);
+  const inactive = rows.filter(r => !r.is_active);
+
+  const handleCreated = (row: SupplierRow) => {
+    void refresh();
+    setShowAdd(false);
+  };
+
+  return (
+    <main className="max-w-4xl mx-auto px-4 py-8 pb-24 md:pb-8">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">{t('suppliers.title')}</h1>
+        <button className="btn-primary flex items-center gap-1.5" onClick={() => setShowAdd(true)}>
+          <Plus className="w-4 h-4" />
+          <span className="hidden sm:inline">{t('suppliers.add')}</span>
+          <span className="sm:hidden">เพิ่ม</span>
+        </button>
+      </div>
+
+      {/* Search */}
+      <div className="relative mb-6">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+        <input
+          className="input pl-9 w-full"
+          placeholder={t('suppliers.search')}
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+        />
+      </div>
+
+      {error && <div className="mb-4"><ErrorBanner message={error.message} /></div>}
+
+      {loading ? (
+        <Loading />
+      ) : rows.length === 0 ? (
+        <div className="text-center py-20">
+          <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+          <p className="font-medium text-gray-700">{t('suppliers.empty')}</p>
+          <p className="text-sm text-gray-500 mt-1">{t('suppliers.empty.sub')}</p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Active suppliers */}
+          {active.length > 0 && (
+            <section>
+              <div className="grid gap-3">
+                {active.map(row => <SupplierCard key={row.id} row={row} />)}
+              </div>
+            </section>
+          )}
+
+          {/* Inactive suppliers */}
+          {inactive.length > 0 && (
+            <section>
+              <h2 className="text-sm font-medium text-gray-500 mb-3">{t('suppliers.inactive')}</h2>
+              <div className="grid gap-3 opacity-60">
+                {inactive.map(row => <SupplierCard key={row.id} row={row} />)}
+              </div>
+            </section>
+          )}
+        </div>
+      )}
+
+      {showAdd && <AddModal onClose={() => setShowAdd(false)} onCreated={handleCreated} />}
+    </main>
   );
 }
