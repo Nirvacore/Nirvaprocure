@@ -86,6 +86,8 @@ describe('withMockFallback', () => {
     expect(pageSource('app/budget/page.tsx')).toContain("import('@/lib/budget-demo-fixtures')");
     expect(pageSource('app/budget/page.tsx')).not.toContain('MOCK_DEPT_BUDGETS');
     expect(pageSource('app/budget/page.tsx')).not.toContain('MOCK_DEPARTMENTS');
+    expect(pageSource('app/audit/page.tsx')).toContain("import('@/lib/audit-demo-fixtures')");
+    expect(pageSource('app/audit/page.tsx')).not.toContain('const MOCK_AUDIT');
   });
 
   it('loads core procurement fixture data only through dynamic imports', () => {
