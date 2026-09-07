@@ -53,9 +53,6 @@ jobs:
           # Smoke tests use the offline mock fallback baked into pages — no
           # backend service needed.
           NEXT_PUBLIC_API_BASE_URL: http://localhost:3000/v1
-          # Demo fixtures are allowed only for this explicit local test run;
-          # production builds remain fail-closed when the API is unavailable.
-          NEXT_PUBLIC_ENABLE_LOCAL_DEMO: 'true'
 
       - name: Upload Playwright report
         if: always()
