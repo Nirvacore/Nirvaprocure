@@ -97,23 +97,23 @@ function AddModal({ onClose, onCreated }: AddModalProps) {
             <label className="block">
               <span className="label">{t('suppliers.new.code')} *</span>
               <input className="input mt-1" value={form.code} onChange={set('code')}
-                placeholder="SUP-001" maxLength={30} />
+                placeholder={t('suppliers.new.placeholder.code')} maxLength={30} />
             </label>
             <label className="block">
               <span className="label">{t('suppliers.new.category')}</span>
               <input className="input mt-1" value={form.category} onChange={set('category')}
-                placeholder="สำนักงาน, IT, อาหาร…" maxLength={100} />
+                placeholder={t('suppliers.new.placeholder.category')} maxLength={100} />
             </label>
           </div>
           <label className="block">
             <span className="label">{t('suppliers.new.name')} *</span>
             <input className="input mt-1 w-full" value={form.name} onChange={set('name')}
-              placeholder="บริษัท ABC จำกัด" maxLength={200} />
+              placeholder={t('suppliers.new.placeholder.name')} maxLength={200} />
           </label>
           <label className="block">
             <span className="label">{t('suppliers.new.contact')}</span>
             <input className="input mt-1 w-full" value={form.contact_name} onChange={set('contact_name')}
-              placeholder="คุณสมชาย" maxLength={200} />
+              placeholder={t('suppliers.new.placeholder.contact')} maxLength={200} />
           </label>
           <div className="grid grid-cols-2 gap-4">
             <label className="block">
@@ -124,7 +124,7 @@ function AddModal({ onClose, onCreated }: AddModalProps) {
             <label className="block">
               <span className="label">{t('suppliers.new.phone')}</span>
               <input className="input mt-1" value={form.contact_phone} onChange={set('contact_phone')}
-                placeholder="02-xxx-xxxx" maxLength={30} />
+                placeholder={t('suppliers.new.placeholder.phone')} maxLength={30} />
             </label>
           </div>
           <label className="block">
