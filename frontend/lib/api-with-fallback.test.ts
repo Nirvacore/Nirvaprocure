@@ -91,6 +91,8 @@ describe('withMockFallback', () => {
     expect(pageSource('app/receive/page.tsx')).toContain("import('@/lib/receive-demo-fixtures')");
     expect(pageSource('app/receive/page.tsx')).not.toContain('const MOCK_APPROVED');
     expect(pageSource('app/receive/page.tsx')).not.toContain('const MOCK_DETAILS');
+    expect(pageSource('app/notifications/page.tsx')).toContain("import('@/lib/notifications-demo-fixtures')");
+    expect(pageSource('app/notifications/page.tsx')).not.toContain('mockNotifications(locale)');
   });
 
   it('loads core procurement fixture data only through dynamic imports', () => {

@@ -10,7 +10,6 @@ import { useT } from '@/lib/i18n/provider';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
 import { notifications as notificationsApi, type AppNotification } from '@/lib/api';
-import { mockNotifications } from '@/lib/mock-notifications';
 import { Loading } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
 
@@ -99,7 +98,10 @@ export default function NotificationsPage() {
         notificationsApi.lineStatus(),
       ]);
       return { items: notifList, lineLinked: lineStatus.linked };
-    }, { items: mockNotifications(locale), lineLinked: true }),
+    }, async () => ({
+      items: await (await import('@/lib/notifications-demo-fixtures')).loadDemoNotifications(locale),
+      lineLinked: true,
+    })),
     [locale],
   );
 
