@@ -93,6 +93,10 @@ describe('withMockFallback', () => {
     expect(pageSource('app/receive/page.tsx')).not.toContain('const MOCK_DETAILS');
     expect(pageSource('app/notifications/page.tsx')).toContain("import('@/lib/notifications-demo-fixtures')");
     expect(pageSource('app/notifications/page.tsx')).not.toContain('mockNotifications(locale)');
+    expect(pageSource('app/gov/tor/page.tsx')).toContain("import('@/lib/gov-demo-fixtures')");
+    expect(pageSource('app/gov/tor/new/page.tsx')).toContain("import('@/lib/gov-demo-fixtures')");
+    expect(pageSource('app/gov/tor/[id]/page.tsx')).toContain("import('@/lib/gov-demo-fixtures')");
+    expect(pageSource('app/gov/tor/[id]/page.tsx')).not.toContain('const MOCK_TOR_DRAFTS');
   });
 
   it('loads core procurement fixture data only through dynamic imports', () => {
