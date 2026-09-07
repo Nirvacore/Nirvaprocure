@@ -2,31 +2,13 @@
 import { useCallback, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Sparkles, Loader2, AlertCircle, CheckCircle2, Package } from 'lucide-react';
-import { ApiError, portal as portalApi, type PortalLine, type PortalOverview } from '@/lib/api';
+import { ApiError, portal as portalApi, type PortalLine } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
 import { Loading } from '@/components/Loading';
 import { fmtBaht } from '@/lib/format';
 import { useT } from '@/lib/i18n/provider';
 import type { TranslationKey } from '@/lib/i18n/dictionary';
-
-const MOCK_PORTAL: PortalOverview = {
-  supplier_name: 'บริษัท เทค ซัพพลาย จำกัด',
-  expires_at: '2026-12-31T23:59:59Z',
-  lines: [
-    {
-      pr_id: 'pr-mock-1',
-      pr_number: 'PR-2026-0042',
-      pr_title: 'จัดซื้ออุปกรณ์สำนักงาน',
-      description: 'เครื่องพิมพ์เลเซอร์ A4',
-      quantity: 2,
-      unit: 'เครื่อง',
-      unit_price_minor: 890_000,
-      line_total_minor: 1_780_000,
-      status: 'pending',
-    },
-  ],
-};
 
 export default function SupplierPortalPage() {
   const { token } = useParams<{ token: string }>();
@@ -51,7 +33,7 @@ export default function SupplierPortalPage() {
           throw mapPortalError(err);
         }
       },
-      MOCK_PORTAL,
+      async () => (await import('@/lib/portal-demo-fixtures')).loadDemoPortal(),
     ),
     [token, mapPortalError],
   );

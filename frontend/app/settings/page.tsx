@@ -5,7 +5,7 @@ import {
   ArrowLeft, BadgeDollarSign, GitBranch, Users, Building2, Filter, Pencil, Plus, X,
   User, ArrowDown, Clock, Lightbulb, Search, UserPlus, UserCheck, MoreVertical, Webhook,
 } from 'lucide-react';
-import { mockWorkflows, type Workflow } from '@/lib/mock-data';
+import type { Workflow } from '@/lib/mock-data';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
 import {
@@ -13,7 +13,6 @@ import {
   workflows as workflowsApi,
   type PeopleUser, type PeopleDepartment, type WorkflowWire,
 } from '@/lib/api';
-import { mockUsers, mockDepartments, type UserRow, type Department } from '@/lib/mock-data';
 import { Loading } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
 import { WorkflowEditor } from '@/components/WorkflowEditor';
@@ -104,7 +103,7 @@ function Workflows() {
   const { data, loading, error, refresh } = useResource(
     () => withMockFallback(
       async () => (await workflowsApi.list()).map(toCardShape),
-      mockWorkflows.map((wf) => ({ ...wf, _wire: undefined as unknown as WorkflowWire })),
+      async () => (await import('@/lib/settings-demo-fixtures')).loadDemoWorkflows(),
     ),
   );
 
@@ -244,10 +243,7 @@ function UsersTab() {
       () => peopleApi.listUsers(search.trim() || undefined),
       // Fallback shape: same as the API row, with department/role nulled
       // out so it renders cleanly.
-      mockUsers.map<PeopleUser>((u) => ({
-        id: u.email, email: u.email, full_name: u.name,
-        is_active: u.active, department: u.dept, role: u.role,
-      })),
+      async () => (await import('@/lib/settings-demo-fixtures')).loadDemoUsers(),
     ),
     [search],
   );
@@ -322,9 +318,7 @@ function DepartmentsTab() {
   const { data, loading, error, refresh } = useResource(
     () => withMockFallback(
       () => peopleApi.listDepartments(),
-      mockDepartments.map<PeopleDepartment>((d) => ({
-        id: d.cost_center, name: d.name, cost_center: d.cost_center, members: d.members,
-      })),
+      async () => (await import('@/lib/settings-demo-fixtures')).loadDemoDepartments(),
     ),
   );
 

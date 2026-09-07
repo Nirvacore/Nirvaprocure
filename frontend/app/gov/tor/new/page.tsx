@@ -6,19 +6,13 @@ import {
   ArrowLeft, Building2, CheckCircle2, XCircle, MinusCircle,
   Loader2, FileText, Sparkles, Plus, Trash2,
 } from 'lucide-react';
-import { gov as govApi, ApiError, type ToRBrief, type ToRDraft, type ToRTemplate } from '@/lib/api';
+import { gov as govApi, ApiError, type ToRBrief, type ToRDraft } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
 import { useToast } from '@/components/Toast';
 import { useT } from '@/lib/i18n/provider';
 import type { TranslationKey } from '@/lib/i18n/dictionary';
 import { storeMockTorDraft, appendMockTorListItem } from '@/lib/tor-mock-store';
-
-const MOCK_TOR_TEMPLATES: ToRTemplate[] = [
-  { id: 'tpl-goods',        name: 'จัดซื้อครุภัณฑ์ทั่วไป',     procurement_kind: 'goods',        is_official: true },
-  { id: 'tpl-services',     name: 'จ้างเหมาบริการมาตรฐาน',    procurement_kind: 'services',     is_official: true },
-  { id: 'tpl-construction', name: 'งานก่อสร้างขนาดเล็ก',       procurement_kind: 'construction', is_official: false },
-];
 
 const KIND_LABEL_KEYS: Record<ToRBrief['procurement_kind'], TranslationKey> = {
   goods: 'tor.kind.goods',
@@ -72,7 +66,10 @@ export default function NewTorPage() {
   const router = useRouter();
 
   const { data: templates } = useResource(
-    () => withMockFallback(() => govApi.templates(), MOCK_TOR_TEMPLATES),
+    () => withMockFallback(
+      () => govApi.templates(),
+      async () => (await import('@/lib/gov-demo-fixtures')).loadDemoTorTemplates(),
+    ),
   );
 
   const [templateId, setTemplateId] = useState<string>('');

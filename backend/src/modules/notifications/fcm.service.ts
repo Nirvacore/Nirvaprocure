@@ -1,7 +1,8 @@
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Pool } from 'pg';
 import { PG_POOL } from '../../common/db/db.module';
-import * as admin from 'firebase-admin';
+import { cert, getApps, initializeApp } from 'firebase-admin/app';
+import { getMessaging } from 'firebase-admin/messaging';
 
 @Injectable()
 export class FcmService implements OnModuleInit {
@@ -17,9 +18,9 @@ export class FcmService implements OnModuleInit {
       return;
     }
     try {
-      if (!admin.apps.length) {
-        admin.initializeApp({
-          credential: admin.credential.cert(JSON.parse(creds)),
+      if (getApps().length === 0) {
+        initializeApp({
+          credential: cert(JSON.parse(creds)),
         });
       }
       this.fbInitialized = true;
@@ -84,7 +85,7 @@ export class FcmService implements OnModuleInit {
       this.logger.log(`[FCM-DEV] Push → ${token.slice(0, 12)}... | ${notification.title}`);
       return;
     }
-    await admin.messaging().send({
+    await getMessaging().send({
       token,
       notification: { title: notification.title, body: notification.body },
       data: notification.data,

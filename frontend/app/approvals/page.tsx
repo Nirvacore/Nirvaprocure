@@ -2,7 +2,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { AlertTriangle, Check, X, Eye, Home } from 'lucide-react';
-import { mockInbox, srcLabel, type InboxItem, type Source } from '@/lib/mock-data';
+import type { InboxItem } from '@/lib/mock-data';
+import { srcLabel, type Source } from '@/lib/procurement-source';
+import { loadDemoApprovalInbox } from '@/lib/core-procurement-demo-fixtures';
 import { fmtBaht } from '@/lib/format';
 import { useToast } from '@/components/Toast';
 import { useResource } from '@/lib/use-resource';
@@ -36,7 +38,7 @@ export default function ApprovalsPage() {
   const { data, loading, error, refresh } = useResource(async () => {
     return await withMockFallback(
       async () => (await approvalsApi.inbox()).map(toInbox),
-      mockInbox,
+      loadDemoApprovalInbox,
     );
   });
 

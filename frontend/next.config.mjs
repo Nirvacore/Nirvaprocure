@@ -67,10 +67,11 @@ const nextConfig = {
     },
   },
 
+  // Tighter server-component bundle: avoids shipping these packages to the
+  // browser by tagging them as server-only externals.
+  serverExternalPackages: ['@sentry/nextjs'],
+
   experimental: {
-    // Tighter server-component bundle: avoids shipping these packages to the
-    // browser by tagging them as server-only externals.
-    serverComponentsExternalPackages: ['@sentry/nextjs'],
     // Optimize Next's own runtime CSS extraction.
     optimizeCss: true,
   },
