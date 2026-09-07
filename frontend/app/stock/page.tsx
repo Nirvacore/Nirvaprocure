@@ -5,35 +5,11 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, AlertTriangle, Package, Warehouse, RotateCw, PackagePlus } from 'lucide-react';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
-import { stock as stockApi, type Warehouse as Wh, type StockOnHandRow } from '@/lib/api';
+import { stock as stockApi, type StockOnHandRow } from '@/lib/api';
 import { Loading } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
 import { MovementModal } from '@/components/MovementModal';
 import { useT } from '@/lib/i18n/provider';
-
-// Offline / no-backend fallback so the page renders in pure-frontend dev.
-const MOCK_WAREHOUSES: Wh[] = [
-  { id: 'wh-1', name: 'คลังหลัก สำนักงานใหญ่', code: 'HQ',  address: null, is_active: true },
-  { id: 'wh-2', name: 'คลังย่อย ชั้น 5',         code: 'F5',  address: null, is_active: true },
-];
-
-const MOCK_ON_HAND: StockOnHandRow[] = [
-  {
-    item_id: 'i1', sku: 'HP-65A',  name: 'HP 65A Black Toner Cartridge', unit: 'ea',
-    warehouse_id: 'wh-1', warehouse_code: 'HQ', warehouse_name: 'คลังหลัก สำนักงานใหญ่',
-    qty: 2, reorder_point: 5, below_reorder: true,
-  },
-  {
-    item_id: 'i2', sku: 'LAB-GLOVE-M', name: 'ถุงมือแล็บ ขนาด M',       unit: 'pair',
-    warehouse_id: 'wh-1', warehouse_code: 'HQ', warehouse_name: 'คลังหลัก สำนักงานใหญ่',
-    qty: 120, reorder_point: 50, below_reorder: false,
-  },
-  {
-    item_id: 'i3', sku: 'SSD-2TB',    name: 'SSD Server 2TB',           unit: 'ea',
-    warehouse_id: 'wh-2', warehouse_code: 'F5', warehouse_name: 'คลังย่อย ชั้น 5',
-    qty: 1, reorder_point: 3, below_reorder: true,
-  },
-];
 
 export default function StockPage() {
   const [warehouseId, setWarehouseId] = useState<string | null>(null);
@@ -42,13 +18,16 @@ export default function StockPage() {
   const { t } = useT();
 
   const warehouses = useResource(
-    () => withMockFallback(() => stockApi.listWarehouses(), MOCK_WAREHOUSES),
+    () => withMockFallback(
+      () => stockApi.listWarehouses(),
+      async () => (await import('@/lib/stock-demo-fixtures')).loadDemoWarehouses(),
+    ),
   );
 
   const onHand = useResource(
     () => withMockFallback(
       () => stockApi.onHand(warehouseId ?? undefined),
-      warehouseId ? MOCK_ON_HAND.filter((r) => r.warehouse_id === warehouseId) : MOCK_ON_HAND,
+      async () => (await import('@/lib/stock-demo-fixtures')).loadDemoOnHand(warehouseId ?? undefined),
     ),
     [warehouseId],
   );

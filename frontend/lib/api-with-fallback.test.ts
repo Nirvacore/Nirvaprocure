@@ -76,6 +76,9 @@ describe('withMockFallback', () => {
     expect(pageSource('app/search/page.tsx')).toContain("import('@/lib/search-demo-fixtures')");
     expect(pageSource('app/po/[id]/page.tsx')).toContain("import('@/lib/po-demo-fixtures')");
     expect(pageSource('app/po/[id]/page.tsx')).not.toContain('const MOCK_POS');
+    expect(pageSource('app/stock/page.tsx')).toContain("import('@/lib/stock-demo-fixtures')");
+    expect(pageSource('app/stock/page.tsx')).not.toContain('const MOCK_WAREHOUSES');
+    expect(pageSource('app/stock/page.tsx')).not.toContain('const MOCK_ON_HAND');
   });
 
   it('loads core procurement fixture data only through dynamic imports', () => {
