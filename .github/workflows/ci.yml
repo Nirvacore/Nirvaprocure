@@ -167,6 +167,27 @@ jobs:
           JWT_SECRET: ci-test-secret
 
   # ---------------------------------------------------------------------------
+  # Frontend image smoke test — verify PR Dockerfiles without registry access
+  # ---------------------------------------------------------------------------
+  docker-frontend-pr:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Build frontend image without publishing
+        uses: docker/build-push-action@v7
+        with:
+          context: frontend
+          push: false
+
+  # ---------------------------------------------------------------------------
   # Docker images — built only on main, pushed only when DOCKER_HUB secrets exist
   # ---------------------------------------------------------------------------
   docker:
