@@ -239,7 +239,7 @@ BEGIN
         SELECT unnest(ARRAY[
             'users','departments','roles','suppliers',
             'purchase_requests','purchase_request_items',
-            'approval_workflows','approval_instances','approval_decisions',
+            'approval_workflows','approval_instances',
             'attachments','notifications','audit_log'
         ])
     LOOP
@@ -250,5 +250,35 @@ BEGIN
         $p$, t, t);
     END LOOP;
 END$$;
+
+ALTER TABLE approval_steps ENABLE ROW LEVEL SECURITY;
+CREATE POLICY approval_steps_org_isolation ON approval_steps
+    USING (EXISTS (
+        SELECT 1
+        FROM approval_workflows workflow
+        WHERE workflow.id = approval_steps.workflow_id
+          AND workflow.org_id = current_setting('app.current_org')::uuid
+    ))
+    WITH CHECK (EXISTS (
+        SELECT 1
+        FROM approval_workflows workflow
+        WHERE workflow.id = approval_steps.workflow_id
+          AND workflow.org_id = current_setting('app.current_org')::uuid
+    ));
+
+ALTER TABLE approval_decisions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY approval_decisions_org_isolation ON approval_decisions
+    USING (EXISTS (
+        SELECT 1
+        FROM approval_instances instance
+        WHERE instance.id = approval_decisions.instance_id
+          AND instance.org_id = current_setting('app.current_org')::uuid
+    ))
+    WITH CHECK (EXISTS (
+        SELECT 1
+        FROM approval_instances instance
+        WHERE instance.id = approval_decisions.instance_id
+          AND instance.org_id = current_setting('app.current_org')::uuid
+    ));
 
 COMMIT;
