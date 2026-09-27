@@ -46,13 +46,14 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final l10n = L10n.of(context);
-    final totalPr   = (_stats?['total_pr_count'] as int?) ?? 0;
-    final spentRaw  = (_stats?['total_spent_minor'] as int?) ?? 0;
-    final spent     = (spentRaw / 100).round();
+    final totalPr = (_stats?['total_pr_count'] as int?) ?? 0;
+    final spentRaw = (_stats?['total_spent_minor'] as int?) ?? 0;
+    final spent = (spentRaw / 100).round();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('NIRVAPROCURE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+        title: const Text('NIRVAPROCURE',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
         actions: [
           IconButton(
             icon: const Icon(Icons.search, size: 22),
@@ -79,13 +80,15 @@ class _HomePageState extends State<HomePage> {
           children: [
             // ── Greeting ──────────────────────────────────────────
             Text(_greeting(l10n),
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
 
             // ── Stats row (3 cards) ───────────────────────────────
             Row(
               children: [
-                Expanded(child: _StatChip(
+                Expanded(
+                    child: _StatChip(
                   label: l10n.t('home.stat.pending'),
                   value: '$_pendingCount',
                   color: _pendingCount > 0 ? Tokens.warning : Tokens.success,
@@ -93,7 +96,8 @@ class _HomePageState extends State<HomePage> {
                   onTap: () => context.go('/approvals'),
                 )),
                 const SizedBox(width: 10),
-                Expanded(child: _StatChip(
+                Expanded(
+                    child: _StatChip(
                   label: l10n.t('home.stat.prs'),
                   value: '$totalPr',
                   color: Tokens.brand600,
@@ -101,7 +105,8 @@ class _HomePageState extends State<HomePage> {
                   onTap: () => context.go('/pr'),
                 )),
                 const SizedBox(width: 10),
-                Expanded(child: _StatChip(
+                Expanded(
+                    child: _StatChip(
                   label: l10n.t('home.stat.spent'),
                   value: _fmtSpend(spent),
                   color: const Color(0xFF7C3AED),
@@ -114,7 +119,8 @@ class _HomePageState extends State<HomePage> {
 
             // ── Quick actions (horizontal scroll chips) ───────────
             Text(l10n.t('home.quick'),
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             const SizedBox(height: 12),
             SizedBox(
               height: 88,
@@ -122,32 +128,38 @@ class _HomePageState extends State<HomePage> {
                 scrollDirection: Axis.horizontal,
                 children: [
                   _QuickAction(
-                    icon: Icons.add_circle, color: Tokens.brand600,
+                    icon: Icons.add_circle,
+                    color: Tokens.brand600,
                     label: l10n.t('home.action.new'),
                     onTap: () => context.push('/pr/new'),
                   ),
                   _QuickAction(
-                    icon: Icons.inventory_2, color: const Color(0xFF0369A1),
+                    icon: Icons.inventory_2,
+                    color: const Color(0xFF0369A1),
                     label: l10n.t('more.stock'),
                     onTap: () => context.push('/stock'),
                   ),
                   _QuickAction(
-                    icon: Icons.people, color: const Color(0xFF059669),
+                    icon: Icons.people,
+                    color: const Color(0xFF059669),
                     label: l10n.t('more.suppliers'),
                     onTap: () => context.push('/suppliers'),
                   ),
                   _QuickAction(
-                    icon: Icons.account_balance_wallet, color: const Color(0xFF16A34A),
+                    icon: Icons.account_balance_wallet,
+                    color: const Color(0xFF16A34A),
                     label: l10n.t('more.budget'),
                     onTap: () => context.push('/budget'),
                   ),
                   _QuickAction(
-                    icon: Icons.receipt_long, color: const Color(0xFF0891B2),
+                    icon: Icons.receipt_long,
+                    color: const Color(0xFF0891B2),
                     label: l10n.t('more.po'),
                     onTap: () => context.push('/po'),
                   ),
                   _QuickAction(
-                    icon: Icons.bar_chart, color: const Color(0xFF7C3AED),
+                    icon: Icons.bar_chart,
+                    color: const Color(0xFF7C3AED),
                     label: l10n.t('more.analytics'),
                     onTap: () => context.push('/analytics'),
                   ),
@@ -179,12 +191,14 @@ class _HomePageState extends State<HomePage> {
                     child: Row(
                       children: [
                         Container(
-                          width: 44, height: 44,
+                          width: 44,
+                          height: 44,
                           decoration: BoxDecoration(
                             color: const Color(0xFFFEF3C7),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(Icons.how_to_vote, color: Color(0xFFD97706), size: 22),
+                          child: const Icon(Icons.how_to_vote,
+                              color: Color(0xFFD97706), size: 22),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -192,12 +206,16 @@ class _HomePageState extends State<HomePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                l10n.t('home.pending_msg').replaceAll('{count}', '$_pendingCount'),
-                                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                                l10n
+                                    .t('home.pending_msg')
+                                    .replaceAll('{count}', '$_pendingCount'),
+                                style: const TextStyle(
+                                    fontSize: 15, fontWeight: FontWeight.w600),
                               ),
                               const SizedBox(height: 2),
                               Text(l10n.t('home.pending_sub'),
-                                  style: TextStyle(fontSize: 13, color: Tokens.gray500)),
+                                  style: TextStyle(
+                                      fontSize: 13, color: Tokens.gray500)),
                             ],
                           ),
                         ),
@@ -239,7 +257,12 @@ class _HomePageState extends State<HomePage> {
 
 // ── Stat chip ────────────────────────────────────────────────────────────────
 class _StatChip extends StatelessWidget {
-  const _StatChip({required this.label, required this.value, required this.color, required this.icon, this.onTap});
+  const _StatChip(
+      {required this.label,
+      required this.value,
+      required this.color,
+      required this.icon,
+      this.onTap});
   final String label, value;
   final Color color;
   final IconData icon;
@@ -261,10 +284,15 @@ class _StatChip extends StatelessWidget {
           children: [
             Icon(icon, color: color, size: 22),
             const SizedBox(height: 6),
-            Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
+            Text(value,
+                style: TextStyle(
+                    fontSize: 20, fontWeight: FontWeight.bold, color: color)),
             const SizedBox(height: 2),
-            Text(label, style: TextStyle(fontSize: 10, color: color.withAlpha(180)),
-                textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text(label,
+                style: TextStyle(fontSize: 10, color: color.withAlpha(180)),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis),
           ],
         ),
       ),
@@ -274,7 +302,11 @@ class _StatChip extends StatelessWidget {
 
 // ── Quick action circle ──────────────────────────────────────────────────────
 class _QuickAction extends StatelessWidget {
-  const _QuickAction({required this.icon, required this.color, required this.label, required this.onTap});
+  const _QuickAction(
+      {required this.icon,
+      required this.color,
+      required this.label,
+      required this.onTap});
   final IconData icon;
   final Color color;
   final String label;
@@ -292,7 +324,8 @@ class _QuickAction extends StatelessWidget {
           child: Column(
             children: [
               Container(
-                width: 52, height: 52,
+                width: 52,
+                height: 52,
                 decoration: BoxDecoration(
                   color: color.withAlpha(20),
                   borderRadius: BorderRadius.circular(16),
@@ -300,8 +333,11 @@ class _QuickAction extends StatelessWidget {
                 child: Icon(icon, color: color, size: 24),
               ),
               const SizedBox(height: 6),
-              Text(label, textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 11), maxLines: 2, overflow: TextOverflow.ellipsis),
+              Text(label,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 11),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis),
             ],
           ),
         ),
@@ -321,7 +357,8 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text(title,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
         if (badge != null) ...[
           const SizedBox(width: 8),
           Container(
@@ -330,7 +367,11 @@ class _SectionHeader extends StatelessWidget {
               color: const Color(0xFFDC2626),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Text(badge!, style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(badge!,
+                style: const TextStyle(
+                    fontSize: 11,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold)),
           ),
         ],
         const Spacer(),
@@ -353,11 +394,11 @@ class _RecentPrList extends StatelessWidget {
   final List<PrSummary>? prs; // null = still loading
 
   Color _statusColor(String status) => switch (status) {
-    'approved' => const Color(0xFF16A34A),
-    'rejected'  => const Color(0xFFDC2626),
-    'pending'   => const Color(0xFFD97706),
-    _           => const Color(0xFF6B7280),
-  };
+        'approved' => const Color(0xFF16A34A),
+        'rejected' => const Color(0xFFDC2626),
+        'pending' => const Color(0xFFD97706),
+        _ => const Color(0xFF6B7280),
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -374,54 +415,62 @@ class _RecentPrList extends StatelessWidget {
 
     final show = prs!.take(5).toList();
     return Column(
-      children: show.map((pr) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-            side: BorderSide(color: Tokens.gray200),
-          ),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(14),
-            onTap: () => context.push('/pr/${pr.id}'),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(pr.title,
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                            maxLines: 1, overflow: TextOverflow.ellipsis),
-                        const SizedBox(height: 2),
-                        Text(pr.prNumber,
-                            style: TextStyle(fontSize: 12, color: Tokens.gray500)),
-                      ],
+      children: show
+          .map((pr) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: BorderSide(color: Tokens.gray200),
+                  ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(14),
+                    onTap: () => context.push('/pr/${pr.id}'),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 12),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(pr.title,
+                                    style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis),
+                                const SizedBox(height: 2),
+                                Text(pr.prNumber,
+                                    style: TextStyle(
+                                        fontSize: 12, color: Tokens.gray500)),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: _statusColor(pr.status).withAlpha(20),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              l10n.t('status.${pr.status}'),
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: _statusColor(pr.status)),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: _statusColor(pr.status).withAlpha(20),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      l10n.t('status.${pr.status}'),
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: _statusColor(pr.status)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      )).toList(),
+                ),
+              ))
+          .toList(),
     );
   }
 }

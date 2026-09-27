@@ -17,7 +17,8 @@ class _PoDetailPageState extends State<PoDetailPage> {
   Map<String, dynamic>? _po;
   bool _loading = true;
   bool _updating = false;
-  static final _baht = NumberFormat.currency(locale: 'en_US', symbol: '฿ ', decimalDigits: 2);
+  static final _baht =
+      NumberFormat.currency(locale: 'en_US', symbol: '฿ ', decimalDigits: 2);
 
   @override
   void initState() {
@@ -106,7 +107,9 @@ class _PoDetailPageState extends State<PoDetailPage> {
                         const Spacer(),
                         Text(
                           '$currency ${(total / 100).toStringAsFixed(2)}',
-                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold,
+                          style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
                               color: Tokens.brand600),
                         ),
                       ],
@@ -114,20 +117,24 @@ class _PoDetailPageState extends State<PoDetailPage> {
                     if (supplierName != null) ...[
                       const SizedBox(height: 12),
                       Row(children: [
-                        const Icon(Icons.store, size: 16, color: Tokens.gray500),
+                        const Icon(Icons.store,
+                            size: 16, color: Tokens.gray500),
                         const SizedBox(width: 8),
                         Text(supplierName,
-                            style: const TextStyle(fontSize: 14, color: Tokens.gray500)),
+                            style: const TextStyle(
+                                fontSize: 14, color: Tokens.gray500)),
                       ]),
                     ],
                     if (po['issued_at'] != null) ...[
                       const SizedBox(height: 8),
                       Row(children: [
-                        const Icon(Icons.calendar_today, size: 14, color: Tokens.gray500),
+                        const Icon(Icons.calendar_today,
+                            size: 14, color: Tokens.gray500),
                         const SizedBox(width: 8),
                         Text(
                           _formatDate(po['issued_at'] as String),
-                          style: const TextStyle(fontSize: 12, color: Tokens.gray500),
+                          style: const TextStyle(
+                              fontSize: 12, color: Tokens.gray500),
                         ),
                       ]),
                     ],
@@ -150,7 +157,8 @@ class _PoDetailPageState extends State<PoDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(l10n.t('po_items_heading'),
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 12),
                     if (items.isEmpty)
                       Text(l10n.t('no_data'),
@@ -167,14 +175,16 @@ class _PoDetailPageState extends State<PoDetailPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
-                                width: 28, height: 28,
+                                width: 28,
+                                height: 28,
                                 decoration: BoxDecoration(
                                   color: Tokens.brand600.withAlpha(20),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Center(
                                   child: Text('${it['line_no']}',
-                                      style: const TextStyle(fontSize: 12,
+                                      style: const TextStyle(
+                                          fontSize: 12,
                                           fontWeight: FontWeight.bold,
                                           color: Tokens.brand600)),
                                 ),
@@ -185,19 +195,22 @@ class _PoDetailPageState extends State<PoDetailPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(it['description'] as String? ?? '',
-                                        style: const TextStyle(fontSize: 14,
+                                        style: const TextStyle(
+                                            fontSize: 14,
                                             fontWeight: FontWeight.w500)),
                                     const SizedBox(height: 2),
                                     Text(
                                       '$qty ${it['unit'] ?? 'unit'} × ${_baht.format(unitPrice / 100)}',
-                                      style: const TextStyle(fontSize: 12, color: Tokens.gray500),
+                                      style: const TextStyle(
+                                          fontSize: 12, color: Tokens.gray500),
                                     ),
                                   ],
                                 ),
                               ),
                               Text(
                                 _baht.format(lineTotal / 100),
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 14),
                               ),
                             ],
                           ),
@@ -220,7 +233,8 @@ class _PoDetailPageState extends State<PoDetailPage> {
               ),
             if (status == 'sent')
               _ActionButton(
-                onPressed: _updating ? null : () => _changeStatus('acknowledged'),
+                onPressed:
+                    _updating ? null : () => _changeStatus('acknowledged'),
                 icon: Icons.handshake,
                 label: l10n.t('po_action_acknowledge'),
                 color: const Color(0xFF0D9488),
@@ -238,7 +252,8 @@ class _PoDetailPageState extends State<PoDetailPage> {
               const SizedBox(height: 8),
               TextButton.icon(
                 onPressed: _updating ? null : () => _changeStatus('cancelled'),
-                icon: const Icon(Icons.cancel_outlined, color: Color(0xFFDC2626)),
+                icon:
+                    const Icon(Icons.cancel_outlined, color: Color(0xFFDC2626)),
                 label: Text(l10n.t('po_action_cancel'),
                     style: const TextStyle(color: Color(0xFFDC2626))),
               ),
@@ -260,19 +275,20 @@ class _PoDetailPageState extends State<PoDetailPage> {
       ),
       child: Text(
         l10n.t('po_status_$s'),
-        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: color),
+        style:
+            TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: color),
       ),
     );
   }
 
   Color _statusColor(String s) => switch (s) {
-    'draft'        => Tokens.gray500,
-    'sent'         => const Color(0xFF2563EB),
-    'acknowledged' => const Color(0xFF0D9488),
-    'completed'    => const Color(0xFF16A34A),
-    'cancelled'    => const Color(0xFFDC2626),
-    _              => const Color(0xFFD97706),
-  };
+        'draft' => Tokens.gray500,
+        'sent' => const Color(0xFF2563EB),
+        'acknowledged' => const Color(0xFF0D9488),
+        'completed' => const Color(0xFF16A34A),
+        'cancelled' => const Color(0xFFDC2626),
+        _ => const Color(0xFFD97706),
+      };
 
   String _formatDate(String iso) {
     final dt = DateTime.tryParse(iso);
@@ -302,13 +318,15 @@ class _ActionButton extends StatelessWidget {
             backgroundColor: color,
             foregroundColor: Colors.white,
             minimumSize: const Size(double.infinity, 48),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           )
         : OutlinedButton.styleFrom(
             foregroundColor: color,
             side: BorderSide(color: color),
             minimumSize: const Size(double.infinity, 48),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           );
 
     return filled

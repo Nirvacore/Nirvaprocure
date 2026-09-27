@@ -13,7 +13,8 @@ class BiometricPage extends StatefulWidget {
   State<BiometricPage> createState() => _BiometricPageState();
 }
 
-class _BiometricPageState extends State<BiometricPage> with SingleTickerProviderStateMixin {
+class _BiometricPageState extends State<BiometricPage>
+    with SingleTickerProviderStateMixin {
   bool _checking = false;
   bool _failed = false;
   bool _usePinFallback = false;
@@ -24,8 +25,11 @@ class _BiometricPageState extends State<BiometricPage> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
-    _pulseCtrl = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat(reverse: true);
-    _pulseAnim = Tween(begin: 0.9, end: 1.1).animate(CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
+    _pulseCtrl =
+        AnimationController(vsync: this, duration: const Duration(seconds: 2))
+          ..repeat(reverse: true);
+    _pulseAnim = Tween(begin: 0.9, end: 1.1)
+        .animate(CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
     Future.delayed(const Duration(milliseconds: 500), _checkBiometric);
   }
 
@@ -37,7 +41,10 @@ class _BiometricPageState extends State<BiometricPage> with SingleTickerProvider
   }
 
   Future<void> _checkBiometric() async {
-    setState(() { _checking = true; _failed = false; });
+    setState(() {
+      _checking = true;
+      _failed = false;
+    });
     // TODO: integrate local_auth
     await Future.delayed(const Duration(milliseconds: 1500));
     setState(() => _checking = false);
@@ -85,7 +92,11 @@ class _BiometricPageState extends State<BiometricPage> with SingleTickerProvider
               const SizedBox(height: 24),
               Text(
                 'NIRVAPROCURE',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 1, color: cs.primary),
+                style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                    color: cs.primary),
               ),
               const SizedBox(height: 8),
               Text(
@@ -93,7 +104,6 @@ class _BiometricPageState extends State<BiometricPage> with SingleTickerProvider
                 style: TextStyle(fontSize: 14, color: Tokens.gray500),
               ),
               const SizedBox(height: 48),
-
               if (!_usePinFallback) ...[
                 ScaleTransition(
                   scale: _pulseAnim,
@@ -124,11 +134,14 @@ class _BiometricPageState extends State<BiometricPage> with SingleTickerProvider
                 ),
                 const SizedBox(height: 20),
                 if (_checking)
-                  Text(t('bio_verifying'), style: TextStyle(color: Tokens.gray500))
+                  Text(t('bio_verifying'),
+                      style: TextStyle(color: Tokens.gray500))
                 else if (_failed)
-                  Text(t('bio_failed'), style: const TextStyle(color: Colors.red))
+                  Text(t('bio_failed'),
+                      style: const TextStyle(color: Colors.red))
                 else
-                  Text(t('bio_tap_to_unlock'), style: TextStyle(color: Tokens.gray500)),
+                  Text(t('bio_tap_to_unlock'),
+                      style: TextStyle(color: Tokens.gray500)),
                 const SizedBox(height: 32),
                 TextButton(
                   onPressed: () => setState(() => _usePinFallback = true),
@@ -136,7 +149,10 @@ class _BiometricPageState extends State<BiometricPage> with SingleTickerProvider
                 ),
               ] else ...[
                 Text(t('bio_enter_pin'),
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: cs.onSurface)),
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: cs.onSurface)),
                 const SizedBox(height: 20),
                 SizedBox(
                   width: 200,
@@ -150,7 +166,8 @@ class _BiometricPageState extends State<BiometricPage> with SingleTickerProvider
                     decoration: InputDecoration(
                       counterText: '',
                       errorText: _failed ? t('bio_wrong_pin') : null,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                     onSubmitted: (_) => _verifyPin(),
                   ),
@@ -160,17 +177,20 @@ class _BiometricPageState extends State<BiometricPage> with SingleTickerProvider
                   onPressed: _verifyPin,
                   style: FilledButton.styleFrom(
                     minimumSize: const Size(200, 48),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                   child: Text(t('bio_unlock')),
                 ),
                 const SizedBox(height: 16),
                 TextButton(
-                  onPressed: () => setState(() { _usePinFallback = false; _failed = false; }),
+                  onPressed: () => setState(() {
+                    _usePinFallback = false;
+                    _failed = false;
+                  }),
                   child: Text(t('bio_use_biometric')),
                 ),
               ],
-
               const Spacer(flex: 3),
             ],
           ),

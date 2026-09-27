@@ -45,8 +45,14 @@ class NirvaProcureApp extends StatelessWidget {
         routerConfig: _router,
         locale: locale,
         supportedLocales: const [
-          Locale('th'), Locale('en'), Locale('zh'), Locale('ja'),
-          Locale('vi'), Locale('id'), Locale('my'), Locale('km'),
+          Locale('th'),
+          Locale('en'),
+          Locale('zh'),
+          Locale('ja'),
+          Locale('vi'),
+          Locale('id'),
+          Locale('my'),
+          Locale('km'),
         ],
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
@@ -65,17 +71,17 @@ class NirvaProcureApp extends StatelessWidget {
 final _router = GoRouter(
   initialLocation: '/',
   routes: [
-    GoRoute(path: '/login',      builder: (_, __) => const LoginPage()),
+    GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
     GoRoute(path: '/onboarding', builder: (_, __) => const OnboardingPage()),
 
     // ── Bottom-nav shell (Home, Approvals, PRs, More) ────────────
     ShellRoute(
       builder: (_, __, child) => ShellPage(child: child),
       routes: [
-        GoRoute(path: '/',          builder: (_, __) => const HomePage()),
+        GoRoute(path: '/', builder: (_, __) => const HomePage()),
         GoRoute(path: '/approvals', builder: (_, __) => const ApprovalsPage()),
-        GoRoute(path: '/pr',        builder: (_, __) => const PrListPage()),
-        GoRoute(path: '/more',      builder: (_, __) => const MorePage()),
+        GoRoute(path: '/pr', builder: (_, __) => const PrListPage()),
+        GoRoute(path: '/more', builder: (_, __) => const MorePage()),
       ],
     ),
 
@@ -88,30 +94,31 @@ final _router = GoRouter(
         return PrDetailPage(id: id);
       },
     ),
-    GoRoute(path: '/analytics',     builder: (_, __) => const AnalyticsPage()),
-    GoRoute(path: '/stock',         builder: (_, __) => const StockPage()),
-    GoRoute(path: '/settings',      builder: (_, __) => const SettingsPage()),
-    GoRoute(path: '/suppliers',     builder: (_, __) => const SuppliersPage()),
-    GoRoute(path: '/notifications', builder: (_, __) => const NotificationsPage()),
-    GoRoute(path: '/budget',        builder: (_, __) => const BudgetPage()),
-    GoRoute(path: '/audit',         builder: (_, __) => const AuditPage()),
-    GoRoute(path: '/profile',       builder: (_, __) => const ProfilePage()),
-    GoRoute(path: '/search',        builder: (_, __) => const SearchPage()),
-    GoRoute(path: '/receive',       builder: (_, __) => const ReceivePage()),
-    GoRoute(path: '/po',            builder: (_, __) => const PoListPage()),
+    GoRoute(path: '/analytics', builder: (_, __) => const AnalyticsPage()),
+    GoRoute(path: '/stock', builder: (_, __) => const StockPage()),
+    GoRoute(path: '/settings', builder: (_, __) => const SettingsPage()),
+    GoRoute(path: '/suppliers', builder: (_, __) => const SuppliersPage()),
+    GoRoute(
+        path: '/notifications', builder: (_, __) => const NotificationsPage()),
+    GoRoute(path: '/budget', builder: (_, __) => const BudgetPage()),
+    GoRoute(path: '/audit', builder: (_, __) => const AuditPage()),
+    GoRoute(path: '/profile', builder: (_, __) => const ProfilePage()),
+    GoRoute(path: '/search', builder: (_, __) => const SearchPage()),
+    GoRoute(path: '/receive', builder: (_, __) => const ReceivePage()),
+    GoRoute(path: '/po', builder: (_, __) => const PoListPage()),
     GoRoute(
       path: '/po/:id',
       builder: (_, state) => PoDetailPage(id: state.pathParameters['id']!),
     ),
-    GoRoute(path: '/charts',        builder: (_, __) => const ChartsPage()),
-    GoRoute(path: '/scanner',       builder: (_, __) => const ScannerPage()),
-    GoRoute(path: '/biometric',     builder: (_, __) => const BiometricPage()),
+    GoRoute(path: '/charts', builder: (_, __) => const ChartsPage()),
+    GoRoute(path: '/scanner', builder: (_, __) => const ScannerPage()),
+    GoRoute(path: '/biometric', builder: (_, __) => const BiometricPage()),
   ],
   redirect: (context, state) async {
     final token = await ApiClient.instance.getToken();
     final goingToLogin = state.matchedLocation == '/login';
     if (token == null && !goingToLogin) return '/login';
-    if (token != null && goingToLogin)  return '/';
+    if (token != null && goingToLogin) return '/';
     return null;
   },
 );

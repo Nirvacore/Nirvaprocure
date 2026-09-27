@@ -25,7 +25,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final results = await Future.wait([
         Api.listNotifications(),
@@ -51,7 +54,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
       setState(() {
         _items = _items
             .map((n) => AppNotification(
-                  id: n.id, type: n.type, title: n.title, body: n.body,
+                  id: n.id,
+                  type: n.type,
+                  title: n.title,
+                  body: n.body,
                   createdAt: n.createdAt,
                   readAt: n.readAt ?? DateTime.now().toIso8601String(),
                   refId: n.refId,
@@ -75,8 +81,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
       if (idx >= 0) {
         setState(() {
           _items[idx] = AppNotification(
-            id: n.id, type: n.type, title: n.title, body: n.body,
-            createdAt: n.createdAt, readAt: DateTime.now().toIso8601String(),
+            id: n.id,
+            type: n.type,
+            title: n.title,
+            body: n.body,
+            createdAt: n.createdAt,
+            readAt: DateTime.now().toIso8601String(),
             refId: n.refId,
           );
         });
@@ -143,16 +153,21 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         children: [
                           Expanded(
                             child: Text(l10n.t('notif.recent'),
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                style: const TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold)),
                           ),
                           // Unread-only toggle chip
                           GestureDetector(
-                            onTap: () => setState(() => _unreadOnly = !_unreadOnly),
+                            onTap: () =>
+                                setState(() => _unreadOnly = !_unreadOnly),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: _unreadOnly ? const Color(0xFF2563EB) : Theme.of(context).colorScheme.surface,
+                                color: _unreadOnly
+                                    ? const Color(0xFF2563EB)
+                                    : Theme.of(context).colorScheme.surface,
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: _unreadOnly
@@ -163,7 +178,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.circle, size: 8,
+                                  Icon(Icons.circle,
+                                      size: 8,
                                       color: _unreadOnly
                                           ? Colors.white
                                           : const Color(0xFF2563EB)),
@@ -181,11 +197,13 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                   if (unreadCount > 0) ...[
                                     const SizedBox(width: 5),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 5, vertical: 1),
                                       decoration: BoxDecoration(
                                         color: _unreadOnly
                                             ? Colors.white.withAlpha(50)
-                                            : const Color(0xFF2563EB).withAlpha(20),
+                                            : const Color(0xFF2563EB)
+                                                .withAlpha(20),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Text('$unreadCount',
@@ -212,8 +230,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
                           padding: const EdgeInsets.symmetric(vertical: 40),
                           child: Column(
                             children: [
-                              Icon(Icons.notifications_none, size: 48,
-                                  color: const Color(0xFFD1D5DB)),
+                              Icon(Icons.notifications_none,
+                                  size: 48, color: const Color(0xFFD1D5DB)),
                               const SizedBox(height: 8),
                               Text(
                                 _unreadOnly
@@ -228,7 +246,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         ...List.generate(filtered.length, (i) {
                           final n = filtered[i];
                           return Padding(
-                            padding: EdgeInsets.only(bottom: i < filtered.length - 1 ? 8 : 0),
+                            padding: EdgeInsets.only(
+                                bottom: i < filtered.length - 1 ? 8 : 0),
                             child: _NotificationTile(
                               notification: n,
                               l10n: l10n,
@@ -260,12 +279,15 @@ class _LineStatusCard extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 44, height: 44,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                color: linked ? const Color(0xFF06C755) : const Color(0xFFD97706),
+                color:
+                    linked ? const Color(0xFF06C755) : const Color(0xFFD97706),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 22),
+              child: const Icon(Icons.chat_bubble_outline,
+                  color: Colors.white, size: 22),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -273,13 +295,18 @@ class _LineStatusCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text('LINE',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                      style:
+                          TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 2),
                   Text(
-                    linked ? l10n.t('notif.line.linked') : l10n.t('notif.line.not_linked'),
+                    linked
+                        ? l10n.t('notif.line.linked')
+                        : l10n.t('notif.line.not_linked'),
                     style: TextStyle(
                         fontSize: 13,
-                        color: linked ? const Color(0xFF15803D) : const Color(0xFF92400E)),
+                        color: linked
+                            ? const Color(0xFF15803D)
+                            : const Color(0xFF92400E)),
                   ),
                 ],
               ),
@@ -287,15 +314,20 @@ class _LineStatusCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: linked ? const Color(0xFFDCFCE7) : const Color(0xFFFEF9C3),
+                color:
+                    linked ? const Color(0xFFDCFCE7) : const Color(0xFFFEF9C3),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                linked ? l10n.t('notif.line.status.on') : l10n.t('notif.line.status.off'),
+                linked
+                    ? l10n.t('notif.line.status.on')
+                    : l10n.t('notif.line.status.off'),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: linked ? const Color(0xFF16A34A) : const Color(0xFFCA8A04),
+                  color: linked
+                      ? const Color(0xFF16A34A)
+                      : const Color(0xFFCA8A04),
                 ),
               ),
             ),
@@ -308,36 +340,55 @@ class _LineStatusCard extends StatelessWidget {
 
 // ── Notification tile ────────────────────────────────────────────────────────
 class _NotificationTile extends StatelessWidget {
-  const _NotificationTile({required this.notification, required this.l10n, required this.onTap});
+  const _NotificationTile(
+      {required this.notification, required this.l10n, required this.onTap});
   final AppNotification notification;
   final L10n l10n;
   final VoidCallback onTap;
 
   IconData get _icon {
     switch (notification.type) {
-      case 'approval_needed':   return Icons.how_to_vote;
-      case 'pr_approved':       return Icons.check_circle;
-      case 'pr_rejected':       return Icons.cancel;
-      case 'pr_submitted':      return Icons.send;
-      case 'stock_low':         return Icons.warning_amber;
-      case 'comment':           return Icons.chat_bubble_outline;
-      case 'po_status_changed': return Icons.receipt_long;
-      case 'po_created':        return Icons.receipt_long;
-      default:                  return Icons.notifications;
+      case 'approval_needed':
+        return Icons.how_to_vote;
+      case 'pr_approved':
+        return Icons.check_circle;
+      case 'pr_rejected':
+        return Icons.cancel;
+      case 'pr_submitted':
+        return Icons.send;
+      case 'stock_low':
+        return Icons.warning_amber;
+      case 'comment':
+        return Icons.chat_bubble_outline;
+      case 'po_status_changed':
+        return Icons.receipt_long;
+      case 'po_created':
+        return Icons.receipt_long;
+      default:
+        return Icons.notifications;
     }
   }
 
   Color get _iconColor {
     switch (notification.type) {
-      case 'approval_needed':   return const Color(0xFFD97706);
-      case 'pr_approved':       return const Color(0xFF16A34A);
-      case 'pr_rejected':       return const Color(0xFFDC2626);
-      case 'pr_submitted':      return const Color(0xFF2563EB);
-      case 'stock_low':         return const Color(0xFFF59E0B);
-      case 'comment':           return const Color(0xFF7C3AED);
-      case 'po_status_changed': return const Color(0xFF0284C7);
-      case 'po_created':        return const Color(0xFF0891B2);
-      default:                  return Tokens.gray500;
+      case 'approval_needed':
+        return const Color(0xFFD97706);
+      case 'pr_approved':
+        return const Color(0xFF16A34A);
+      case 'pr_rejected':
+        return const Color(0xFFDC2626);
+      case 'pr_submitted':
+        return const Color(0xFF2563EB);
+      case 'stock_low':
+        return const Color(0xFFF59E0B);
+      case 'comment':
+        return const Color(0xFF7C3AED);
+      case 'po_status_changed':
+        return const Color(0xFF0284C7);
+      case 'po_created':
+        return const Color(0xFF0891B2);
+      default:
+        return Tokens.gray500;
     }
   }
 
@@ -355,7 +406,9 @@ class _NotificationTile extends StatelessWidget {
     final isUnread = notification.readAt == null;
     return Card(
       elevation: 0,
-      color: isUnread ? const Color(0xFFF0F7FF) : Theme.of(context).colorScheme.surface,
+      color: isUnread
+          ? const Color(0xFFF0F7FF)
+          : Theme.of(context).colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
         side: BorderSide(color: Tokens.gray200),
@@ -369,7 +422,8 @@ class _NotificationTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 38, height: 38,
+                width: 38,
+                height: 38,
                 decoration: BoxDecoration(
                   color: _iconColor.withAlpha(25),
                   borderRadius: BorderRadius.circular(10),
@@ -384,14 +438,16 @@ class _NotificationTile extends StatelessWidget {
                     Text(notification.title,
                         style: TextStyle(
                           fontSize: 14,
-                          fontWeight: isUnread ? FontWeight.w600 : FontWeight.normal,
+                          fontWeight:
+                              isUnread ? FontWeight.w600 : FontWeight.normal,
                         )),
                     if (notification.body != null) ...[
                       const SizedBox(height: 2),
                       Text(notification.body!,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 13, color: Tokens.gray500)),
+                          style:
+                              TextStyle(fontSize: 13, color: Tokens.gray500)),
                     ],
                   ],
                 ),
@@ -400,11 +456,13 @@ class _NotificationTile extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(_timeAgo(), style: TextStyle(fontSize: 12, color: Tokens.gray500)),
+                  Text(_timeAgo(),
+                      style: TextStyle(fontSize: 12, color: Tokens.gray500)),
                   if (isUnread) ...[
                     const SizedBox(height: 6),
                     Container(
-                      width: 8, height: 8,
+                      width: 8,
+                      height: 8,
                       decoration: const BoxDecoration(
                           color: Color(0xFF2563EB), shape: BoxShape.circle),
                     ),

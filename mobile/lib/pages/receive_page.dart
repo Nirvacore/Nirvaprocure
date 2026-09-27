@@ -51,13 +51,16 @@ class _ReceivePageState extends State<ReceivePage> {
                     SizedBox(height: MediaQuery.of(context).size.height * 0.3),
                     Center(
                       child: Column(children: [
-                        const Icon(Icons.check_circle_outline, size: 56, color: Color(0xFFD1D5DB)),
+                        const Icon(Icons.check_circle_outline,
+                            size: 56, color: Color(0xFFD1D5DB)),
                         const SizedBox(height: 12),
                         Text(l10n.t('gr.empty'),
-                            style: const TextStyle(fontSize: 16, color: Tokens.gray500)),
+                            style: const TextStyle(
+                                fontSize: 16, color: Tokens.gray500)),
                         const SizedBox(height: 4),
                         Text(l10n.t('gr.empty_sub'),
-                            style: const TextStyle(fontSize: 13, color: Color(0xFFD1D5DB))),
+                            style: const TextStyle(
+                                fontSize: 13, color: Color(0xFFD1D5DB))),
                       ]),
                     ),
                   ])
@@ -110,7 +113,8 @@ class _ApprovedPrCardState extends State<_ApprovedPrCard> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(l10n.t('gr.confirm_title')),
-        content: Text(l10n.t('gr.confirm_msg').replaceAll('{pr}', widget.pr.prNumber)),
+        content: Text(
+            l10n.t('gr.confirm_msg').replaceAll('{pr}', widget.pr.prNumber)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -121,7 +125,8 @@ class _ApprovedPrCardState extends State<_ApprovedPrCard> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Tokens.success,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
             ),
             child: Text(l10n.t('gr.confirm_btn')),
           ),
@@ -134,17 +139,15 @@ class _ApprovedPrCardState extends State<_ApprovedPrCard> {
     try {
       // Build line items from detail
       final items = (_detail?['items'] as List?) ?? [];
-      final lines = items
-          .where((it) => (it as Map)['item_id'] != null)
-          .map((it) {
-            final m = it as Map<String, dynamic>;
-            return {
-              'line_item_id': m['id'],
-              'item_id': m['item_id'],
-              'quantity': m['quantity'],
-            };
-          })
-          .toList();
+      final lines =
+          items.where((it) => (it as Map)['item_id'] != null).map((it) {
+        final m = it as Map<String, dynamic>;
+        return {
+          'line_item_id': m['id'],
+          'item_id': m['item_id'],
+          'quantity': m['quantity'],
+        };
+      }).toList();
 
       await ApiClient.instance.raw.post('/pr/${widget.pr.id}/receive', data: {
         'warehouse_id': 'default', // Will use the first warehouse
@@ -152,7 +155,8 @@ class _ApprovedPrCardState extends State<_ApprovedPrCard> {
       });
 
       messenger.showSnackBar(SnackBar(
-        content: Text(l10n.t('gr.toast.success').replaceAll('{pr}', widget.pr.prNumber)),
+        content: Text(
+            l10n.t('gr.toast.success').replaceAll('{pr}', widget.pr.prNumber)),
         backgroundColor: Tokens.success,
       ));
       widget.onReceived();
@@ -189,12 +193,14 @@ class _ApprovedPrCardState extends State<_ApprovedPrCard> {
               child: Row(
                 children: [
                   Container(
-                    width: 44, height: 44,
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
                       color: const Color(0xFFDCFCE7),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.local_shipping, color: Color(0xFF16A34A), size: 22),
+                    child: const Icon(Icons.local_shipping,
+                        color: Color(0xFF16A34A), size: 22),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -202,11 +208,14 @@ class _ApprovedPrCardState extends State<_ApprovedPrCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(widget.pr.title,
-                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                            maxLines: 1, overflow: TextOverflow.ellipsis),
+                            style: const TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.w600),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis),
                         const SizedBox(height: 2),
                         Text(widget.pr.prNumber,
-                            style: const TextStyle(fontSize: 12, color: Tokens.gray500)),
+                            style: const TextStyle(
+                                fontSize: 12, color: Tokens.gray500)),
                       ],
                     ),
                   ),
@@ -230,28 +239,35 @@ class _ApprovedPrCardState extends State<_ApprovedPrCard> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                 child: Text(l10n.t('detail.items'),
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.gray500)),
+                    style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Tokens.gray500)),
               ),
               ...(_detail!['items'] as List? ?? []).map((it) {
                 final m = it as Map<String, dynamic>;
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   child: Row(
                     children: [
-                      const Icon(Icons.inventory_2_outlined, size: 18, color: Tokens.gray500),
+                      const Icon(Icons.inventory_2_outlined,
+                          size: 18, color: Tokens.gray500),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(m['description'] as String? ?? '—',
                             style: const TextStyle(fontSize: 14)),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: Tokens.gray100,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text('× ${m['quantity']}',
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                            style: const TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.w600)),
                       ),
                     ],
                   ),
@@ -267,14 +283,20 @@ class _ApprovedPrCardState extends State<_ApprovedPrCard> {
                   child: ElevatedButton.icon(
                     onPressed: _confirming ? null : _confirmReceive,
                     icon: _confirming
-                        ? const SizedBox(width: 18, height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white))
                         : const Icon(Icons.check_circle, size: 20),
-                    label: Text(_confirming ? l10n.t('common.loading') : l10n.t('gr.confirm_btn')),
+                    label: Text(_confirming
+                        ? l10n.t('common.loading')
+                        : l10n.t('gr.confirm_btn')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Tokens.success,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                 ),

@@ -17,7 +17,8 @@ class PrDetailPage extends StatefulWidget {
 
 class _PrDetailPageState extends State<PrDetailPage> {
   late Future<Map<String, dynamic>> _future;
-  static final _baht = NumberFormat.currency(locale: 'en_US', symbol: '฿ ', decimalDigits: 2);
+  static final _baht =
+      NumberFormat.currency(locale: 'en_US', symbol: '฿ ', decimalDigits: 2);
 
   @override
   void initState() {
@@ -42,17 +43,19 @@ class _PrDetailPageState extends State<PrDetailPage> {
         future: _future,
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+            return const Center(
+                child: CircularProgressIndicator(strokeWidth: 2));
           }
           if (snap.hasError) {
-            return Center(child: Padding(
+            return Center(
+                child: Padding(
               padding: const EdgeInsets.all(24),
               child: Text('${l10n.t('err.load')}: ${snap.error}',
                   textAlign: TextAlign.center),
             ));
           }
           final pr = snap.data!;
-          final items    = (pr['items'] as List?) ?? const [];
+          final items = (pr['items'] as List?) ?? const [];
           final approval = pr['approval'] as Map<String, dynamic>?;
           return ListView(
             padding: const EdgeInsets.all(16),
@@ -63,8 +66,8 @@ class _PrDetailPageState extends State<PrDetailPage> {
                 title: l10n.t('detail.items'),
                 child: Column(
                   children: items
-                      .map<Widget>((it) =>
-                          _ItemRow(item: it as Map<String, dynamic>, baht: _baht))
+                      .map<Widget>((it) => _ItemRow(
+                          item: it as Map<String, dynamic>, baht: _baht))
                       .toList(),
                 ),
               ),
@@ -88,9 +91,9 @@ class _PrDetailPageState extends State<PrDetailPage> {
               _LinkedPoCard(prId: widget.id),
               const SizedBox(height: 12),
               if (pr['status'] == 'approved')
-                _CreatePoButton(prId: widget.id, prNumber: pr['pr_number'] as String),
-              if (pr['status'] == 'approved')
-                const SizedBox(height: 12),
+                _CreatePoButton(
+                    prId: widget.id, prNumber: pr['pr_number'] as String),
+              if (pr['status'] == 'approved') const SizedBox(height: 12),
               _CommentsSection(prId: widget.id),
             ],
           );
@@ -123,14 +126,16 @@ class _HeaderCard extends StatelessWidget {
                 style: const TextStyle(fontSize: 12, color: Tokens.gray500)),
             const SizedBox(height: 4),
             Text(pr['title'] as String,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                style:
+                    const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _StatusChip(status: pr['status'] as String),
                 Text(baht.format(amount / 100),
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold)),
               ],
             ),
           ],
@@ -158,7 +163,9 @@ class _SectionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(title,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             child,
           ],
@@ -175,7 +182,7 @@ class _ItemRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final qty       = item['quantity'] as num;
+    final qty = item['quantity'] as num;
     final unitPrice = item['unit_price_minor'] as int;
     final lineTotal = item['line_total_minor'] as int;
     return Padding(
@@ -188,10 +195,12 @@ class _ItemRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(item['description'] as String,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 2),
                 Text('$qty × ${baht.format(unitPrice / 100)}',
-                    style: const TextStyle(color: Tokens.gray500, fontSize: 13)),
+                    style:
+                        const TextStyle(color: Tokens.gray500, fontSize: 13)),
               ],
             ),
           ),
@@ -209,29 +218,30 @@ class _ApprovalTrail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n      = L10n.of(context);
+    final l10n = L10n.of(context);
     final decisions = (approval['decisions'] as List?) ?? const [];
-    final status    = approval['status'] as String?;
-    final children  = <Widget>[];
+    final status = approval['status'] as String?;
+    final children = <Widget>[];
 
     for (final d in decisions) {
-      final dec      = d as Map<String, dynamic>;
+      final dec = d as Map<String, dynamic>;
       final approved = dec['decision'] == 'approved';
-      final by       = dec['approver_id'] as String? ?? '';
+      final by = dec['approver_id'] as String? ?? '';
       children.add(_TrailStep(
         icon: approved ? Icons.check : Icons.close,
         iconColor: approved ? Tokens.success : Tokens.danger,
-        iconBg:    approved ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
-        title: l10n.t(approved ? 'trail.approved' : 'trail.rejected', {'by': by}),
+        iconBg: approved ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
+        title:
+            l10n.t(approved ? 'trail.approved' : 'trail.rejected', {'by': by}),
         subtitle: '$by · ${dec['decided_at']}',
       ));
     }
     if (status == 'pending') {
       children.add(_TrailStep(
-        icon:      Icons.schedule,
+        icon: Icons.schedule,
         iconColor: const Color(0xFFB45309),
-        iconBg:    const Color(0xFFFEF3C7),
-        title:    l10n.t('trail.awaiting_next'),
+        iconBg: const Color(0xFFFEF3C7),
+        title: l10n.t('trail.awaiting_next'),
         subtitle: l10n.t('trail.waiting'),
       ));
     }
@@ -239,14 +249,18 @@ class _ApprovalTrail extends StatelessWidget {
       children.add(Text(l10n.t('trail.none'),
           style: const TextStyle(color: Tokens.gray500)));
     }
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
+    return Column(
+        crossAxisAlignment: CrossAxisAlignment.start, children: children);
   }
 }
 
 class _TrailStep extends StatelessWidget {
   const _TrailStep({
-    required this.icon, required this.iconColor, required this.iconBg,
-    required this.title, required this.subtitle,
+    required this.icon,
+    required this.iconColor,
+    required this.iconBg,
+    required this.title,
+    required this.subtitle,
   });
   final IconData icon;
   final Color iconColor, iconBg;
@@ -260,7 +274,8 @@ class _TrailStep extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 36, height: 36,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
             child: Icon(icon, color: iconColor, size: 20),
           ),
@@ -269,8 +284,12 @@ class _TrailStep extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                Text(subtitle, style: const TextStyle(color: Tokens.gray500, fontSize: 13)),
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w600)),
+                Text(subtitle,
+                    style:
+                        const TextStyle(color: Tokens.gray500, fontSize: 13)),
               ],
             ),
           ),
@@ -286,18 +305,24 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n  = L10n.of(context);
+    final l10n = L10n.of(context);
     final label = l10n.t('status.$status');
     final (bg, fg) = switch (status) {
-      'pending' || 'in_approval' => (const Color(0xFFFEF3C7), const Color(0xFF92400E)),
-      'approved'                  => (const Color(0xFFDCFCE7), const Color(0xFF166534)),
-      'rejected'                  => (const Color(0xFFFEE2E2), const Color(0xFF991B1B)),
-      _                           => (Tokens.gray100,           Tokens.gray700),
+      'pending' || 'in_approval' => (
+          const Color(0xFFFEF3C7),
+          const Color(0xFF92400E)
+        ),
+      'approved' => (const Color(0xFFDCFCE7), const Color(0xFF166534)),
+      'rejected' => (const Color(0xFFFEE2E2), const Color(0xFF991B1B)),
+      _ => (Tokens.gray100, Tokens.gray700),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
-      child: Text(label, style: TextStyle(color: fg, fontWeight: FontWeight.w600, fontSize: 13)),
+      decoration:
+          BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
+      child: Text(label,
+          style:
+              TextStyle(color: fg, fontWeight: FontWeight.w600, fontSize: 13)),
     );
   }
 }
@@ -315,10 +340,10 @@ class _CommentsSection extends StatefulWidget {
 }
 
 class _CommentsSectionState extends State<_CommentsSection> {
-  List<PrComment>? _items;   // null = loading
+  List<PrComment>? _items; // null = loading
   String? _loadError;
-  final _ctrl    = TextEditingController();
-  bool  _sending = false;
+  final _ctrl = TextEditingController();
+  bool _sending = false;
 
   static final _timeFmt = DateFormat('d MMM, HH:mm');
 
@@ -337,9 +362,17 @@ class _CommentsSectionState extends State<_CommentsSection> {
   Future<void> _load() async {
     try {
       final list = await Api.listComments(widget.prId);
-      if (mounted) setState(() { _items = list; _loadError = null; });
+      if (mounted)
+        setState(() {
+          _items = list;
+          _loadError = null;
+        });
     } catch (e) {
-      if (mounted) setState(() { _items = []; _loadError = e.toString(); });
+      if (mounted)
+        setState(() {
+          _items = [];
+          _loadError = e.toString();
+        });
     }
   }
 
@@ -347,17 +380,21 @@ class _CommentsSectionState extends State<_CommentsSection> {
     final text = _ctrl.text.trim();
     if (text.isEmpty || _sending) return;
 
-    final l10n      = L10n.of(context);
+    final l10n = L10n.of(context);
     final messenger = ScaffoldMessenger.of(context);
 
     // Optimistic insert with a temp id.
     final tempId = 'temp-${DateTime.now().millisecondsSinceEpoch}';
     final temp = PrComment(
-      id: tempId, body: text,
+      id: tempId,
+      body: text,
       createdAt: DateTime.now().toIso8601String(),
-      authorId: '', authorName: '…',
+      authorId: '',
+      authorName: '…',
     );
-    setState(() { _items = [...?_items, temp]; });
+    setState(() {
+      _items = [...?_items, temp];
+    });
     _ctrl.clear();
     setState(() => _sending = true);
 
@@ -365,7 +402,8 @@ class _CommentsSectionState extends State<_CommentsSection> {
       final saved = await Api.addComment(widget.prId, text);
       if (mounted) {
         setState(() {
-          _items = (_items ?? []).map((c) => c.id == tempId ? saved : c).toList();
+          _items =
+              (_items ?? []).map((c) => c.id == tempId ? saved : c).toList();
         });
       }
     } catch (e) {
@@ -399,12 +437,14 @@ class _CommentsSectionState extends State<_CommentsSection> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(children: [
-              const Icon(Icons.chat_bubble_outline, size: 20, color: Tokens.gray500),
+              const Icon(Icons.chat_bubble_outline,
+                  size: 20, color: Tokens.gray500),
               const SizedBox(width: 8),
               Text(
                 '${l10n.t('comments.title')}'
                 '${_items != null ? ' (${_items!.length})' : ''}',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ]),
             const SizedBox(height: 12),
@@ -421,7 +461,8 @@ class _CommentsSectionState extends State<_CommentsSection> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(l10n.t('comments.empty'),
-                    style: const TextStyle(color: Tokens.gray500, fontSize: 14)),
+                    style:
+                        const TextStyle(color: Tokens.gray500, fontSize: 14)),
               )
             else
               ListView.separated(
@@ -437,14 +478,17 @@ class _CommentsSectionState extends State<_CommentsSection> {
                     children: [
                       // Avatar circle
                       Container(
-                        width: 36, height: 36,
+                        width: 36,
+                        height: 36,
                         decoration: const BoxDecoration(
                           color: Tokens.brand100,
                           shape: BoxShape.circle,
                         ),
                         child: Center(
                           child: Text(
-                            c.authorName.isNotEmpty ? c.authorName[0].toUpperCase() : '?',
+                            c.authorName.isNotEmpty
+                                ? c.authorName[0].toUpperCase()
+                                : '?',
                             style: const TextStyle(
                               color: Tokens.brand600,
                               fontWeight: FontWeight.bold,
@@ -462,17 +506,23 @@ class _CommentsSectionState extends State<_CommentsSection> {
                             children: [
                               Row(children: [
                                 Text(c.authorName,
-                                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w600)),
                                 const SizedBox(width: 8),
                                 Text(
-                                  isTemp ? '…'
-                                    : _timeFmt.format(DateTime.parse(c.createdAt).toLocal()),
-                                  style: const TextStyle(fontSize: 12, color: Tokens.gray500),
+                                  isTemp
+                                      ? '…'
+                                      : _timeFmt.format(
+                                          DateTime.parse(c.createdAt)
+                                              .toLocal()),
+                                  style: const TextStyle(
+                                      fontSize: 12, color: Tokens.gray500),
                                 ),
                               ]),
                               const SizedBox(height: 4),
                               Text(c.body,
-                                  style: const TextStyle(fontSize: 14, height: 1.5)),
+                                  style: const TextStyle(
+                                      fontSize: 14, height: 1.5)),
                             ],
                           ),
                         ),
@@ -486,7 +536,8 @@ class _CommentsSectionState extends State<_CommentsSection> {
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text('(${l10n.t('comments.load_failed')})',
-                    style: const TextStyle(fontSize: 11, color: Tokens.gray500)),
+                    style:
+                        const TextStyle(fontSize: 11, color: Tokens.gray500)),
               ),
 
             const SizedBox(height: 16),
@@ -503,7 +554,8 @@ class _CommentsSectionState extends State<_CommentsSection> {
                   textInputAction: TextInputAction.newline,
                   decoration: InputDecoration(
                     hintText: l10n.t('comments.placeholder'),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 12),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(color: Tokens.gray200),
@@ -525,14 +577,17 @@ class _CommentsSectionState extends State<_CommentsSection> {
                     backgroundColor: Tokens.brand600,
                   ),
                   child: _sending
-                    ? const SizedBox(width: 20, height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : Row(mainAxisSize: MainAxisSize.min, children: [
-                        const Icon(Icons.send, size: 18, color: Colors.white),
-                        const SizedBox(width: 6),
-                        Text(l10n.t('common.send'),
-                            style: const TextStyle(color: Colors.white)),
-                      ]),
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white))
+                      : Row(mainAxisSize: MainAxisSize.min, children: [
+                          const Icon(Icons.send, size: 18, color: Colors.white),
+                          const SizedBox(width: 6),
+                          Text(l10n.t('common.send'),
+                              style: const TextStyle(color: Colors.white)),
+                        ]),
                 ),
               ),
             ]),
@@ -594,11 +649,13 @@ class _AttachmentsSectionState extends State<_AttachmentsSection> {
               Text(
                 '${l10n.t('attach.title')}'
                 '${_items != null ? ' (${_items!.length})' : ''}',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
               IconButton(
-                icon: Icon(Icons.add_circle_outline, color: cs.primary, size: 22),
+                icon:
+                    Icon(Icons.add_circle_outline, color: cs.primary, size: 22),
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(l10n.t('attach.upload_todo'))),
@@ -608,12 +665,16 @@ class _AttachmentsSectionState extends State<_AttachmentsSection> {
             ]),
             const SizedBox(height: 8),
             if (_items == null)
-              const Center(child: Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator(strokeWidth: 2)))
+              const Center(
+                  child: Padding(
+                      padding: EdgeInsets.all(12),
+                      child: CircularProgressIndicator(strokeWidth: 2)))
             else if (_items!.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(l10n.t('attach.empty'),
-                    style: const TextStyle(color: Tokens.gray500, fontSize: 14)),
+                    style:
+                        const TextStyle(color: Tokens.gray500, fontSize: 14)),
               )
             else
               ...(_items!.map((a) => Padding(
@@ -626,13 +687,19 @@ class _AttachmentsSectionState extends State<_AttachmentsSection> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(a.fileName, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                              Text(a.sizeLabel, style: const TextStyle(fontSize: 11, color: Tokens.gray500)),
+                              Text(a.fileName,
+                                  style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500)),
+                              Text(a.sizeLabel,
+                                  style: const TextStyle(
+                                      fontSize: 11, color: Tokens.gray500)),
                             ],
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete_outline, size: 18, color: Tokens.gray500),
+                          icon: const Icon(Icons.delete_outline,
+                              size: 18, color: Tokens.gray500),
                           onPressed: () async {
                             try {
                               await Api.deleteAttachment(widget.prId, a.id);
@@ -689,10 +756,14 @@ class _CreatePoButtonState extends State<_CreatePoButton> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(l10n.t('po_create_heading'),
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: cs.onSurface)),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: cs.onSurface)),
                   const SizedBox(height: 2),
                   Text(l10n.t('po_create_desc'),
-                      style: TextStyle(fontSize: 12, color: cs.onSurface.withAlpha(153))),
+                      style: TextStyle(
+                          fontSize: 12, color: cs.onSurface.withAlpha(153))),
                 ],
               ),
             ),
@@ -700,12 +771,17 @@ class _CreatePoButtonState extends State<_CreatePoButton> {
             FilledButton(
               onPressed: _creating ? null : _createPo,
               style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
               ),
               child: _creating
-                  ? const SizedBox(width: 18, height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
                   : Text(l10n.t('po_create_btn')),
             ),
           ],
@@ -763,7 +839,10 @@ class _LinkedPoCardState extends State<_LinkedPoCard> {
       final list = await Api.listPo();
       final match = list.where((p) => p.prId == widget.prId).toList();
       if (match.isNotEmpty && mounted) {
-        setState(() { _po = match.first; _loaded = true; });
+        setState(() {
+          _po = match.first;
+          _loaded = true;
+        });
       } else {
         if (mounted) setState(() => _loaded = true);
       }
@@ -774,12 +853,18 @@ class _LinkedPoCardState extends State<_LinkedPoCard> {
 
   Color _statusColor(String s) {
     switch (s) {
-      case 'draft':       return Tokens.gray500;
-      case 'sent':        return Colors.blue;
-      case 'acknowledged': return Colors.teal;
-      case 'completed':   return Colors.green;
-      case 'cancelled':   return Colors.red;
-      default:            return Colors.orange;
+      case 'draft':
+        return Tokens.gray500;
+      case 'sent':
+        return Colors.blue;
+      case 'acknowledged':
+        return Colors.teal;
+      case 'completed':
+        return Colors.green;
+      case 'cancelled':
+        return Colors.red;
+      default:
+        return Colors.orange;
     }
   }
 
@@ -805,36 +890,45 @@ class _LinkedPoCardState extends State<_LinkedPoCard> {
           child: Row(
             children: [
               Container(
-                width: 40, height: 40,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: const Color(0xFFE0F2FE),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.receipt_long, color: Color(0xFF0284C7), size: 22),
+                child: const Icon(Icons.receipt_long,
+                    color: Color(0xFF0284C7), size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(po.poNumber, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                    Text(po.poNumber,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 15)),
                     const SizedBox(height: 2),
                     Text(
                       '${po.currency} ${(po.totalMinor / 100).toStringAsFixed(2)}',
-                      style: TextStyle(fontSize: 13, color: cs.onSurface.withAlpha(153)),
+                      style: TextStyle(
+                          fontSize: 13, color: cs.onSurface.withAlpha(153)),
                     ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: _statusColor(po.status).withAlpha(30),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   t('po_status_${po.status}'),
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _statusColor(po.status)),
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: _statusColor(po.status)),
                 ),
               ),
               const SizedBox(width: 4),

@@ -13,7 +13,8 @@ class AnalyticsPage extends StatefulWidget {
 
 class _AnalyticsPageState extends State<AnalyticsPage> {
   late Future<Map<String, dynamic>> _future;
-  static final _baht = NumberFormat.currency(locale: 'en_US', symbol: '฿ ', decimalDigits: 2);
+  static final _baht =
+      NumberFormat.currency(locale: 'en_US', symbol: '฿ ', decimalDigits: 2);
 
   @override
   void initState() {
@@ -40,31 +41,40 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
           future: _future,
           builder: (context, snap) {
             if (snap.connectionState != ConnectionState.done) {
-              return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+              return const Center(
+                  child: CircularProgressIndicator(strokeWidth: 2));
             }
             if (snap.hasError) {
-              return Center(child: Padding(
+              return Center(
+                  child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text('${l10n.t('err.load')}: ${snap.error}',
                     textAlign: TextAlign.center),
               ));
             }
             final d = snap.data!;
-            final counts      = (d['pr_counts']     as Map?)?.cast<String, dynamic>() ?? {};
-            final spendMinor  = (d['approved_spend_minor'] as num?)?.toInt() ?? 0;
-            final slaHours    = d['avg_approval_hours'] as num?;
-            final suppliers   = (d['top_suppliers']  as List?)?.cast<Map<String, dynamic>>() ?? [];
-            final departments = (d['by_department']  as List?)?.cast<Map<String, dynamic>>() ?? [];
+            final counts =
+                (d['pr_counts'] as Map?)?.cast<String, dynamic>() ?? {};
+            final spendMinor =
+                (d['approved_spend_minor'] as num?)?.toInt() ?? 0;
+            final slaHours = d['avg_approval_hours'] as num?;
+            final suppliers =
+                (d['top_suppliers'] as List?)?.cast<Map<String, dynamic>>() ??
+                    [];
+            final departments =
+                (d['by_department'] as List?)?.cast<Map<String, dynamic>>() ??
+                    [];
 
             // Max dept spend for bar chart scaling.
             final maxDept = departments.isEmpty
                 ? 1
-                : departments.map((x) => (x['spend_minor'] as num).toInt()).reduce((a, b) => a > b ? a : b);
+                : departments
+                    .map((x) => (x['spend_minor'] as num).toInt())
+                    .reduce((a, b) => a > b ? a : b);
 
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
-
                 // ── Stat cards 2×2 grid ──────────────────────────────────
                 GridView.count(
                   crossAxisCount: 2,
@@ -76,7 +86,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                   children: [
                     _StatCard(
                       label: l10n.t('analytics.stat.total'),
-                      value: '${(counts['in_approval'] ?? 0) + (counts['approved'] ?? 0) + (counts['rejected'] ?? 0)}',
+                      value:
+                          '${(counts['in_approval'] ?? 0) + (counts['approved'] ?? 0) + (counts['rejected'] ?? 0)}',
                       color: Tokens.brand600,
                       bg: Tokens.brand100,
                       icon: Icons.description_outlined,
@@ -112,11 +123,14 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                   _SectionCard(
                     title: l10n.t('analytics.sla.label'),
                     child: Row(children: [
-                      const Icon(Icons.timer_outlined, size: 28, color: Tokens.brand600),
+                      const Icon(Icons.timer_outlined,
+                          size: 28, color: Tokens.brand600),
                       const SizedBox(width: 12),
                       Text(
-                        l10n.t('analytics.sla.value', {'hours': slaHours.toStringAsFixed(1)}),
-                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                        l10n.t('analytics.sla.value',
+                            {'hours': slaHours.toStringAsFixed(1)}),
+                        style: const TextStyle(
+                            fontSize: 28, fontWeight: FontWeight.bold),
                       ),
                     ]),
                   ),
@@ -130,26 +144,32 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                           style: const TextStyle(color: Tokens.gray500))
                       : Column(
                           children: departments.map<Widget>((dept) {
-                            final name  = (dept['department'] as String?) ?? l10n.t('analytics.unspecified');
+                            final name = (dept['department'] as String?) ??
+                                l10n.t('analytics.unspecified');
                             final spend = (dept['spend_minor'] as num).toInt();
                             final count = dept['pr_count'] as int? ?? 0;
-                            final pct   = spend / maxDept;
+                            final pct = spend / maxDept;
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 6),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Expanded(
                                         child: Text(name,
-                                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                                            style: const TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w600),
                                             overflow: TextOverflow.ellipsis),
                                       ),
                                       const SizedBox(width: 8),
                                       Text(_baht.format(spend / 100),
-                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                          style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold)),
                                     ],
                                   ),
                                   const SizedBox(height: 4),
@@ -163,8 +183,11 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                     ),
                                   ),
                                   const SizedBox(height: 2),
-                                  Text(l10n.t('analytics.pr_count', {'count': '$count'}),
-                                      style: const TextStyle(fontSize: 11, color: Tokens.gray500)),
+                                  Text(
+                                      l10n.t('analytics.pr_count',
+                                          {'count': '$count'}),
+                                      style: const TextStyle(
+                                          fontSize: 11, color: Tokens.gray500)),
                                 ],
                               ),
                             );
@@ -181,16 +204,17 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                           style: const TextStyle(color: Tokens.gray500))
                       : Column(
                           children: suppliers.asMap().entries.map<Widget>((e) {
-                            final i      = e.key;
-                            final s      = e.value;
-                            final name   = s['name'] as String? ?? '—';
-                            final spend  = (s['spend_minor'] as num).toInt();
-                            final count  = s['po_count'] as int? ?? 0;
+                            final i = e.key;
+                            final s = e.value;
+                            final name = s['name'] as String? ?? '—';
+                            final spend = (s['spend_minor'] as num).toInt();
+                            final count = s['po_count'] as int? ?? 0;
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 8),
                               child: Row(children: [
                                 Container(
-                                  width: 32, height: 32,
+                                  width: 32,
+                                  height: 32,
                                   decoration: BoxDecoration(
                                     color: Tokens.gray100,
                                     shape: BoxShape.circle,
@@ -203,17 +227,25 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                   ),
                                 ),
                                 const SizedBox(width: 12),
-                                Expanded(child: Column(
+                                Expanded(
+                                    child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(name, style: const TextStyle(fontWeight: FontWeight.w600),
+                                    Text(name,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w600),
                                         overflow: TextOverflow.ellipsis),
-                                    Text(l10n.t('analytics.po_count', {'count': '$count'}),
-                                        style: const TextStyle(fontSize: 12, color: Tokens.gray500)),
+                                    Text(
+                                        l10n.t('analytics.po_count',
+                                            {'count': '$count'}),
+                                        style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Tokens.gray500)),
                                   ],
                                 )),
                                 Text(_baht.format(spend / 100),
-                                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold)),
                               ]),
                             );
                           }).toList(),
@@ -231,8 +263,12 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 
 class _StatCard extends StatelessWidget {
   const _StatCard({
-    required this.label, required this.value, required this.color,
-    required this.bg, required this.icon, this.smallText = false,
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.bg,
+    required this.icon,
+    this.smallText = false,
   });
   final String label, value;
   final Color color, bg;
@@ -255,7 +291,8 @@ class _StatCard extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: TextStyle(fontSize: 11, color: color.withAlpha(204))),
+              Text(label,
+                  style: TextStyle(fontSize: 11, color: color.withAlpha(204))),
               Text(value,
                   style: TextStyle(
                     fontSize: smallText ? 14 : 22,
@@ -290,7 +327,9 @@ class _SectionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(title,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             child,
           ],

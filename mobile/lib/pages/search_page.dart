@@ -41,10 +41,15 @@ class _SearchPageState extends State<SearchPage> {
   void _onChanged(String q) {
     _debounce?.cancel();
     if (q.trim().length < 2) {
-      setState(() { _prs = []; _suppliers = []; _hasSearched = false; });
+      setState(() {
+        _prs = [];
+        _suppliers = [];
+        _hasSearched = false;
+      });
       return;
     }
-    _debounce = Timer(const Duration(milliseconds: 400), () => _search(q.trim()));
+    _debounce =
+        Timer(const Duration(milliseconds: 400), () => _search(q.trim()));
   }
 
   Future<void> _search(String q) async {
@@ -98,7 +103,8 @@ class _SearchPageState extends State<SearchPage> {
             style: const TextStyle(fontSize: 15),
             decoration: InputDecoration(
               hintText: l10n.t('search.hint'),
-              hintStyle: const TextStyle(fontSize: 15, color: Color(0xFFD1D5DB)),
+              hintStyle:
+                  const TextStyle(fontSize: 15, color: Color(0xFFD1D5DB)),
               prefixIcon: const Icon(Icons.search, size: 20),
               suffixIcon: _controller.text.isNotEmpty
                   ? IconButton(
@@ -201,7 +207,10 @@ class _NoResults extends StatelessWidget {
               style: const TextStyle(fontSize: 16, color: Tokens.gray500)),
           const SizedBox(height: 4),
           Text('"$query"',
-              style: const TextStyle(fontSize: 14, color: Color(0xFFD1D5DB), fontStyle: FontStyle.italic)),
+              style: const TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFFD1D5DB),
+                  fontStyle: FontStyle.italic)),
         ],
       ),
     );
@@ -210,7 +219,11 @@ class _NoResults extends StatelessWidget {
 
 // ── Section header ──────────────────────────────────────────────────────────
 class _ResultHeader extends StatelessWidget {
-  const _ResultHeader({required this.title, required this.count, required this.icon, required this.color});
+  const _ResultHeader(
+      {required this.title,
+      required this.count,
+      required this.icon,
+      required this.color});
   final String title;
   final int count;
   final IconData icon;
@@ -222,12 +235,17 @@ class _ResultHeader extends StatelessWidget {
       children: [
         Icon(icon, size: 18, color: color),
         const SizedBox(width: 8),
-        Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+        Text(title,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
         const SizedBox(width: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          decoration: BoxDecoration(color: color.withAlpha(20), borderRadius: BorderRadius.circular(10)),
-          child: Text('$count', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color)),
+          decoration: BoxDecoration(
+              color: color.withAlpha(20),
+              borderRadius: BorderRadius.circular(10)),
+          child: Text('$count',
+              style: TextStyle(
+                  fontSize: 11, fontWeight: FontWeight.bold, color: color)),
         ),
       ],
     );
@@ -240,11 +258,11 @@ class _PrTile extends StatelessWidget {
   final PrSummary pr;
 
   Color _statusColor(String s) => switch (s) {
-    'approved' => const Color(0xFF16A34A),
-    'rejected' => const Color(0xFFDC2626),
-    'pending' => const Color(0xFFD97706),
-    _ => const Color(0xFF6B7280),
-  };
+        'approved' => const Color(0xFF16A34A),
+        'rejected' => const Color(0xFFDC2626),
+        'pending' => const Color(0xFFD97706),
+        _ => const Color(0xFF6B7280),
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -264,28 +282,37 @@ class _PrTile extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  width: 40, height: 40,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: Tokens.brand600.withAlpha(15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.receipt_long, size: 20, color: Tokens.brand600),
+                  child: const Icon(Icons.receipt_long,
+                      size: 20, color: Tokens.brand600),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(pr.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                          maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(pr.title,
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w500),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 2),
-                      Text(pr.prNumber, style: const TextStyle(fontSize: 12, color: Tokens.gray500)),
+                      Text(pr.prNumber,
+                          style: const TextStyle(
+                              fontSize: 12, color: Tokens.gray500)),
                     ],
                   ),
                 ),
                 Container(
-                  width: 8, height: 8,
-                  decoration: BoxDecoration(shape: BoxShape.circle, color: _statusColor(pr.status)),
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                      shape: BoxShape.circle, color: _statusColor(pr.status)),
                 ),
               ],
             ),
@@ -314,45 +341,57 @@ class _SupplierTile extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
           onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => SupplierDetailPage(supplier: supplier)),
+            MaterialPageRoute(
+                builder: (_) => SupplierDetailPage(supplier: supplier)),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
               children: [
                 Container(
-                  width: 40, height: 40,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: const Color(0xFF059669).withAlpha(15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.storefront, size: 20, color: Color(0xFF059669)),
+                  child: const Icon(Icons.storefront,
+                      size: 20, color: Color(0xFF059669)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(supplier.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                          maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(supplier.name,
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w500),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 2),
                       Text(supplier.code,
-                          style: const TextStyle(fontSize: 12, color: Tokens.gray500, fontFamily: 'monospace')),
+                          style: const TextStyle(
+                              fontSize: 12,
+                              color: Tokens.gray500,
+                              fontFamily: 'monospace')),
                     ],
                   ),
                 ),
                 if (supplier.category != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: Tokens.gray100,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(supplier.category!,
-                        style: const TextStyle(fontSize: 11, color: Tokens.gray500)),
+                        style: const TextStyle(
+                            fontSize: 11, color: Tokens.gray500)),
                   ),
                 const SizedBox(width: 4),
-                const Icon(Icons.chevron_right, size: 18, color: Tokens.gray500),
+                const Icon(Icons.chevron_right,
+                    size: 18, color: Tokens.gray500),
               ],
             ),
           ),

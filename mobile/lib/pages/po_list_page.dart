@@ -22,7 +22,14 @@ class _PoListPageState extends State<PoListPage> {
   String _query = '';
   Timer? _debounce;
 
-  static const _filters = ['all', 'draft', 'sent', 'acknowledged', 'completed', 'cancelled'];
+  static const _filters = [
+    'all',
+    'draft',
+    'sent',
+    'acknowledged',
+    'completed',
+    'cancelled'
+  ];
 
   @override
   void initState() {
@@ -53,12 +60,15 @@ class _PoListPageState extends State<PoListPage> {
   }
 
   List<PoSummary> get _filtered {
-    var list = _filter == 'all' ? _all : _all.where((p) => p.status == _filter).toList();
+    var list = _filter == 'all'
+        ? _all
+        : _all.where((p) => p.status == _filter).toList();
     if (_query.isNotEmpty) {
-      list = list.where((p) =>
-        p.poNumber.toLowerCase().contains(_query) ||
-        (p.supplierName?.toLowerCase().contains(_query) ?? false)
-      ).toList();
+      list = list
+          .where((p) =>
+              p.poNumber.toLowerCase().contains(_query) ||
+              (p.supplierName?.toLowerCase().contains(_query) ?? false))
+          .toList();
     }
     return list;
   }
@@ -124,7 +134,8 @@ class _PoListPageState extends State<PoListPage> {
                   onTap: () => setState(() => _filter = f),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
                       color: active ? color : Colors.white,
                       borderRadius: BorderRadius.circular(20),
@@ -147,9 +158,12 @@ class _PoListPageState extends State<PoListPage> {
                         if (count > 0) ...[
                           const SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 1),
                             decoration: BoxDecoration(
-                              color: active ? Colors.white.withAlpha(50) : color.withAlpha(20),
+                              color: active
+                                  ? Colors.white.withAlpha(50)
+                                  : color.withAlpha(20),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -175,18 +189,23 @@ class _PoListPageState extends State<PoListPage> {
             child: RefreshIndicator(
               onRefresh: _load,
               child: _loading
-                  ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2))
                   : filtered.isEmpty
                       ? ListView(
                           children: [
-                            SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+                            SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.2),
                             Center(
                               child: Column(
                                 children: [
-                                  const Icon(Icons.receipt_long, size: 48, color: Color(0xFFD1D5DB)),
+                                  const Icon(Icons.receipt_long,
+                                      size: 48, color: Color(0xFFD1D5DB)),
                                   const SizedBox(height: 12),
                                   Text(l10n.t('no_data'),
-                                      style: const TextStyle(color: Tokens.gray500)),
+                                      style: const TextStyle(
+                                          color: Tokens.gray500)),
                                 ],
                               ),
                             ),
@@ -195,7 +214,8 @@ class _PoListPageState extends State<PoListPage> {
                       : ListView.separated(
                           padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
                           itemCount: filtered.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 10),
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 10),
                           itemBuilder: (_, i) => _PoCard(po: filtered[i]),
                         ),
             ),
@@ -206,14 +226,14 @@ class _PoListPageState extends State<PoListPage> {
   }
 
   Color _filterColor(String f) => switch (f) {
-    'all'          => Tokens.brand600,
-    'draft'        => Tokens.gray500,
-    'sent'         => const Color(0xFF2563EB),
-    'acknowledged' => const Color(0xFF0D9488),
-    'completed'    => const Color(0xFF16A34A),
-    'cancelled'    => const Color(0xFFDC2626),
-    _              => Tokens.gray500,
-  };
+        'all' => Tokens.brand600,
+        'draft' => Tokens.gray500,
+        'sent' => const Color(0xFF2563EB),
+        'acknowledged' => const Color(0xFF0D9488),
+        'completed' => const Color(0xFF16A34A),
+        'cancelled' => const Color(0xFFDC2626),
+        _ => Tokens.gray500,
+      };
 }
 
 class _PoCard extends StatelessWidget {
@@ -221,13 +241,13 @@ class _PoCard extends StatelessWidget {
   final PoSummary po;
 
   Color _statusColor(String s) => switch (s) {
-    'draft'        => Tokens.gray500,
-    'sent'         => const Color(0xFF2563EB),
-    'acknowledged' => const Color(0xFF0D9488),
-    'completed'    => const Color(0xFF16A34A),
-    'cancelled'    => const Color(0xFFDC2626),
-    _              => const Color(0xFFD97706),
-  };
+        'draft' => Tokens.gray500,
+        'sent' => const Color(0xFF2563EB),
+        'acknowledged' => const Color(0xFF0D9488),
+        'completed' => const Color(0xFF16A34A),
+        'cancelled' => const Color(0xFFDC2626),
+        _ => const Color(0xFFD97706),
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -251,18 +271,25 @@ class _PoCard extends StatelessWidget {
               Row(
                 children: [
                   Text(po.poNumber,
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
-                          color: Tokens.brand600, fontFamily: 'monospace')),
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Tokens.brand600,
+                          fontFamily: 'monospace')),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: color.withAlpha(20),
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
                       l10n.t('po_status_${po.status}'),
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color),
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: color),
                     ),
                   ),
                 ],
@@ -274,7 +301,8 @@ class _PoCard extends StatelessWidget {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(po.supplierName!,
-                        style: const TextStyle(fontSize: 13, color: Tokens.gray500)),
+                        style: const TextStyle(
+                            fontSize: 13, color: Tokens.gray500)),
                   ),
                 ]),
               ],
@@ -283,11 +311,13 @@ class _PoCard extends StatelessWidget {
                 children: [
                   Text(
                     '${po.currency} ${(po.totalMinor / 100).toStringAsFixed(2)}',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const Spacer(),
                   Text(_timeAgo(po.createdAt),
-                      style: const TextStyle(fontSize: 12, color: Tokens.gray500)),
+                      style:
+                          const TextStyle(fontSize: 12, color: Tokens.gray500)),
                 ],
               ),
             ],

@@ -15,7 +15,8 @@ class ApprovalsPage extends StatefulWidget {
 
 class _ApprovalsPageState extends State<ApprovalsPage> {
   late Future<List<InboxEntry>> _future;
-  static final _baht = NumberFormat.currency(locale: 'en_US', symbol: '฿ ', decimalDigits: 2);
+  static final _baht =
+      NumberFormat.currency(locale: 'en_US', symbol: '฿ ', decimalDigits: 2);
 
   @override
   void initState() {
@@ -37,7 +38,8 @@ class _ApprovalsPageState extends State<ApprovalsPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(l10n.t('approvals.reject_confirm_title')),
         content: Text(
-          l10n.t('approvals.reject_confirm_body')
+          l10n
+              .t('approvals.reject_confirm_body')
               .replaceAll('{title}', item.pr.title)
               .replaceAll('{amount}', _baht.format(item.pr.totalMinor / 100)),
         ),
@@ -67,20 +69,21 @@ class _ApprovalsPageState extends State<ApprovalsPage> {
     }
 
     // Capture context-dependent objects before any async gap.
-    final l10n     = L10n.of(context);
+    final l10n = L10n.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final list      = await _future;
+    final list = await _future;
     setState(() => _future = Future.value(
-      list.where((e) => e.instanceId != item.instanceId).toList(),
-    ));
+          list.where((e) => e.instanceId != item.instanceId).toList(),
+        ));
 
-    final statusKey = decision == 'approved' ? 'status.approved' : 'status.rejected';
+    final statusKey =
+        decision == 'approved' ? 'status.approved' : 'status.rejected';
     final controller = messenger.showSnackBar(SnackBar(
       content: Text('${item.pr.title} · ${l10n.t(statusKey)}'),
       duration: const Duration(seconds: 5),
       action: SnackBarAction(
         label: l10n.t('common.undo'),
-        onPressed: () { /* closed reason = action, handled below */ },
+        onPressed: () {/* closed reason = action, handled below */},
       ),
     ));
 
@@ -115,10 +118,12 @@ class _ApprovalsPageState extends State<ApprovalsPage> {
           future: _future,
           builder: (context, snap) {
             if (snap.connectionState != ConnectionState.done) {
-              return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+              return const Center(
+                  child: CircularProgressIndicator(strokeWidth: 2));
             }
             if (snap.hasError) {
-              return Center(child: Padding(
+              return Center(
+                  child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text('${l10n.t('err.load')}: ${snap.error}',
                     textAlign: TextAlign.center),
@@ -157,7 +162,8 @@ class _ApprovalsPageState extends State<ApprovalsPage> {
                       const SizedBox(width: 6),
                       Text(
                         l10n.t('approvals.swipe_hint'),
-                        style: const TextStyle(fontSize: 12, color: Tokens.gray500),
+                        style: const TextStyle(
+                            fontSize: 12, color: Tokens.gray500),
                       ),
                     ],
                   ),
@@ -182,10 +188,14 @@ class _ApprovalsPageState extends State<ApprovalsPage> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.check, color: Colors.white, size: 28),
+                              const Icon(Icons.check,
+                                  color: Colors.white, size: 28),
                               const SizedBox(width: 8),
                               Text(l10n.t('approvals.approve'),
-                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16)),
                             ],
                           ),
                         ),
@@ -201,9 +211,13 @@ class _ApprovalsPageState extends State<ApprovalsPage> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(l10n.t('approvals.reject'),
-                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16)),
                               const SizedBox(width: 8),
-                              const Icon(Icons.close, color: Colors.white, size: 28),
+                              const Icon(Icons.close,
+                                  color: Colors.white, size: 28),
                             ],
                           ),
                         ),
@@ -220,7 +234,7 @@ class _ApprovalsPageState extends State<ApprovalsPage> {
                           entry: entry,
                           baht: _baht,
                           onApprove: () => _decide(entry, 'approved'),
-                          onReject:  () => _decide(entry, 'rejected'),
+                          onReject: () => _decide(entry, 'rejected'),
                         ),
                       );
                     },
@@ -237,8 +251,10 @@ class _ApprovalsPageState extends State<ApprovalsPage> {
 
 class _InboxCard extends StatelessWidget {
   const _InboxCard({
-    required this.entry, required this.baht,
-    required this.onApprove, required this.onReject,
+    required this.entry,
+    required this.baht,
+    required this.onApprove,
+    required this.onReject,
   });
   final InboxEntry entry;
   final NumberFormat baht;
@@ -247,12 +263,13 @@ class _InboxCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = L10n.of(context);
-    final pr   = entry.pr;
+    final pr = entry.pr;
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: entry.urgent ? const Color(0xFFFCD34D) : Tokens.gray200),
+        side: BorderSide(
+            color: entry.urgent ? const Color(0xFFFCD34D) : Tokens.gray200),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -264,25 +281,33 @@ class _InboxCard extends StatelessWidget {
             children: [
               if (entry.urgent) ...[
                 Row(children: [
-                  const Icon(Icons.warning_amber_rounded, size: 16, color: Color(0xFFB45309)),
+                  const Icon(Icons.warning_amber_rounded,
+                      size: 16, color: Color(0xFFB45309)),
                   const SizedBox(width: 6),
                   Text(l10n.t('approvals.urgent'),
-                    style: const TextStyle(
-                        color: Color(0xFF92400E), fontWeight: FontWeight.w600, fontSize: 13)),
+                      style: const TextStyle(
+                          color: Color(0xFF92400E),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13)),
                 ]),
                 const SizedBox(height: 8),
               ],
-              Text(pr.prNumber, style: const TextStyle(color: Tokens.gray500, fontSize: 12)),
+              Text(pr.prNumber,
+                  style: const TextStyle(color: Tokens.gray500, fontSize: 12)),
               const SizedBox(height: 2),
-              Text(pr.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(pr.title,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(l10n.t('approvals.step_n', {'n': '${entry.stepNo}'}),
-                      style: const TextStyle(color: Tokens.gray500, fontSize: 13)),
+                      style:
+                          const TextStyle(color: Tokens.gray500, fontSize: 13)),
                   Text(baht.format(pr.totalMinor / 100),
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold)),
                 ],
               ),
               const SizedBox(height: 16),
@@ -292,7 +317,8 @@ class _InboxCard extends StatelessWidget {
                     onPressed: onApprove,
                     icon: const Icon(Icons.check),
                     label: Text(l10n.t('approvals.approve')),
-                    style: ElevatedButton.styleFrom(backgroundColor: Tokens.success),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Tokens.success),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -303,7 +329,8 @@ class _InboxCard extends StatelessWidget {
                     label: Text(l10n.t('approvals.reject'),
                         style: const TextStyle(color: Tokens.danger)),
                     style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFFFCA5A5), width: 2)),
+                        side: const BorderSide(
+                            color: Color(0xFFFCA5A5), width: 2)),
                   ),
                 ),
               ]),

@@ -10,7 +10,8 @@ class LangButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = L10n.of(context);
-    final compact = localeCompact[l10n.locale.languageCode] ?? l10n.locale.languageCode.toUpperCase();
+    final compact = localeCompact[l10n.locale.languageCode] ??
+        l10n.locale.languageCode.toUpperCase();
     return PopupMenuButton<Locale>(
       initialValue: l10n.locale,
       tooltip: l10n.t('lang.label'),
@@ -44,7 +45,9 @@ class LangButton extends StatelessWidget {
           children: [
             const Icon(Icons.language, size: 18),
             const SizedBox(width: 4),
-            Text(compact, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            Text(compact,
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
           ],
         ),
       ),

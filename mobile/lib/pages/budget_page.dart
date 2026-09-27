@@ -22,7 +22,10 @@ class _BudgetPageState extends State<BudgetPage> {
   }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       _rows = await Api.listBudgets();
     } catch (e) {
@@ -38,8 +41,8 @@ class _BudgetPageState extends State<BudgetPage> {
 
     // Summary totals
     final totalBudget = _rows.fold<int>(0, (s, r) => s + r.amountMinor);
-    final totalSpent  = _rows.fold<int>(0, (s, r) => s + r.spentMinor);
-    final overCount   = _rows.where((r) => r.spentMinor > r.amountMinor).length;
+    final totalSpent = _rows.fold<int>(0, (s, r) => s + r.spentMinor);
+    final overCount = _rows.where((r) => r.spentMinor > r.amountMinor).length;
 
     return Scaffold(
       appBar: AppBar(
@@ -53,9 +56,11 @@ class _BudgetPageState extends State<BudgetPage> {
             : _error != null
                 ? ListView(
                     children: [
-                      SizedBox(height: MediaQuery.of(context).size.height * 0.3),
-                      Center(child: Text(l10n.t('err.load'),
-                          style: const TextStyle(color: Tokens.gray500))),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.3),
+                      Center(
+                          child: Text(l10n.t('err.load'),
+                              style: const TextStyle(color: Tokens.gray500))),
                     ],
                   )
                 : ListView(
@@ -64,22 +69,27 @@ class _BudgetPageState extends State<BudgetPage> {
                       // ── Summary cards row ────────────────────────
                       Row(
                         children: [
-                          Expanded(child: _SummaryCard(
+                          Expanded(
+                              child: _SummaryCard(
                             label: l10n.t('budget.total'),
                             value: '฿${_fmt(totalBudget)}',
                             color: const Color(0xFF2563EB),
                           )),
                           const SizedBox(width: 10),
-                          Expanded(child: _SummaryCard(
+                          Expanded(
+                              child: _SummaryCard(
                             label: l10n.t('budget.spent'),
                             value: '฿${_fmt(totalSpent)}',
                             color: const Color(0xFF7C3AED),
                           )),
                           const SizedBox(width: 10),
-                          Expanded(child: _SummaryCard(
+                          Expanded(
+                              child: _SummaryCard(
                             label: l10n.t('budget.over'),
                             value: '$overCount',
-                            color: overCount > 0 ? const Color(0xFFDC2626) : const Color(0xFF16A34A),
+                            color: overCount > 0
+                                ? const Color(0xFFDC2626)
+                                : const Color(0xFF16A34A),
                           )),
                         ],
                       ),
@@ -92,20 +102,26 @@ class _BudgetPageState extends State<BudgetPage> {
                           child: Center(
                             child: Column(
                               children: [
-                                const Icon(Icons.account_balance_wallet_outlined,
-                                    size: 48, color: Color(0xFFD1D5DB)),
+                                const Icon(
+                                    Icons.account_balance_wallet_outlined,
+                                    size: 48,
+                                    color: Color(0xFFD1D5DB)),
                                 const SizedBox(height: 12),
                                 Text(l10n.t('budget.empty'),
-                                    style: const TextStyle(color: Tokens.gray500)),
+                                    style:
+                                        const TextStyle(color: Tokens.gray500)),
                               ],
                             ),
                           ),
                         )
                       else
-                        ...List.generate(_rows.length, (i) => Padding(
-                          padding: EdgeInsets.only(bottom: i < _rows.length - 1 ? 10 : 0),
-                          child: _BudgetCard(row: _rows[i], l10n: l10n),
-                        )),
+                        ...List.generate(
+                            _rows.length,
+                            (i) => Padding(
+                                  padding: EdgeInsets.only(
+                                      bottom: i < _rows.length - 1 ? 10 : 0),
+                                  child: _BudgetCard(row: _rows[i], l10n: l10n),
+                                )),
                     ],
                   ),
       ),
@@ -122,7 +138,8 @@ class _BudgetPageState extends State<BudgetPage> {
 
 // ── Summary card ─────────────────────────────────────────────────────────────
 class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({required this.label, required this.value, required this.color});
+  const _SummaryCard(
+      {required this.label, required this.value, required this.color});
   final String label, value;
   final Color color;
 
@@ -136,9 +153,12 @@ class _SummaryCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
         child: Column(
           children: [
-            Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
+            Text(value,
+                style: TextStyle(
+                    fontSize: 20, fontWeight: FontWeight.bold, color: color)),
             const SizedBox(height: 4),
-            Text(label, style: TextStyle(fontSize: 11, color: color.withAlpha(180))),
+            Text(label,
+                style: TextStyle(fontSize: 11, color: color.withAlpha(180))),
           ],
         ),
       ),
@@ -166,9 +186,12 @@ class _BudgetCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: over ? const Color(0xFFFECACA) : Tokens.gray200),
+        side:
+            BorderSide(color: over ? const Color(0xFFFECACA) : Tokens.gray200),
       ),
-      color: over ? const Color(0xFFFEF2F2) : Theme.of(context).colorScheme.surface,
+      color: over
+          ? const Color(0xFFFEF2F2)
+          : Theme.of(context).colorScheme.surface,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -179,17 +202,22 @@ class _BudgetCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(row.departmentName,
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                      style: const TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.w600)),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: barColor.withAlpha(25),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
                     '${(pct * 100).clamp(0, 999).toStringAsFixed(0)}%',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: barColor),
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: barColor),
                   ),
                 ),
               ],
@@ -230,7 +258,8 @@ class _BudgetCard extends StatelessWidget {
                   const Icon(Icons.block, size: 14, color: Color(0xFFDC2626)),
                   const SizedBox(width: 4),
                   Text(l10n.t('budget.soft_block'),
-                      style: const TextStyle(fontSize: 12, color: Color(0xFFDC2626))),
+                      style: const TextStyle(
+                          fontSize: 12, color: Color(0xFFDC2626))),
                 ],
               ),
             ],

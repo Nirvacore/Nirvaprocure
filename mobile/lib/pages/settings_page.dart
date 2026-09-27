@@ -38,7 +38,9 @@ class _SettingsPageState extends State<SettingsPage> {
       });
     } catch (_) {
       if (!mounted) return;
-      setState(() { _loading = false; });
+      setState(() {
+        _loading = false;
+      });
     }
   }
 
@@ -48,7 +50,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.t('settings.heading'), style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(l10n.t('settings.heading'),
+            style: const TextStyle(fontWeight: FontWeight.bold)),
         actions: const [LangButton()],
       ),
       body: RefreshIndicator(
@@ -70,14 +73,14 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(height: 8),
             if (_loading && _users == null)
-              const Center(child: Padding(
+              const Center(
+                  child: Padding(
                 padding: EdgeInsets.all(20),
                 child: CircularProgressIndicator(strokeWidth: 2),
               )),
             if (_users != null && _users!.isEmpty)
               _EmptyTile(label: l10n.t('settings.no_users')),
-            if (_users != null)
-              ..._users!.map((u) => _UserTile(user: u)),
+            if (_users != null) ..._users!.map((u) => _UserTile(user: u)),
             const SizedBox(height: 24),
 
             // ── Departments section ──
@@ -88,7 +91,8 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(height: 8),
             if (_loading && _departments == null)
-              const Center(child: Padding(
+              const Center(
+                  child: Padding(
                 padding: EdgeInsets.all(20),
                 child: CircularProgressIndicator(strokeWidth: 2),
               )),
@@ -99,7 +103,8 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 24),
 
             // ── App info ──
-            _SectionHeader(title: l10n.t('settings.about'), icon: Icons.info_outline),
+            _SectionHeader(
+                title: l10n.t('settings.about'), icon: Icons.info_outline),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(16),
@@ -112,10 +117,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text('NIRVAPROCURE',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   Text('v1.0.0 · Flutter',
-                      style: const TextStyle(fontSize: 13, color: Tokens.gray500)),
+                      style:
+                          const TextStyle(fontSize: 13, color: Tokens.gray500)),
                 ],
               ),
             ),
@@ -138,7 +145,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.red.shade700,
                   side: BorderSide(color: Colors.red.shade200, width: 2),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
               ),
@@ -164,7 +172,8 @@ class _SectionHeader extends StatelessWidget {
     return Row(children: [
       Icon(icon, size: 20, color: Tokens.brand600),
       const SizedBox(width: 8),
-      Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+      Text(title,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       if (count != null) ...[
         const SizedBox(width: 6),
         Container(
@@ -174,7 +183,10 @@ class _SectionHeader extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text('$count',
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Tokens.brand600)),
+              style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Tokens.brand600)),
         ),
       ],
     ]);
@@ -190,8 +202,14 @@ class _LanguageCard extends StatelessWidget {
     final scope = L10nScope.of(context);
     final currentLocale = scope.locale.languageCode;
     final labels = {
-      'th': 'ไทย', 'en': 'English', 'zh': '中文', 'ja': '日本語',
-      'vi': 'Tiếng Việt', 'id': 'Bahasa Indonesia', 'my': 'မြန်မာ', 'km': 'ភាសាខ្មែរ',
+      'th': 'ไทย',
+      'en': 'English',
+      'zh': '中文',
+      'ja': '日本語',
+      'vi': 'Tiếng Việt',
+      'id': 'Bahasa Indonesia',
+      'my': 'မြန်မာ',
+      'km': 'ភាសាខ្មែរ',
     };
 
     return Container(
@@ -236,7 +254,8 @@ class _UserTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = (user['full_name'] as String?) ?? (user['email'] as String?) ?? '—';
+    final name =
+        (user['full_name'] as String?) ?? (user['email'] as String?) ?? '—';
     final email = (user['email'] as String?) ?? '';
     final role = (user['role'] as String?) ?? 'user';
     final initials = name.isNotEmpty ? name[0].toUpperCase() : '?';
@@ -254,16 +273,22 @@ class _UserTile extends StatelessWidget {
           radius: 20,
           backgroundColor: Tokens.brand100,
           child: Text(initials,
-              style: const TextStyle(fontWeight: FontWeight.bold, color: Tokens.brand600, fontSize: 16)),
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Tokens.brand600,
+                  fontSize: 16)),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+              Text(name,
+                  style: const TextStyle(
+                      fontSize: 15, fontWeight: FontWeight.bold)),
               if (email.isNotEmpty)
-                Text(email, style: TextStyle(fontSize: 12, color: Tokens.gray500)),
+                Text(email,
+                    style: TextStyle(fontSize: 12, color: Tokens.gray500)),
             ],
           ),
         ),
@@ -320,9 +345,15 @@ class _DeptTile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+              Text(name,
+                  style: const TextStyle(
+                      fontSize: 15, fontWeight: FontWeight.bold)),
               if (code.isNotEmpty)
-                Text(code, style: TextStyle(fontSize: 12, color: Tokens.gray500, fontFamily: 'monospace')),
+                Text(code,
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: Tokens.gray500,
+                        fontFamily: 'monospace')),
             ],
           ),
         ),
@@ -330,7 +361,8 @@ class _DeptTile extends StatelessWidget {
           Row(children: [
             Icon(Icons.person_outline, size: 14, color: Tokens.gray500),
             const SizedBox(width: 4),
-            Text('$headCount', style: TextStyle(fontSize: 13, color: Tokens.gray500)),
+            Text('$headCount',
+                style: TextStyle(fontSize: 13, color: Tokens.gray500)),
           ]),
       ]),
     );
@@ -350,7 +382,8 @@ class _EmptyTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Tokens.gray200),
       ),
-      child: Center(child: Text(label, style: const TextStyle(color: Tokens.gray500))),
+      child: Center(
+          child: Text(label, style: const TextStyle(color: Tokens.gray500))),
     );
   }
 }

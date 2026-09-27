@@ -15,17 +15,17 @@ class ApiClient {
 
   final Dio _dio;
   static const _storage = FlutterSecureStorage();
-  static const _tokenKey   = 'nirva.token';
+  static const _tokenKey = 'nirva.token';
   static const _refreshKey = 'nirva.refresh';
 
-  static String get baseUrl =>
-      const String.fromEnvironment('API_BASE_URL', defaultValue: 'http://localhost:3000/v1');
+  static String get baseUrl => const String.fromEnvironment('API_BASE_URL',
+      defaultValue: 'http://localhost:3000/v1');
 
   static Dio _buildDio() {
     final dio = Dio(BaseOptions(
       baseUrl: baseUrl,
       connectTimeout: const Duration(seconds: 10),
-      sendTimeout:    const Duration(seconds: 30),
+      sendTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
       headers: {'Accept': 'application/json'},
     ));
@@ -36,11 +36,12 @@ class ApiClient {
 
   Dio get raw => _dio;
 
-  Future<String?> getToken()   => _storage.read(key: _tokenKey);
+  Future<String?> getToken() => _storage.read(key: _tokenKey);
   Future<String?> getRefresh() => _storage.read(key: _refreshKey);
 
-  Future<void> setTokens({required String access, required String refresh}) async {
-    await _storage.write(key: _tokenKey,   value: access);
+  Future<void> setTokens(
+      {required String access, required String refresh}) async {
+    await _storage.write(key: _tokenKey, value: access);
     await _storage.write(key: _refreshKey, value: refresh);
   }
 
@@ -58,7 +59,8 @@ class _AuthInterceptor extends Interceptor {
   Future<String?>? _refreshing;
 
   @override
-  Future<void> onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+  Future<void> onRequest(
+      RequestOptions options, RequestInterceptorHandler handler) async {
     if (!options.path.startsWith('/auth/')) {
       final token = await ApiClient.instance.getToken();
       if (token != null) options.headers['Authorization'] = 'Bearer $token';
@@ -67,10 +69,13 @@ class _AuthInterceptor extends Interceptor {
   }
 
   @override
-  Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
+  Future<void> onError(
+      DioException err, ErrorInterceptorHandler handler) async {
     final res = err.response;
     final isAuthCall = err.requestOptions.path.startsWith('/auth/');
-    if (res?.statusCode != 401 || isAuthCall || err.requestOptions.extra['retried'] == true) {
+    if (res?.statusCode != 401 ||
+        isAuthCall ||
+        err.requestOptions.extra['retried'] == true) {
       return handler.next(err);
     }
 
@@ -94,9 +99,10 @@ class _AuthInterceptor extends Interceptor {
     final refresh = await ApiClient.instance.getRefresh();
     if (refresh == null) return null;
     try {
-      final res = await _dio.post('/auth/refresh', data: {'refresh_token': refresh});
-      final access  = res.data['token']         as String;
-      final newRef  = res.data['refresh_token'] as String;
+      final res =
+          await _dio.post('/auth/refresh', data: {'refresh_token': refresh});
+      final access = res.data['token'] as String;
+      final newRef = res.data['refresh_token'] as String;
       await ApiClient.instance.setTokens(access: access, refresh: newRef);
       return access;
     } catch (_) {

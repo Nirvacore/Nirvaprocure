@@ -10,22 +10,22 @@ class Tokens {
   /// Brand indigo — matches `bg-brand-600` in Tailwind.
   static const brand600 = Color(0xFF4F46E5);
   static const brand100 = Color(0xFFE0E7FF);
-  static const brand50  = Color(0xFFEEF2FF);
+  static const brand50 = Color(0xFFEEF2FF);
 
   static const success = Color(0xFF16A34A);
   static const warning = Color(0xFFD97706);
-  static const danger  = Color(0xFFDC2626);
+  static const danger = Color(0xFFDC2626);
 
   static const gray900 = Color(0xFF111827);
   static const gray700 = Color(0xFF374151);
   static const gray500 = Color(0xFF6B7280);
   static const gray200 = Color(0xFFE5E7EB);
   static const gray100 = Color(0xFFF3F4F6);
-  static const gray50  = Color(0xFFF9FAFB);
+  static const gray50 = Color(0xFFF9FAFB);
 
   /// Minimum tap target. The web rule is 56px primary / 44px secondary;
   /// mobile uses the same baselines.
-  static const tapPrimary   = 56.0;
+  static const tapPrimary = 56.0;
   static const tapSecondary = 44.0;
 
   /// Base text size — matches the 18px web baseline (vs Flutter's 14sp default).
@@ -60,8 +60,10 @@ ThemeData buildTheme({bool dark = false}) {
     cardColor: cardColor,
     dividerColor: borderColor,
     textTheme: textTheme.copyWith(
-      bodyLarge: textTheme.bodyLarge?.copyWith(fontSize: Tokens.baseFontSize, height: 1.6),
-      bodyMedium: textTheme.bodyMedium?.copyWith(fontSize: Tokens.baseFontSize, height: 1.6),
+      bodyLarge: textTheme.bodyLarge
+          ?.copyWith(fontSize: Tokens.baseFontSize, height: 1.6),
+      bodyMedium: textTheme.bodyMedium
+          ?.copyWith(fontSize: Tokens.baseFontSize, height: 1.6),
     ),
     appBarTheme: AppBarTheme(
       backgroundColor: dark ? const Color(0xFF1A1A2E) : Colors.white,
