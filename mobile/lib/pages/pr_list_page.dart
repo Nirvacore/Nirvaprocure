@@ -24,7 +24,8 @@ class _PrListPageState extends State<PrListPage> {
   String _query = '';
   Timer? _debounce;
 
-  static final _baht = NumberFormat.currency(locale: 'en_US', symbol: '฿ ', decimalDigits: 2);
+  static final _baht =
+      NumberFormat.currency(locale: 'en_US', symbol: '฿ ', decimalDigits: 2);
 
   @override
   void initState() {
@@ -40,7 +41,10 @@ class _PrListPageState extends State<PrListPage> {
   }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       _all = await Api.listPr();
     } catch (e) {
@@ -57,12 +61,15 @@ class _PrListPageState extends State<PrListPage> {
   }
 
   List<PrSummary> get _filtered {
-    var list = _filter == 'all' ? _all : _all.where((p) => p.status == _filter).toList();
+    var list = _filter == 'all'
+        ? _all
+        : _all.where((p) => p.status == _filter).toList();
     if (_query.isNotEmpty) {
-      list = list.where((p) =>
-        p.title.toLowerCase().contains(_query) ||
-        p.prNumber.toLowerCase().contains(_query)
-      ).toList();
+      list = list
+          .where((p) =>
+              p.title.toLowerCase().contains(_query) ||
+              p.prNumber.toLowerCase().contains(_query))
+          .toList();
     }
     // Sort
     switch (_sortOrder) {
@@ -96,7 +103,8 @@ class _PrListPageState extends State<PrListPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 36, height: 4,
+                width: 36,
+                height: 4,
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
                   color: const Color(0xFFD1D5DB),
@@ -111,11 +119,13 @@ class _PrListPageState extends State<PrListPage> {
                       color: selected ? Tokens.brand600 : Tokens.gray500),
                   title: Text(label,
                       style: TextStyle(
-                        fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                        fontWeight:
+                            selected ? FontWeight.w600 : FontWeight.normal,
                         color: selected ? Tokens.brand600 : null,
                       )),
                   trailing: selected
-                      ? const Icon(Icons.check, color: Tokens.brand600, size: 18)
+                      ? const Icon(Icons.check,
+                          color: Tokens.brand600, size: 18)
                       : null,
                   onTap: () {
                     setState(() => _sortOrder = key);
@@ -136,11 +146,13 @@ class _PrListPageState extends State<PrListPage> {
     final filtered = _filtered;
 
     final filters = [
-      _FilterDef('all',      l10n.t('filter.all'),      Tokens.brand600),
-      _FilterDef('pending',  l10n.t('status.pending'),   const Color(0xFFD97706)),
-      _FilterDef('approved', l10n.t('status.approved'),  const Color(0xFF16A34A)),
-      _FilterDef('rejected', l10n.t('status.rejected'),  const Color(0xFFDC2626)),
-      _FilterDef('draft',    l10n.t('status.draft'),     Tokens.gray500),
+      _FilterDef('all', l10n.t('filter.all'), Tokens.brand600),
+      _FilterDef('pending', l10n.t('status.pending'), const Color(0xFFD97706)),
+      _FilterDef(
+          'approved', l10n.t('status.approved'), const Color(0xFF16A34A)),
+      _FilterDef(
+          'rejected', l10n.t('status.rejected'), const Color(0xFFDC2626)),
+      _FilterDef('draft', l10n.t('status.draft'), Tokens.gray500),
     ];
 
     return Scaffold(
@@ -208,7 +220,8 @@ class _PrListPageState extends State<PrListPage> {
                   onTap: () => setState(() => _filter = f.key),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
                       color: active ? f.color : Colors.white,
                       borderRadius: BorderRadius.circular(20),
@@ -229,9 +242,12 @@ class _PrListPageState extends State<PrListPage> {
                         if (count > 0) ...[
                           const SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 1),
                             decoration: BoxDecoration(
-                              color: active ? Colors.white.withAlpha(50) : f.color.withAlpha(20),
+                              color: active
+                                  ? Colors.white.withAlpha(50)
+                                  : f.color.withAlpha(20),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text('$count',
@@ -257,7 +273,9 @@ class _PrListPageState extends State<PrListPage> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  l10n.t('pr.list.results').replaceAll('{count}', '${filtered.length}'),
+                  l10n
+                      .t('pr.list.results')
+                      .replaceAll('{count}', '${filtered.length}'),
                   style: TextStyle(fontSize: 12, color: Tokens.gray500),
                 ),
               ),
@@ -268,20 +286,27 @@ class _PrListPageState extends State<PrListPage> {
             child: RefreshIndicator(
               onRefresh: _load,
               child: _loading
-                  ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2))
                   : _error != null
-                      ? Center(child: Padding(
+                      ? Center(
+                          child: Padding(
                           padding: const EdgeInsets.all(24),
-                          child: Text('${l10n.t('err.load')}: $_error', textAlign: TextAlign.center),
+                          child: Text('${l10n.t('err.load')}: $_error',
+                              textAlign: TextAlign.center),
                         ))
                       : filtered.isEmpty
                           ? ListView(
                               children: [
-                                SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+                                SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        0.2),
                                 Center(
                                   child: Column(
                                     children: [
-                                      Icon(Icons.inbox_outlined, size: 48, color: const Color(0xFFD1D5DB)),
+                                      Icon(Icons.inbox_outlined,
+                                          size: 48,
+                                          color: const Color(0xFFD1D5DB)),
                                       const SizedBox(height: 12),
                                       Text(
                                         _query.isNotEmpty
@@ -297,8 +322,10 @@ class _PrListPageState extends State<PrListPage> {
                           : ListView.separated(
                               padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
                               itemCount: filtered.length,
-                              separatorBuilder: (_, __) => const SizedBox(height: 10),
-                              itemBuilder: (_, i) => _PrCard(pr: filtered[i], formatter: _baht),
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 10),
+                              itemBuilder: (_, i) =>
+                                  _PrCard(pr: filtered[i], formatter: _baht),
                             ),
             ),
           ),
@@ -339,22 +366,28 @@ class _PrCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(pr.prNumber,
-                        style: TextStyle(fontSize: 12, color: Tokens.gray500, fontFamily: 'monospace')),
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Tokens.gray500,
+                            fontFamily: 'monospace')),
                   ),
                   _timeAgo(pr.createdAt),
                 ],
               ),
               const SizedBox(height: 4),
               Text(pr.title,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  maxLines: 2, overflow: TextOverflow.ellipsis),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.w600),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis),
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _StatusChip(status: pr.status),
                   Text(formatter.format(pr.totalMinor / 100),
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold)),
                 ],
               ),
             ],
@@ -391,16 +424,19 @@ class _StatusChip extends StatelessWidget {
         ? status
         : l10n.t('status.$status');
     final (bg, fg) = switch (status) {
-      'pending'  => (const Color(0xFFFEF3C7), const Color(0xFF92400E)),
+      'pending' => (const Color(0xFFFEF3C7), const Color(0xFF92400E)),
       'approved' => (const Color(0xFFDCFCE7), const Color(0xFF166534)),
       'rejected' => (const Color(0xFFFEE2E2), const Color(0xFF991B1B)),
-      'draft'    => (Tokens.gray100,           Tokens.gray700),
-      _          => (Tokens.gray100,           Tokens.gray700),
+      'draft' => (Tokens.gray100, Tokens.gray700),
+      _ => (Tokens.gray100, Tokens.gray700),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
-      child: Text(label, style: TextStyle(color: fg, fontWeight: FontWeight.w600, fontSize: 12)),
+      decoration:
+          BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
+      child: Text(label,
+          style:
+              TextStyle(color: fg, fontWeight: FontWeight.w600, fontSize: 12)),
     );
   }
 }

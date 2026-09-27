@@ -31,8 +31,8 @@ class _ShellPageState extends State<ShellPage> {
 
   static int _index(String location) {
     if (location.startsWith('/approvals')) return 1;
-    if (location.startsWith('/more'))      return 3;
-    if (location.startsWith('/pr'))        return 2;
+    if (location.startsWith('/more')) return 3;
+    if (location.startsWith('/pr')) return 2;
     return 0; // home
   }
 
@@ -106,8 +106,11 @@ class _ShellPageState extends State<ShellPage> {
 
 class _NavItem extends StatelessWidget {
   const _NavItem({
-    required this.icon, required this.activeIcon,
-    required this.label, required this.active, required this.onTap,
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+    required this.active,
+    required this.onTap,
     this.badge = 0,
   });
   final IconData icon, activeIcon;
@@ -137,15 +140,20 @@ class _NavItem extends StatelessWidget {
                     right: -8,
                     top: -4,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 1),
                       decoration: BoxDecoration(
                         color: const Color(0xFFDC2626),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      constraints: const BoxConstraints(minWidth: 16, minHeight: 14),
+                      constraints:
+                          const BoxConstraints(minWidth: 16, minHeight: 14),
                       child: Text(
                         badge > 99 ? '99+' : '$badge',
-                        style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            fontSize: 9,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -153,7 +161,11 @@ class _NavItem extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 2),
-            Text(label, style: TextStyle(fontSize: 10, color: color, fontWeight: active ? FontWeight.w600 : FontWeight.normal)),
+            Text(label,
+                style: TextStyle(
+                    fontSize: 10,
+                    color: color,
+                    fontWeight: active ? FontWeight.w600 : FontWeight.normal)),
           ],
         ),
       ),

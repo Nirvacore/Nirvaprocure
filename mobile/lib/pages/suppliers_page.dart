@@ -35,7 +35,10 @@ class _SuppliersPageState extends State<SuppliersPage> {
   }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final data = await Api.listSuppliers();
       _all = data;
@@ -61,10 +64,11 @@ class _SuppliersPageState extends State<SuppliersPage> {
     setState(() {
       _filtered = _query.isEmpty
           ? List.of(_all)
-          : _all.where((s) =>
-                s.name.toLowerCase().contains(_query) ||
-                s.code.toLowerCase().contains(_query) ||
-                (s.contact?.toLowerCase().contains(_query) ?? false))
+          : _all
+              .where((s) =>
+                  s.name.toLowerCase().contains(_query) ||
+                  s.code.toLowerCase().contains(_query) ||
+                  (s.contact?.toLowerCase().contains(_query) ?? false))
               .toList();
     });
   }
@@ -114,13 +118,21 @@ class _SuppliersPageState extends State<SuppliersPage> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                _LegendDot(color: const Color(0xFF22C55E), label: l10n.t('suppliers.risk.low')),
+                _LegendDot(
+                    color: const Color(0xFF22C55E),
+                    label: l10n.t('suppliers.risk.low')),
                 const SizedBox(width: 12),
-                _LegendDot(color: const Color(0xFFF59E0B), label: l10n.t('suppliers.risk.medium')),
+                _LegendDot(
+                    color: const Color(0xFFF59E0B),
+                    label: l10n.t('suppliers.risk.medium')),
                 const SizedBox(width: 12),
-                _LegendDot(color: const Color(0xFFF97316), label: l10n.t('suppliers.risk.high')),
+                _LegendDot(
+                    color: const Color(0xFFF97316),
+                    label: l10n.t('suppliers.risk.high')),
                 const SizedBox(width: 12),
-                _LegendDot(color: const Color(0xFFEF4444), label: l10n.t('suppliers.risk.critical')),
+                _LegendDot(
+                    color: const Color(0xFFEF4444),
+                    label: l10n.t('suppliers.risk.critical')),
               ],
             ),
           ),
@@ -151,7 +163,8 @@ class _SuppliersPageState extends State<SuppliersPage> {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.people_outline, size: 48, color: Color(0xFFD1D5DB)),
+                                const Icon(Icons.people_outline,
+                                    size: 48, color: Color(0xFFD1D5DB)),
                                 const SizedBox(height: 12),
                                 Text(
                                   _query.isNotEmpty
@@ -167,8 +180,10 @@ class _SuppliersPageState extends State<SuppliersPage> {
                             child: ListView.separated(
                               padding: const EdgeInsets.all(16),
                               itemCount: _filtered.length,
-                              separatorBuilder: (_, __) => const SizedBox(height: 10),
-                              itemBuilder: (_, i) => _SupplierCard(supplier: _filtered[i], l10n: l10n),
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 10),
+                              itemBuilder: (_, i) => _SupplierCard(
+                                  supplier: _filtered[i], l10n: l10n),
                             ),
                           ),
           ),
@@ -188,7 +203,10 @@ class _LegendDot extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
         const SizedBox(width: 4),
         Text(label, style: const TextStyle(fontSize: 11)),
       ],
@@ -204,31 +222,46 @@ class _SupplierCard extends StatelessWidget {
 
   Color get _riskColor {
     switch (supplier.riskTier) {
-      case 'low':      return const Color(0xFF22C55E);
-      case 'medium':   return const Color(0xFFF59E0B);
-      case 'high':     return const Color(0xFFF97316);
-      case 'critical': return const Color(0xFFEF4444);
-      default:         return Tokens.gray500;
+      case 'low':
+        return const Color(0xFF22C55E);
+      case 'medium':
+        return const Color(0xFFF59E0B);
+      case 'high':
+        return const Color(0xFFF97316);
+      case 'critical':
+        return const Color(0xFFEF4444);
+      default:
+        return Tokens.gray500;
     }
   }
 
   Color get _riskBg {
     switch (supplier.riskTier) {
-      case 'low':      return const Color(0xFFF0FDF4);
-      case 'medium':   return const Color(0xFFFEFCE8);
-      case 'high':     return const Color(0xFFFFF7ED);
-      case 'critical': return const Color(0xFFFEF2F2);
-      default:         return Tokens.gray100;
+      case 'low':
+        return const Color(0xFFF0FDF4);
+      case 'medium':
+        return const Color(0xFFFEFCE8);
+      case 'high':
+        return const Color(0xFFFFF7ED);
+      case 'critical':
+        return const Color(0xFFFEF2F2);
+      default:
+        return Tokens.gray100;
     }
   }
 
   String get _riskLabel {
     switch (supplier.riskTier) {
-      case 'low':      return l10n.t('suppliers.risk.low');
-      case 'medium':   return l10n.t('suppliers.risk.medium');
-      case 'high':     return l10n.t('suppliers.risk.high');
-      case 'critical': return l10n.t('suppliers.risk.critical');
-      default:         return '—';
+      case 'low':
+        return l10n.t('suppliers.risk.low');
+      case 'medium':
+        return l10n.t('suppliers.risk.medium');
+      case 'high':
+        return l10n.t('suppliers.risk.high');
+      case 'critical':
+        return l10n.t('suppliers.risk.critical');
+      default:
+        return '—';
     }
   }
 
@@ -236,83 +269,107 @@ class _SupplierCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => SupplierDetailPage(supplier: supplier)),
+        MaterialPageRoute(
+            builder: (_) => SupplierDetailPage(supplier: supplier)),
       ),
       child: Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Tokens.gray200),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // name + risk badge
-            Row(
-              children: [
-                Expanded(
-                  child: Text(supplier.name,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _riskBg,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(width: 8, height: 8, decoration: BoxDecoration(color: _riskColor, shape: BoxShape.circle)),
-                      const SizedBox(width: 6),
-                      Text(_riskLabel, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _riskColor)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            // code + category
-            Row(
-              children: [
-                const Icon(Icons.badge_outlined, size: 14, color: Tokens.gray500),
-                const SizedBox(width: 4),
-                Text(supplier.code, style: const TextStyle(fontSize: 13, color: Tokens.gray500)),
-                if (supplier.category != null) ...[
-                  const SizedBox(width: 12),
-                  const Icon(Icons.category_outlined, size: 14, color: Tokens.gray500),
-                  const SizedBox(width: 4),
-                  Text(supplier.category!, style: const TextStyle(fontSize: 13, color: Tokens.gray500)),
-                ],
-              ],
-            ),
-            if (supplier.contact != null) ...[
-              const SizedBox(height: 4),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Tokens.gray200),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // name + risk badge
               Row(
                 children: [
-                  const Icon(Icons.email_outlined, size: 14, color: Tokens.gray500),
-                  const SizedBox(width: 4),
-                  Text(supplier.contact!, style: const TextStyle(fontSize: 13, color: Tokens.gray500)),
+                  Expanded(
+                    child: Text(supplier.name,
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600)),
+                  ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _riskBg,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                                color: _riskColor, shape: BoxShape.circle)),
+                        const SizedBox(width: 6),
+                        Text(_riskLabel,
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: _riskColor)),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ],
-            if (supplier.totalPrCount > 0) ...[
               const SizedBox(height: 8),
+              // code + category
               Row(
                 children: [
-                  _Chip(icon: Icons.receipt_long, label: '${supplier.totalPrCount} PRs'),
-                  const SizedBox(width: 8),
-                  _Chip(icon: Icons.payments_outlined,
-                      label: '฿${(supplier.totalSpentMinor / 100).toStringAsFixed(0)}'),
+                  const Icon(Icons.badge_outlined,
+                      size: 14, color: Tokens.gray500),
+                  const SizedBox(width: 4),
+                  Text(supplier.code,
+                      style:
+                          const TextStyle(fontSize: 13, color: Tokens.gray500)),
+                  if (supplier.category != null) ...[
+                    const SizedBox(width: 12),
+                    const Icon(Icons.category_outlined,
+                        size: 14, color: Tokens.gray500),
+                    const SizedBox(width: 4),
+                    Text(supplier.category!,
+                        style: const TextStyle(
+                            fontSize: 13, color: Tokens.gray500)),
+                  ],
                 ],
               ),
+              if (supplier.contact != null) ...[
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.email_outlined,
+                        size: 14, color: Tokens.gray500),
+                    const SizedBox(width: 4),
+                    Text(supplier.contact!,
+                        style: const TextStyle(
+                            fontSize: 13, color: Tokens.gray500)),
+                  ],
+                ),
+              ],
+              if (supplier.totalPrCount > 0) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    _Chip(
+                        icon: Icons.receipt_long,
+                        label: '${supplier.totalPrCount} PRs'),
+                    const SizedBox(width: 8),
+                    _Chip(
+                        icon: Icons.payments_outlined,
+                        label:
+                            '฿${(supplier.totalSpentMinor / 100).toStringAsFixed(0)}'),
+                  ],
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
-    ),
     );
   }
 }

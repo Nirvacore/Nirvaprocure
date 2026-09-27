@@ -17,7 +17,6 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   Map<String, dynamic>? _stats;
   UserProfile? _profile;
-  bool _loading = true;
   int _supplierCount = 0;
 
   @override
@@ -27,7 +26,6 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
     try {
       final results = await Future.wait([
         Api.analyticsSummary(),
@@ -38,7 +36,7 @@ class _ProfilePageState extends State<ProfilePage> {
       _profile = results[1] as UserProfile;
       _supplierCount = (results[2] as List).length;
     } catch (_) {}
-    if (mounted) setState(() => _loading = false);
+    if (mounted) setState(() {});
   }
 
   Future<void> _confirmLogout() async {
@@ -56,7 +54,8 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFDC2626)),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFDC2626)),
             child: Text(l10n.t('nav.logout')),
           ),
         ],
@@ -75,7 +74,8 @@ class _ProfilePageState extends State<ProfilePage> {
     final spentRaw = (_stats?['total_spent_minor'] as int?) ?? 0;
     final spent = (spentRaw / 100).round();
     final displayName = _profile?.fullName ?? l10n.t('profile.user');
-    final displayRole = _profile?.role ?? _profile?.orgName ?? l10n.t('profile.role');
+    final displayRole =
+        _profile?.role ?? _profile?.orgName ?? l10n.t('profile.role');
 
     return Scaffold(
       appBar: AppBar(
@@ -109,18 +109,22 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.person, color: Colors.white, size: 44),
+                    child:
+                        const Icon(Icons.person, color: Colors.white, size: 44),
                   ),
                   const SizedBox(height: 16),
                   Text(displayName,
-                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                      style: const TextStyle(
+                          fontSize: 22, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   Text(displayRole,
-                      style: const TextStyle(fontSize: 14, color: Tokens.gray500)),
+                      style:
+                          const TextStyle(fontSize: 14, color: Tokens.gray500)),
                   if (_profile?.email != null) ...[
                     const SizedBox(height: 2),
                     Text(_profile!.email,
-                        style: const TextStyle(fontSize: 12, color: Color(0xFFD1D5DB))),
+                        style: const TextStyle(
+                            fontSize: 12, color: Color(0xFFD1D5DB))),
                   ],
                 ],
               ),
@@ -130,21 +134,24 @@ class _ProfilePageState extends State<ProfilePage> {
             // ── Stats row ──────────────────────────────────────
             Row(
               children: [
-                Expanded(child: _MiniStat(
+                Expanded(
+                    child: _MiniStat(
                   label: l10n.t('profile.stat.prs'),
                   value: '$totalPr',
                   icon: Icons.receipt_long,
                   color: Tokens.brand600,
                 )),
                 const SizedBox(width: 12),
-                Expanded(child: _MiniStat(
+                Expanded(
+                    child: _MiniStat(
                   label: l10n.t('profile.stat.spent'),
                   value: _fmtSpend(spent),
                   icon: Icons.payments,
                   color: const Color(0xFF7C3AED),
                 )),
                 const SizedBox(width: 12),
-                Expanded(child: _MiniStat(
+                Expanded(
+                    child: _MiniStat(
                   label: l10n.t('profile.stat.suppliers'),
                   value: '$_supplierCount',
                   icon: Icons.people,
@@ -162,14 +169,16 @@ class _ProfilePageState extends State<ProfilePage> {
                   icon: Icons.language,
                   label: l10n.t('profile.menu.language'),
                   trailing: Text(_currentLangLabel(l10n),
-                      style: const TextStyle(fontSize: 13, color: Tokens.gray500)),
+                      style:
+                          const TextStyle(fontSize: 13, color: Tokens.gray500)),
                   onTap: () => context.push('/settings'),
                 ),
                 _MenuItem(
                   icon: l10n.isDark ? Icons.light_mode : Icons.dark_mode,
                   label: l10n.t('profile.menu.darkmode'),
                   trailing: Text(l10n.isDark ? 'ON' : 'OFF',
-                      style: const TextStyle(fontSize: 13, color: Tokens.gray500)),
+                      style:
+                          const TextStyle(fontSize: 13, color: Tokens.gray500)),
                   onTap: () => l10n.toggleDark(),
                 ),
                 _MenuItem(
@@ -217,7 +226,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.red.shade600,
                   side: BorderSide(color: Colors.red.shade200, width: 1.5),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
               ),
@@ -236,8 +246,14 @@ class _ProfilePageState extends State<ProfilePage> {
 
   String _currentLangLabel(L10n l10n) {
     const labels = {
-      'th': 'ไทย', 'en': 'EN', 'zh': '中文', 'ja': '日本語',
-      'vi': 'VI', 'id': 'ID', 'my': 'MY', 'km': 'KM',
+      'th': 'ไทย',
+      'en': 'EN',
+      'zh': '中文',
+      'ja': '日本語',
+      'vi': 'VI',
+      'id': 'ID',
+      'my': 'MY',
+      'km': 'KM',
     };
     return labels[l10n.locale.languageCode] ?? 'TH';
   }
@@ -245,7 +261,11 @@ class _ProfilePageState extends State<ProfilePage> {
 
 // ── Mini stat card ──────────────────────────────────────────────────────────
 class _MiniStat extends StatelessWidget {
-  const _MiniStat({required this.label, required this.value, required this.icon, required this.color});
+  const _MiniStat(
+      {required this.label,
+      required this.value,
+      required this.icon,
+      required this.color});
   final String label, value;
   final IconData icon;
   final Color color;
@@ -263,10 +283,15 @@ class _MiniStat extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 20),
           const SizedBox(height: 8),
-          Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color)),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 18, fontWeight: FontWeight.bold, color: color)),
           const SizedBox(height: 2),
-          Text(label, style: const TextStyle(fontSize: 10, color: Tokens.gray500),
-              textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text(label,
+              style: const TextStyle(fontSize: 10, color: Tokens.gray500),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
         ],
       ),
     );
@@ -284,13 +309,18 @@ class _MenuSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Tokens.gray500)),
+        Text(title,
+            style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Tokens.gray500)),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
-            border: const Border.fromBorderSide(BorderSide(color: Tokens.gray200)),
+            border:
+                const Border.fromBorderSide(BorderSide(color: Tokens.gray200)),
           ),
           child: Column(children: children),
         ),
@@ -300,7 +330,11 @@ class _MenuSection extends StatelessWidget {
 }
 
 class _MenuItem extends StatelessWidget {
-  const _MenuItem({required this.icon, required this.label, this.trailing, required this.onTap});
+  const _MenuItem(
+      {required this.icon,
+      required this.label,
+      this.trailing,
+      required this.onTap});
   final IconData icon;
   final String label;
   final Widget? trailing;
@@ -316,7 +350,8 @@ class _MenuItem extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 36, height: 36,
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
                 color: Tokens.gray100,
                 borderRadius: BorderRadius.circular(10),

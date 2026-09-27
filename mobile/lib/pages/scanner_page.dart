@@ -15,7 +15,8 @@ class ScannerPage extends StatefulWidget {
   State<ScannerPage> createState() => _ScannerPageState();
 }
 
-class _ScannerPageState extends State<ScannerPage> with SingleTickerProviderStateMixin {
+class _ScannerPageState extends State<ScannerPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabCtrl;
   String? _scannedCode;
   bool _flashOn = false;
@@ -34,7 +35,7 @@ class _ScannerPageState extends State<ScannerPage> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    final t = L10n.of(context);
+    final t = L10n.of(context).t;
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -50,7 +51,9 @@ class _ScannerPageState extends State<ScannerPage> with SingleTickerProviderStat
         bottom: TabBar(
           controller: _tabCtrl,
           tabs: [
-            Tab(icon: const Icon(Icons.qr_code_scanner), text: t('scanner_barcode')),
+            Tab(
+                icon: const Icon(Icons.qr_code_scanner),
+                text: t('scanner_barcode')),
             Tab(icon: const Icon(Icons.camera_alt), text: t('scanner_photo')),
           ],
         ),
@@ -123,24 +126,31 @@ class _ScannerPageState extends State<ScannerPage> with SingleTickerProviderStat
             child: _scannedCode != null
                 ? Column(
                     children: [
-                      const Icon(Icons.check_circle, color: Colors.green, size: 40),
+                      const Icon(Icons.check_circle,
+                          color: Colors.green, size: 40),
                       const SizedBox(height: 12),
-                      Text(t('scanner_found'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text(t('scanner_found'),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16)),
                       const SizedBox(height: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
                         decoration: BoxDecoration(
                           color: cs.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: SelectableText(_scannedCode!, style: const TextStyle(fontFamily: 'monospace', fontSize: 18)),
+                        child: SelectableText(_scannedCode!,
+                            style: const TextStyle(
+                                fontFamily: 'monospace', fontSize: 18)),
                       ),
                       const SizedBox(height: 16),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           OutlinedButton.icon(
-                            onPressed: () => setState(() => _scannedCode = null),
+                            onPressed: () =>
+                                setState(() => _scannedCode = null),
                             icon: const Icon(Icons.refresh, size: 18),
                             label: Text(t('scanner_scan_again')),
                           ),
@@ -159,13 +169,16 @@ class _ScannerPageState extends State<ScannerPage> with SingleTickerProviderStat
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.qr_code_2, size: 48, color: cs.onSurface.withAlpha(77)),
+                      Icon(Icons.qr_code_2,
+                          size: 48, color: cs.onSurface.withAlpha(77)),
                       const SizedBox(height: 12),
-                      Text(t('scanner_instructions'), style: TextStyle(color: cs.onSurface.withAlpha(128))),
+                      Text(t('scanner_instructions'),
+                          style: TextStyle(color: cs.onSurface.withAlpha(128))),
                       const SizedBox(height: 20),
                       // Dev: simulate scan
                       OutlinedButton.icon(
-                        onPressed: () => setState(() => _scannedCode = 'SKU-2024-00142'),
+                        onPressed: () =>
+                            setState(() => _scannedCode = 'SKU-2024-00142'),
                         icon: const Icon(Icons.bug_report, size: 16),
                         label: Text(t('scanner_simulate')),
                       ),
@@ -194,11 +207,16 @@ class _ScannerPageState extends State<ScannerPage> with SingleTickerProviderStat
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.add_a_photo, size: 64, color: cs.primary.withAlpha(102)),
+                  Icon(Icons.add_a_photo,
+                      size: 64, color: cs.primary.withAlpha(102)),
                   const SizedBox(height: 16),
-                  Text(t('scanner_capture_quotation'), style: TextStyle(color: cs.onSurface.withAlpha(153), fontSize: 15)),
+                  Text(t('scanner_capture_quotation'),
+                      style: TextStyle(
+                          color: cs.onSurface.withAlpha(153), fontSize: 15)),
                   const SizedBox(height: 8),
-                  Text(t('scanner_capture_hint'), style: TextStyle(color: cs.onSurface.withAlpha(102), fontSize: 12)),
+                  Text(t('scanner_capture_hint'),
+                      style: TextStyle(
+                          color: cs.onSurface.withAlpha(102), fontSize: 12)),
                 ],
               ),
             ),
@@ -216,7 +234,8 @@ class _ScannerPageState extends State<ScannerPage> with SingleTickerProviderStat
                   },
                   icon: const Icon(Icons.photo_library),
                   label: Text(t('scanner_gallery')),
-                  style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+                  style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -230,7 +249,8 @@ class _ScannerPageState extends State<ScannerPage> with SingleTickerProviderStat
                   },
                   icon: const Icon(Icons.camera_alt),
                   label: Text(t('scanner_take_photo')),
-                  style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+                  style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14)),
                 ),
               ),
             ],
@@ -245,17 +265,33 @@ class _ScannerPageState extends State<ScannerPage> with SingleTickerProviderStat
     const w = 3.0;
     return [
       // Top-left
-      Positioned(top: 0, left: 0, child: Container(width: len, height: w, color: c)),
-      Positioned(top: 0, left: 0, child: Container(width: w, height: len, color: c)),
+      Positioned(
+          top: 0, left: 0, child: Container(width: len, height: w, color: c)),
+      Positioned(
+          top: 0, left: 0, child: Container(width: w, height: len, color: c)),
       // Top-right
-      Positioned(top: 0, right: 0, child: Container(width: len, height: w, color: c)),
-      Positioned(top: 0, right: 0, child: Container(width: w, height: len, color: c)),
+      Positioned(
+          top: 0, right: 0, child: Container(width: len, height: w, color: c)),
+      Positioned(
+          top: 0, right: 0, child: Container(width: w, height: len, color: c)),
       // Bottom-left
-      Positioned(bottom: 0, left: 0, child: Container(width: len, height: w, color: c)),
-      Positioned(bottom: 0, left: 0, child: Container(width: w, height: len, color: c)),
+      Positioned(
+          bottom: 0,
+          left: 0,
+          child: Container(width: len, height: w, color: c)),
+      Positioned(
+          bottom: 0,
+          left: 0,
+          child: Container(width: w, height: len, color: c)),
       // Bottom-right
-      Positioned(bottom: 0, right: 0, child: Container(width: len, height: w, color: c)),
-      Positioned(bottom: 0, right: 0, child: Container(width: w, height: len, color: c)),
+      Positioned(
+          bottom: 0,
+          right: 0,
+          child: Container(width: len, height: w, color: c)),
+      Positioned(
+          bottom: 0,
+          right: 0,
+          child: Container(width: w, height: len, color: c)),
     ];
   }
 }

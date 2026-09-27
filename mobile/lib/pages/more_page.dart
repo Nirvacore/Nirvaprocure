@@ -15,7 +15,6 @@ class MorePage extends StatefulWidget {
 
 class _MorePageState extends State<MorePage> {
   int _notifUnread = 0;
-  int _pendingApprovals = 0;
   int _lowStock = 0;
 
   @override
@@ -33,11 +32,9 @@ class _MorePageState extends State<MorePage> {
       ]);
       if (!mounted) return;
       final notifs = results[0] as List<AppNotification>;
-      final inbox = results[1] as List<InboxEntry>;
       final stock = results[2] as List<StockOnHand>;
       setState(() {
         _notifUnread = notifs.where((n) => n.readAt == null).length;
-        _pendingApprovals = inbox.length;
         _lowStock = stock.where((s) => s.belowReorder).length;
       });
     } catch (_) {}
@@ -58,7 +55,8 @@ class _MorePageState extends State<MorePage> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFDC2626)),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFDC2626)),
             child: Text(l10n.t('nav.logout')),
           ),
         ],
@@ -93,36 +91,78 @@ class _MorePageState extends State<MorePage> {
           crossAxisSpacing: 16,
           childAspectRatio: 0.95,
           children: [
-            _Tile(icon: Icons.person_outline, label: l10n.t('profile.heading'),
-                color: const Color(0xFF4F46E5), onTap: () => context.push('/profile')),
-            _Tile(icon: Icons.search, label: l10n.t('search.hint').split(',')[0],
-                color: const Color(0xFF0EA5E9), onTap: () => context.push('/search')),
-            _Tile(icon: Icons.bar_chart, label: l10n.t('more.analytics'),
-                color: const Color(0xFF7C3AED), onTap: () => context.push('/analytics')),
-            _Tile(icon: Icons.inventory_2_outlined, label: l10n.t('more.stock'),
-                color: const Color(0xFF0369A1), badge: _lowStock,
+            _Tile(
+                icon: Icons.person_outline,
+                label: l10n.t('profile.heading'),
+                color: const Color(0xFF4F46E5),
+                onTap: () => context.push('/profile')),
+            _Tile(
+                icon: Icons.search,
+                label: l10n.t('search.hint').split(',')[0],
+                color: const Color(0xFF0EA5E9),
+                onTap: () => context.push('/search')),
+            _Tile(
+                icon: Icons.bar_chart,
+                label: l10n.t('more.analytics'),
+                color: const Color(0xFF7C3AED),
+                onTap: () => context.push('/analytics')),
+            _Tile(
+                icon: Icons.inventory_2_outlined,
+                label: l10n.t('more.stock'),
+                color: const Color(0xFF0369A1),
+                badge: _lowStock,
                 onTap: () => context.push('/stock')),
-            _Tile(icon: Icons.people_outline, label: l10n.t('more.suppliers'),
-                color: const Color(0xFF059669), onTap: () => context.push('/suppliers')),
-            _Tile(icon: Icons.account_balance_wallet_outlined, label: l10n.t('more.budget'),
-                color: const Color(0xFF16A34A), onTap: () => context.push('/budget')),
-            _Tile(icon: Icons.notifications_outlined, label: l10n.t('more.notif'),
-                color: const Color(0xFFD97706), badge: _notifUnread,
+            _Tile(
+                icon: Icons.people_outline,
+                label: l10n.t('more.suppliers'),
+                color: const Color(0xFF059669),
+                onTap: () => context.push('/suppliers')),
+            _Tile(
+                icon: Icons.account_balance_wallet_outlined,
+                label: l10n.t('more.budget'),
+                color: const Color(0xFF16A34A),
+                onTap: () => context.push('/budget')),
+            _Tile(
+                icon: Icons.notifications_outlined,
+                label: l10n.t('more.notif'),
+                color: const Color(0xFFD97706),
+                badge: _notifUnread,
                 onTap: () => context.push('/notifications')),
-            _Tile(icon: Icons.local_shipping_outlined, label: l10n.t('more.receive'),
-                color: const Color(0xFF0D9488), onTap: () => context.push('/receive')),
-            _Tile(icon: Icons.history, label: l10n.t('more.audit'),
-                color: const Color(0xFF6366F1), onTap: () => context.push('/audit')),
-            _Tile(icon: Icons.settings_outlined, label: l10n.t('more.settings'),
-                color: const Color(0xFF6B7280), onTap: () => context.push('/settings')),
-            _Tile(icon: Icons.receipt_long, label: l10n.t('more.po'),
-                color: const Color(0xFF2563EB), onTap: () => context.push('/po')),
-            _Tile(icon: Icons.pie_chart_outline, label: l10n.t('more.charts'),
-                color: const Color(0xFF8B5CF6), onTap: () => context.push('/charts')),
-            _Tile(icon: Icons.qr_code_scanner, label: l10n.t('more.scanner'),
-                color: const Color(0xFF0891B2), onTap: () => context.push('/scanner')),
-            _Tile(icon: Icons.fingerprint, label: l10n.t('more.biometric'),
-                color: const Color(0xFFDC2626), onTap: () => context.push('/biometric')),
+            _Tile(
+                icon: Icons.local_shipping_outlined,
+                label: l10n.t('more.receive'),
+                color: const Color(0xFF0D9488),
+                onTap: () => context.push('/receive')),
+            _Tile(
+                icon: Icons.history,
+                label: l10n.t('more.audit'),
+                color: const Color(0xFF6366F1),
+                onTap: () => context.push('/audit')),
+            _Tile(
+                icon: Icons.settings_outlined,
+                label: l10n.t('more.settings'),
+                color: const Color(0xFF6B7280),
+                onTap: () => context.push('/settings')),
+            _Tile(
+                icon: Icons.receipt_long,
+                label: l10n.t('more.po'),
+                color: const Color(0xFF2563EB),
+                onTap: () => context.push('/po')),
+            _Tile(
+                icon: Icons.pie_chart_outline,
+                label: l10n.t('more.charts'),
+                color: const Color(0xFF8B5CF6),
+                onTap: () => context.push('/charts')),
+            _Tile(
+                icon: Icons.qr_code_scanner,
+                label: l10n.t('more.scanner'),
+                color: const Color(0xFF0891B2),
+                onTap: () => context.push('/scanner')),
+            _Tile(
+                icon: Icons.fingerprint,
+                label: l10n.t('more.biometric'),
+                color: const Color(0xFFDC2626),
+                onTap: () => context.push('/biometric')),
           ],
         ),
       ),
@@ -131,7 +171,12 @@ class _MorePageState extends State<MorePage> {
 }
 
 class _Tile extends StatelessWidget {
-  const _Tile({required this.icon, required this.label, required this.color, required this.onTap, this.badge = 0});
+  const _Tile(
+      {required this.icon,
+      required this.label,
+      required this.color,
+      required this.onTap,
+      this.badge = 0});
   final IconData icon;
   final String label;
   final Color color;
@@ -150,7 +195,8 @@ class _Tile extends StatelessWidget {
             clipBehavior: Clip.none,
             children: [
               Container(
-                width: 52, height: 52,
+                width: 52,
+                height: 52,
                 decoration: BoxDecoration(
                   color: color.withAlpha(20),
                   borderRadius: BorderRadius.circular(16),
@@ -159,25 +205,32 @@ class _Tile extends StatelessWidget {
               ),
               if (badge > 0)
                 Positioned(
-                  right: -6, top: -6,
+                  right: -6,
+                  top: -6,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                     decoration: BoxDecoration(
                       color: const Color(0xFFDC2626),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       badge > 99 ? '99+' : '$badge',
-                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(label, textAlign: TextAlign.center,
+          Text(label,
+              textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-              maxLines: 2, overflow: TextOverflow.ellipsis),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis),
         ],
       ),
     );

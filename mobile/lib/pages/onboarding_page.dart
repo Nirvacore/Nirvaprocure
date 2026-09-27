@@ -77,7 +77,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   TextButton(
                     onPressed: _skip,
                     child: Text(l10n.t('onboard.skip'),
-                        style: const TextStyle(fontSize: 14, color: Tokens.gray500)),
+                        style: const TextStyle(
+                            fontSize: 14, color: Tokens.gray500)),
                   ),
                 ],
               ),
@@ -101,16 +102,20 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   // Dots
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(3, (i) => AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: _current == i ? 28 : 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: _current == i ? Tokens.brand600 : const Color(0xFFD1D5DB),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    )),
+                    children: List.generate(
+                        3,
+                        (i) => AnimatedContainer(
+                              duration: const Duration(milliseconds: 250),
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              width: _current == i ? 28 : 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: _current == i
+                                    ? Tokens.brand600
+                                    : const Color(0xFFD1D5DB),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            )),
                   ),
                   const SizedBox(height: 32),
 
@@ -123,11 +128,15 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Tokens.brand600,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
                       ),
                       child: Text(
-                        _current < 2 ? l10n.t('onboard.next') : l10n.t('onboard.start'),
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                        _current < 2
+                            ? l10n.t('onboard.next')
+                            : l10n.t('onboard.start'),
+                        style: const TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -142,7 +151,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
 }
 
 class _StepData {
-  const _StepData({required this.icon, required this.color, required this.title, required this.desc});
+  const _StepData(
+      {required this.icon,
+      required this.color,
+      required this.title,
+      required this.desc});
   final IconData icon;
   final Color color;
   final String title, desc;
@@ -171,11 +184,13 @@ class _StepView extends StatelessWidget {
           const SizedBox(height: 40),
           Text(step.title,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              style:
+                  const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           Text(step.desc,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16, height: 1.6, color: Tokens.gray500)),
+              style: const TextStyle(
+                  fontSize: 16, height: 1.6, color: Tokens.gray500)),
         ],
       ),
     );

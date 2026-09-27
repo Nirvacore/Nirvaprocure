@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../api/endpoints.dart';
 import '../l10n/l10n.dart';
+import '../theme/tokens.dart';
 import '../widgets/lang_button.dart';
 
 /// Analytics charts — spend by department, monthly trend, status breakdown.
@@ -33,7 +34,7 @@ class _ChartsPageState extends State<ChartsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final t = L10n.of(context);
+    final t = L10n.of(context).t;
 
     return Scaffold(
       appBar: AppBar(
@@ -98,7 +99,9 @@ class _SectionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            Text(title,
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
             const SizedBox(height: 16),
             child,
           ],
@@ -117,13 +120,15 @@ class _KpiRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final totalPr = data?['total_pr'] ?? 0;
     final pendingApprovals = data?['pending_approvals'] ?? 0;
-    final totalSpent = ((data?['total_spent_minor'] ?? 0) / 100).toStringAsFixed(0);
+    final totalSpent =
+        ((data?['total_spent_minor'] ?? 0) / 100).toStringAsFixed(0);
 
     return Row(
       children: [
         _kpi(t('charts_total_pr'), '$totalPr', Icons.description, Colors.blue),
         const SizedBox(width: 10),
-        _kpi(t('charts_pending'), '$pendingApprovals', Icons.hourglass_empty, Colors.orange),
+        _kpi(t('charts_pending'), '$pendingApprovals', Icons.hourglass_empty,
+            Colors.orange),
         const SizedBox(width: 10),
         _kpi(t('charts_spent'), '฿$totalSpent', Icons.payments, Colors.green),
       ],
@@ -144,9 +149,12 @@ class _KpiRow extends StatelessWidget {
           children: [
             Icon(icon, size: 20, color: color),
             const SizedBox(height: 8),
-            Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(value,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 2),
-            Text(label, style: const TextStyle(fontSize: 11, color: Tokens.gray500)),
+            Text(label,
+                style: const TextStyle(fontSize: 11, color: Tokens.gray500)),
           ],
         ),
       ),
@@ -164,11 +172,17 @@ class _StatusPieChart extends StatelessWidget {
     final byStatus = (data?['by_status'] as Map<String, dynamic>?) ?? {};
     final slices = <_Slice>[];
     final colors = {
-      'draft': Tokens.gray500, 'pending': Colors.orange, 'approved': Colors.green,
-      'rejected': Colors.red, 'cancelled': Colors.brown,
+      'draft': Tokens.gray500,
+      'pending': Colors.orange,
+      'approved': Colors.green,
+      'rejected': Colors.red,
+      'cancelled': Colors.brown,
     };
     byStatus.forEach((k, v) {
-      slices.add(_Slice(label: k, value: (v as num).toDouble(), color: colors[k] ?? Colors.blueGrey));
+      slices.add(_Slice(
+          label: k,
+          value: (v as num).toDouble(),
+          color: colors[k] ?? Colors.blueGrey));
     });
 
     if (slices.isEmpty) {
@@ -184,7 +198,8 @@ class _StatusPieChart extends StatelessWidget {
       children: [
         Expanded(
           child: CustomPaint(
-            painter: _DonutPainter(slices: slices, bg: Theme.of(context).colorScheme.surface),
+            painter: _DonutPainter(
+                slices: slices, bg: Theme.of(context).colorScheme.surface),
             size: const Size(160, 160),
           ),
         ),
@@ -192,18 +207,25 @@ class _StatusPieChart extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
-          children: slices.map((s) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 3),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(width: 10, height: 10, decoration: BoxDecoration(color: s.color, shape: BoxShape.circle)),
-                const SizedBox(width: 8),
-                Text('${s.label} (${s.value.toInt()})',
-                    style: const TextStyle(fontSize: 12, color: Tokens.gray500)),
-              ],
-            ),
-          )).toList(),
+          children: slices
+              .map((s) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 3),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                                color: s.color, shape: BoxShape.circle)),
+                        const SizedBox(width: 8),
+                        Text('${s.label} (${s.value.toInt()})',
+                            style: const TextStyle(
+                                fontSize: 12, color: Tokens.gray500)),
+                      ],
+                    ),
+                  ))
+              .toList(),
         ),
       ],
     );
@@ -279,11 +301,14 @@ class _MonthlyBarChart extends StatelessWidget {
                   height: h,
                   decoration: BoxDecoration(
                     color: primary.withAlpha(alpha),
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(4)),
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(months[i], style: const TextStyle(fontSize: 10, color: Tokens.gray500)),
+                Text(months[i],
+                    style:
+                        const TextStyle(fontSize: 10, color: Tokens.gray500)),
               ],
             ),
           ),
@@ -315,7 +340,13 @@ class _DeptBars extends StatelessWidget {
     }
 
     final maxVal = depts.values.isEmpty ? 1 : depts.values.reduce(max);
-    final colors = [Colors.blue, Colors.purple, Colors.teal, Colors.orange, Colors.pink];
+    final colors = [
+      Colors.blue,
+      Colors.purple,
+      Colors.teal,
+      Colors.orange,
+      Colors.pink
+    ];
 
     return Column(
       children: depts.entries.toList().asMap().entries.map((entry) {
@@ -329,7 +360,8 @@ class _DeptBars extends StatelessWidget {
               SizedBox(
                 width: 90,
                 child: Text(dept.key,
-                    style: const TextStyle(fontSize: 12, color: Tokens.gray500)),
+                    style:
+                        const TextStyle(fontSize: 12, color: Tokens.gray500)),
               ),
               Expanded(
                 child: Stack(
@@ -360,7 +392,8 @@ class _DeptBars extends StatelessWidget {
                 child: Text(
                   '฿${(dept.value / 1000).toStringAsFixed(0)}K',
                   textAlign: TextAlign.right,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                      fontSize: 11, fontWeight: FontWeight.w600),
                 ),
               ),
             ],
