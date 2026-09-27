@@ -133,7 +133,6 @@ class _SettingsPageState extends State<SettingsPage> {
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: () async {
-                  final l = L10n.of(context);
                   final nav = GoRouter.of(context);
                   await Api.logout();
                   if (!context.mounted) return;

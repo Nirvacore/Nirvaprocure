@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import '../l10n/l10n.dart';
 import '../api/endpoints.dart';
 import '../theme/tokens.dart';
-import '../widgets/lang_button.dart';
 
 /// Home tab — minimalist dashboard with live stats + quick actions.
 /// Inspired by Grab driver home, Shopee seller center, LINE Pay balance card.
@@ -17,7 +16,6 @@ class _HomePageState extends State<HomePage> {
   Map<String, dynamic>? _stats;
   int _pendingCount = 0;
   List<PrSummary>? _recentPrs;
-  bool _loading = true;
 
   @override
   void initState() {
@@ -26,7 +24,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
     try {
       final results = await Future.wait([
         Api.analyticsSummary(),
@@ -39,7 +36,7 @@ class _HomePageState extends State<HomePage> {
     } catch (_) {
       // gracefully show zeros
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) setState(() {});
     }
   }
 

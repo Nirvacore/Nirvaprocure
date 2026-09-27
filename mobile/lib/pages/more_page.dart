@@ -15,7 +15,6 @@ class MorePage extends StatefulWidget {
 
 class _MorePageState extends State<MorePage> {
   int _notifUnread = 0;
-  int _pendingApprovals = 0;
   int _lowStock = 0;
 
   @override
@@ -33,11 +32,9 @@ class _MorePageState extends State<MorePage> {
       ]);
       if (!mounted) return;
       final notifs = results[0] as List<AppNotification>;
-      final inbox = results[1] as List<InboxEntry>;
       final stock = results[2] as List<StockOnHand>;
       setState(() {
         _notifUnread = notifs.where((n) => n.readAt == null).length;
-        _pendingApprovals = inbox.length;
         _lowStock = stock.where((s) => s.belowReorder).length;
       });
     } catch (_) {}

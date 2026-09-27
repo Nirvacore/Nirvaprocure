@@ -17,7 +17,6 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   Map<String, dynamic>? _stats;
   UserProfile? _profile;
-  bool _loading = true;
   int _supplierCount = 0;
 
   @override
@@ -27,7 +26,6 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
     try {
       final results = await Future.wait([
         Api.analyticsSummary(),
@@ -38,7 +36,7 @@ class _ProfilePageState extends State<ProfilePage> {
       _profile = results[1] as UserProfile;
       _supplierCount = (results[2] as List).length;
     } catch (_) {}
-    if (mounted) setState(() => _loading = false);
+    if (mounted) setState(() {});
   }
 
   Future<void> _confirmLogout() async {

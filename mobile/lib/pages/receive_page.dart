@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import '../api/api_client.dart';
 import '../api/endpoints.dart';
 import '../l10n/l10n.dart';
