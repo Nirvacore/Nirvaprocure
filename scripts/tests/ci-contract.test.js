@@ -8,6 +8,7 @@ const test = require('node:test');
 const root = path.resolve(__dirname, '../..');
 const workflow = readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf8');
 const phaseOne = readFileSync(path.join(root, 'database/phase1_schema.sql'), 'utf8');
+const phaseFiveIncentives = readFileSync(path.join(root, 'database/phase5_incentives_schema.sql'), 'utf8');
 const schemaRunnerPath = path.join(root, 'scripts/ci/apply-test-schemas.sh');
 const schemaRunner = readFileSync(schemaRunnerPath, 'utf8');
 
@@ -69,4 +70,12 @@ test('child approval tables inherit tenant scope through their parent rows', () 
   assert.doesNotMatch(phaseOne, /'approval_steps'|'approval_decisions'/);
   assert.match(phaseOne, /CREATE POLICY approval_steps_org_isolation[\s\S]*approval_workflows[\s\S]*current_setting\('app\.current_org'\)/);
   assert.match(phaseOne, /CREATE POLICY approval_decisions_org_isolation[\s\S]*approval_instances[\s\S]*current_setting\('app\.current_org'\)/);
+});
+
+test('badge period uniqueness uses a PostgreSQL expression index', () => {
+  assert.doesNotMatch(phaseFiveIncentives, /UNIQUE\s*\([^)]*context\s*->>/);
+  assert.match(
+    phaseFiveIncentives,
+    /CREATE UNIQUE INDEX IF NOT EXISTS idx_user_badges_period\s+ON user_badges\s*\(user_id, badge_key, \(context->>'period'\)\)/,
+  );
 });
