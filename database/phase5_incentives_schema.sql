@@ -40,9 +40,10 @@ CREATE TABLE IF NOT EXISTS user_badges (
     user_id     UUID NOT NULL REFERENCES users(id),
     badge_key   TEXT NOT NULL,                          -- 'smart_buyer' | 'sla_streak_14' | ...
     earned_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-    context     JSONB,                                  -- e.g. {"period": "2026-Q1", "savings_minor": 152000}
-    UNIQUE (user_id, badge_key, (context->>'period'))
+    context     JSONB                                   -- e.g. {"period": "2026-Q1", "savings_minor": 152000}
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_user_badges_period
+  ON user_badges (user_id, badge_key, (context->>'period'));
 
 ALTER TABLE user_badges ENABLE ROW LEVEL SECURITY;
 CREATE POLICY ub_org_iso ON user_badges
