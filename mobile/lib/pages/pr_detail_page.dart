@@ -872,7 +872,7 @@ class _LinkedPoCardState extends State<_LinkedPoCard> {
   Widget build(BuildContext context) {
     if (!_loaded || _po == null) return const SizedBox.shrink();
 
-    final t = L10n.of(context);
+    final t = L10n.of(context).t;
     final cs = Theme.of(context).colorScheme;
     final po = _po!;
 

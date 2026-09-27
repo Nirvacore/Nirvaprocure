@@ -192,8 +192,7 @@ class _StockPageState extends State<StockPage> {
                                 color: Color(0xFFB45309), size: 20),
                             const SizedBox(width: 8),
                             Text(
-                              l10n.t('stock.alert.low',
-                                  args: {'count': '$lowCount'}),
+                              l10n.t('stock.alert.low', {'count': '$lowCount'}),
                               style: const TextStyle(
                                   color: Color(0xFF92400E),
                                   fontWeight: FontWeight.w600,

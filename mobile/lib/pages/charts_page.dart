@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../api/endpoints.dart';
 import '../l10n/l10n.dart';
+import '../theme/tokens.dart';
 import '../widgets/lang_button.dart';
 
 /// Analytics charts — spend by department, monthly trend, status breakdown.
@@ -33,7 +34,7 @@ class _ChartsPageState extends State<ChartsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final t = L10n.of(context);
+    final t = L10n.of(context).t;
 
     return Scaffold(
       appBar: AppBar(

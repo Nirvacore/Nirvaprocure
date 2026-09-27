@@ -199,8 +199,7 @@ class _LanguageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scope = L10nScope.of(context);
-    final currentLocale = scope.locale.languageCode;
+    final currentLocale = l10n.locale.languageCode;
     final labels = {
       'th': 'ไทย',
       'en': 'English',

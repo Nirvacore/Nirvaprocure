@@ -35,7 +35,7 @@ class _ScannerPageState extends State<ScannerPage>
 
   @override
   Widget build(BuildContext context) {
-    final t = L10n.of(context);
+    final t = L10n.of(context).t;
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
