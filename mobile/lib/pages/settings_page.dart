@@ -224,7 +224,7 @@ class _LanguageCard extends StatelessWidget {
         children: labels.entries.map((e) {
           final selected = e.key == currentLocale;
           return GestureDetector(
-            onTap: () => scope.setLocale(Locale(e.key)),
+            onTap: () => l10n.setLocale(Locale(e.key)),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
