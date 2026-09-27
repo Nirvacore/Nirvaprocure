@@ -2,56 +2,18 @@
 import React, { useEffect, useState } from 'react';
 import { Wallet, Lock, Plus } from 'lucide-react';
 import { useT } from '@/lib/i18n/provider';
-import { budgets as budgetsApi, people as peopleApi, type BudgetRow, type PeopleDepartment } from '@/lib/api';
+import { budgets as budgetsApi, people as peopleApi, type BudgetRow } from '@/lib/api';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
-import { mockDepartments } from '@/lib/mock-data';
 import { Loading } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
 
-// ---------------------------------------------------------------------------
-// Mock fallback — aligned with mockDepartments from NirvaPeople
-// ---------------------------------------------------------------------------
 function currentMonth(): string {
   const now = new Date();
   const y = now.getFullYear();
   const m = String(now.getMonth() + 1).padStart(2, '0');
   return `${y}-${m}`;
 }
-
-const MOCK_DEPT_BUDGETS = [
-  { spent: 280000_00, amount: 500000_00, soft: false },
-  { spent: 650000_00, amount: 800000_00, soft: true },
-  { spent: 1150000_00, amount: 1200000_00, soft: true },
-  { spent: 120000_00, amount: 300000_00, soft: false },
-];
-
-function mockBudgets(month: string): BudgetRow[] {
-  const monthStart = `${month}-01`;
-  return mockDepartments.map((d, i) => {
-    const preset = MOCK_DEPT_BUDGETS[i] ?? { spent: 0, amount: 100000_00, soft: false };
-    const remaining = preset.amount - preset.spent;
-    const pct = preset.amount > 0 ? Math.round((preset.spent / preset.amount) * 100) : 0;
-    return {
-      id: `bud-${d.cost_center}`,
-      department_id: d.cost_center,
-      department_name: d.name,
-      month_start: monthStart,
-      amount_minor: preset.amount,
-      spent_minor: preset.spent,
-      remaining_minor: remaining,
-      pct_used: pct,
-      soft_block: preset.soft,
-    };
-  });
-}
-
-const MOCK_DEPARTMENTS: PeopleDepartment[] = mockDepartments.map(d => ({
-  id: d.cost_center,
-  name: d.name,
-  cost_center: d.cost_center,
-  members: d.members,
-}));
 
 function barColor(pct: number): string {
   if (pct > 90) return 'bg-red-500';
@@ -166,7 +128,7 @@ function UpsertModal({ month, existing, onClose, onSaved }: UpsertModalProps) {
   const { data: departments } = useResource(
     () => withMockFallback(
       () => peopleApi.listDepartments(),
-      MOCK_DEPARTMENTS,
+      async () => (await import('@/lib/budget-demo-fixtures')).loadDemoDepartments(),
     ),
   );
   const depts = departments ?? [];
@@ -279,7 +241,7 @@ export default function BudgetPage() {
   const { data, loading, error, refresh } = useResource(
     () => withMockFallback(
       () => budgetsApi.list(month),
-      mockBudgets(month),
+      async () => (await import('@/lib/budget-demo-fixtures')).loadDemoBudgets(month),
     ),
     [month],
   );

@@ -6,32 +6,9 @@ import { useT } from '@/lib/i18n/provider';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
 import { pr as prApi, suppliers as suppliersApi, type PrSummary, type SupplierRow } from '@/lib/api';
-import { mockPrs } from '@/lib/mock-data';
 import { StatusPill, type PrStatus } from '@/components/StatusPill';
 import { Loading } from '@/components/Loading';
 import { fmtBaht } from '@/lib/format';
-
-const MOCK_SUPPLIERS: SupplierRow[] = [
-  { id: 'sup-1', code: 'SUP-001', name: 'HP Authorized Store Thailand', contact_name: 'คุณวิภา', contact_email: 'sales@hp-th.co.th', contact_phone: '02-111-2222', category: 'IT', tax_id: '0105555000001', is_active: true, risk_tier: 'low', total_pr_count: 12, total_spent_minor: 180000_00, created_at: '2026-01-10' },
-  { id: 'sup-2', code: 'SUP-002', name: 'บริษัท แม็คโคร จำกัด', contact_name: 'คุณสมชาย', contact_email: 'b2b@makro.co.th', contact_phone: '02-222-3333', category: 'อาหาร', tax_id: '0105555000002', is_active: true, risk_tier: 'low', total_pr_count: 28, total_spent_minor: 540000_00, created_at: '2026-01-05' },
-  { id: 'sup-3', code: 'SUP-003', name: 'ร้านเครื่องเขียนสยาม', contact_name: null, contact_email: null, contact_phone: '02-333-4444', category: 'สำนักงาน', tax_id: null, is_active: true, risk_tier: 'medium', total_pr_count: 5, total_spent_minor: 24000_00, created_at: '2026-02-01' },
-];
-
-function toPrSummary(p: typeof mockPrs[number]): PrSummary {
-  return {
-    id: p.id,
-    pr_number: p.pr_number,
-    title: p.title,
-    status: p.status,
-    requester_id: 'user-1',
-    department_id: 'dept-1',
-    total: { amount_minor: p.total_minor, currency: 'THB' },
-    submitted_at: '2026-06-01',
-    created_at: p.created_at,
-  };
-}
-
-const MOCK_PRS = mockPrs.map(toPrSummary);
 
 interface SearchResults {
   prs: PrSummary[];
@@ -69,8 +46,11 @@ export default function SearchPage() {
     async () => {
       if (debounced.length < 2) return { prs: [], suppliers: [] };
       const [prRes, supplierRows] = await Promise.all([
-        withMockFallback(() => prApi.list({ limit: 50 }), { data: MOCK_PRS, next_cursor: null }),
-        withMockFallback(() => suppliersApi.list(), MOCK_SUPPLIERS),
+        withMockFallback(() => prApi.list({ limit: 50 }), async () => {
+          const demo = await import('@/lib/search-demo-fixtures');
+          return { data: (await demo.loadSearchDemo()).prs, next_cursor: null };
+        }),
+        withMockFallback(() => suppliersApi.list(), async () => (await (await import('@/lib/search-demo-fixtures')).loadSearchDemo()).suppliers),
       ]);
       return filterResults(debounced, prRes.data, supplierRows);
     },

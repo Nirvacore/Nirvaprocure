@@ -15,8 +15,7 @@ import { useToast } from '@/components/Toast';
 import { useT } from '@/lib/i18n/provider';
 import type { TranslationKey } from '@/lib/i18n/dictionary';
 import {
-  advanceMockTorDraft, readMockTorDraft, storeMockTorDraft, syncMockTorListStatus,
-  updateMockTorDraftBody,
+  storeMockTorDraft, syncMockTorListStatus,
 } from '@/lib/tor-mock-store';
 
 const CHECKLIST_LABEL_KEYS: Record<string, TranslationKey> = {
@@ -51,71 +50,6 @@ const STATUS_STYLE: Record<ToRDraft['status'], { bg: string; text: string }> = {
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3000/v1';
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-const MOCK_TOR_DRAFTS: Record<string, ToRDraft> = {
-  'tor-1': {
-    id: 'tor-1',
-    title: 'จัดซื้อเครื่องคอมพิวเตอร์ จำนวน 20 เครื่อง',
-    status: 'draft',
-    body_markdown: [
-      '## ๑. ความเป็นมา',
-      'หน่วยงานมีความจำเป็นต้องจัดซื้อเครื่องคอมพิวเตอร์เพื่อทดแทนอุปกรณ์เดิม',
-      '',
-      '## ๒. วัตถุประสงค์',
-      'เพื่อสนับสนุนการปฏิบัติงานของเจ้าหน้าที่',
-    ].join('\n'),
-    compliance_checklist: {
-      has_scope: 'passed',
-      has_budget: 'passed',
-      has_deliverables: 'passed',
-      has_evaluation_method: 'passed',
-      has_timeline: 'failed',
-      has_qualifications: 'na',
-    },
-    created_at: '2026-06-10T09:00:00Z',
-  },
-  'tor-2': {
-    id: 'tor-2',
-    title: 'จ้างเหมาบำรุงรักษาระบบเครือข่าย',
-    status: 'approved',
-    body_markdown: '## ขอบเขตของงาน\nบำรุงรักษาระบบเครือข่ายภายในหน่วยงานเป็นระยะเวลา 12 เดือน',
-    compliance_checklist: {
-      has_scope: 'passed',
-      has_budget: 'passed',
-      has_deliverables: 'passed',
-      has_evaluation_method: 'passed',
-      has_timeline: 'passed',
-      has_qualifications: 'na',
-    },
-    created_at: '2026-06-05T14:30:00Z',
-  },
-  'tor-3': {
-    id: 'tor-3',
-    title: 'ก่อสร้างอาคารคลังสินค้า',
-    status: 'archived',
-    body_markdown: '## ขอบเขตของงาน\nก่อสร้างอาคารคลังสินค้าขนาด 500 ตร.ม.',
-    compliance_checklist: {
-      has_scope: 'passed',
-      has_budget: 'passed',
-      has_deliverables: 'passed',
-      has_evaluation_method: 'passed',
-      has_timeline: 'passed',
-      has_qualifications: 'passed',
-    },
-    created_at: '2026-05-28T11:00:00Z',
-  },
-};
-
-function mockTorDraft(id: string): ToRDraft {
-  return readMockTorDraft(id) ?? MOCK_TOR_DRAFTS[id] ?? {
-    id,
-    title: `ToR ${id}`,
-    status: 'draft',
-    body_markdown: null,
-    compliance_checklist: {},
-    created_at: new Date().toISOString(),
-  };
-}
-
 export default function TorDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t, locale } = useT();
@@ -127,7 +61,10 @@ export default function TorDetailPage() {
   const [saving, setSaving] = useState(false);
 
   const { data, loading, error, refresh } = useResource(
-    () => withMockFallback(() => govApi.getDraft(id), mockTorDraft(id)),
+    () => withMockFallback(
+      () => govApi.getDraft(id),
+      async () => (await import('@/lib/gov-demo-fixtures')).loadDemoTorDraft(id),
+    ),
     [id],
   );
 
@@ -146,7 +83,7 @@ export default function TorDetailPage() {
     try {
       const updated = await withMockFallback(
         () => govApi.advanceStatus(id),
-        advanceMockTorDraft(id, mockTorDraft(id)),
+        async () => (await import('@/lib/gov-demo-fixtures')).advanceDemoTorDraft(id),
       );
       storeMockTorDraft(updated);
       syncMockTorListStatus(id, updated.status);
@@ -190,7 +127,7 @@ export default function TorDetailPage() {
     try {
       const updated = await withMockFallback(
         () => govApi.updateDraft(id, { body_markdown: bodyEdit }),
-        updateMockTorDraftBody(id, mockTorDraft(id), bodyEdit),
+        async () => (await import('@/lib/gov-demo-fixtures')).updateDemoTorDraftBody(id, bodyEdit),
       );
       storeMockTorDraft(updated);
       setLocal(updated);

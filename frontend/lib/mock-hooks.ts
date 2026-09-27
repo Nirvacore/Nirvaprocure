@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { mockInbox } from './mock-data';
 import { approvals } from './api';
 import { ApiError } from './api';
+import { isLocalDemoMode } from './api-with-fallback';
 
 const POLL_MS = 30_000;
 const BASE    = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3000/v1';
@@ -19,7 +19,7 @@ const BASE    = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3000/v
  * can fire a one-shot ping animation.
  */
 export function useInboxCount(): { count: number; bumped: boolean } {
-  const [count, setCount]   = useState<number>(mockInbox.length);
+  const [count, setCount]   = useState<number>(0);
   const [bumped, setBumped] = useState(false);
   const prev = useRef(count);
 
@@ -32,6 +32,11 @@ export function useInboxCount(): { count: number; bumped: boolean } {
       }
       prev.current = next;
     };
+
+    if (isLocalDemoMode()) {
+      void import('./mock-data').then(({ mockInbox }) => apply(mockInbox.length));
+      return;
+    }
 
     // 1) Try SSE first. Browsers attach cookies automatically.
     if (typeof EventSource !== 'undefined') {

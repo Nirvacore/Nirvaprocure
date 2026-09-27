@@ -9,59 +9,10 @@ import { useToast } from '@/components/Toast';
 import { useResource } from '@/lib/use-resource';
 import { withMockFallback } from '@/lib/api-with-fallback';
 import { pr as prApi, type PrSummary, type PrDetail as ApiPrDetail } from '@/lib/api';
-import { mockPrs } from '@/lib/mock-data';
 import { Loading } from '@/components/Loading';
 import { ErrorBanner } from '@/components/ErrorBanner';
 
 type ReceiveLine = ApiPrDetail['items'][number] & { item_id?: string | null };
-
-function toSummary(p: typeof mockPrs[number]): PrSummary {
-  return {
-    id: p.id,
-    pr_number: p.pr_number,
-    title: p.title,
-    status: p.status,
-    requester_id: 'user-1',
-    department_id: 'dept-1',
-    total: { amount_minor: p.total_minor, currency: 'THB' },
-    submitted_at: '2026-06-01',
-    created_at: p.created_at,
-  };
-}
-
-const MOCK_APPROVED: PrSummary[] = mockPrs
-  .filter(p => p.status === 'approved')
-  .map(toSummary);
-
-const MOCK_DETAILS: Record<string, ApiPrDetail> = {
-  '2': {
-    ...toSummary(mockPrs.find(p => p.id === '2')!),
-    id: '2',
-    pr_number: 'PR-2026-0041',
-    title: 'ถุงมือแล็บ x 200 คู่',
-    justification: 'เติมถุงมือแล็บประจำไตรมาส',
-    items: [
-      { id: 'li-2-1', line_no: 1, description: 'ถุงมือแล็บ ขนาด M', quantity: 200, unit: 'pair', unit_price_minor: 94500, line_total_minor: 18900000, supplier_id: null, source: 'makro', source_url: null, item_id: 'i2' },
-    ] as ReceiveLine[],
-    approval: null,
-  },
-  '5': {
-    id: '5',
-    pr_number: 'PR-2026-0038',
-    title: 'ของกินทีม Q1',
-    status: 'approved',
-    requester_id: 'user-2',
-    department_id: 'dept-2',
-    total: { amount_minor: 250000, currency: 'THB' },
-    submitted_at: '2026-05-25',
-    created_at: '5 วัน',
-    justification: 'ของว่างทีมประจำไตรมาส',
-    items: [
-      { id: 'li-5-1', line_no: 1, description: 'ขนมและเครื่องดื่มทีม', quantity: 1, unit: 'lot', unit_price_minor: 25000000, line_total_minor: 25000000, supplier_id: null, source: 'manual', source_url: null, item_id: 'i-snack' },
-    ] as ReceiveLine[],
-    approval: null,
-  },
-};
 
 // ---------------------------------------------------------------------------
 // Approved PR card
@@ -84,7 +35,7 @@ function ApprovedPrCard({
       if (!expanded) return Promise.resolve(null);
       return withMockFallback(
         () => prApi.get(pr.id),
-        MOCK_DETAILS[pr.id] ?? MOCK_DETAILS['2'],
+        async () => (await import('@/lib/receive-demo-fixtures')).loadDemoDetail(pr.id),
       );
     },
     [expanded, pr.id],
@@ -207,10 +158,10 @@ export default function ReceivePage() {
   const { data, loading, error, refresh } = useResource(
     () => withMockFallback(
       async () => {
-        const res = await prApi.list({ status: 'approved', limit: 50 });
-        return res.data;
+      const res = await prApi.list({ status: 'approved', limit: 50 });
+      return res.data;
       },
-      MOCK_APPROVED,
+      async () => (await import('@/lib/receive-demo-fixtures')).loadDemoApprovedPrs(),
     ),
   );
 
