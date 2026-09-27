@@ -5,6 +5,7 @@
 BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS citext;
 
 -- ---------------------------------------------------------------------------
 -- Reference: tenant root
@@ -35,8 +36,6 @@ CREATE TABLE users (
     deleted_at      TIMESTAMPTZ,
     UNIQUE (org_id, email)
 );
-CREATE EXTENSION IF NOT EXISTS citext;
-
 CREATE TABLE departments (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     org_id          UUID NOT NULL REFERENCES organizations(id),
