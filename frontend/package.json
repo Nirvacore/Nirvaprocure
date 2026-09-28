@@ -19,7 +19,7 @@
     "analyze": "ANALYZE=true next build"
   },
   "dependencies": {
-    "@sentry/nextjs": "^10.75.0",
+    "@sentry/nextjs": "^11.0.0",
     "@tailwindcss/postcss": "^4.3.3",
     "clsx": "^2.1.1",
     "critters": "^0.0.25",
