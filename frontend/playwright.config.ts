@@ -3,8 +3,9 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * Playwright config for NIRVAPROCURE smoke tests.
  *
- * - `webServer` boots `npm run dev` on :3001 so `npm run e2e` works locally
- *   without any extra steps.
+ * - `webServer` boots the Webpack dev server on :3001 so `npm run e2e`
+ *   works locally without any extra steps. Turbopack currently fails to
+ *   resolve the multi-locale `next/font/google` imports in `app/layout.tsx`.
  * - We target chromium-only by default. Firefox/WebKit are added in CI.
  * - Tests rely on the offline mock-data fallback (no backend required).
  */
@@ -29,7 +30,7 @@ export default defineConfig({
   webServer: process.env.E2E_BASE_URL
     ? undefined
     : {
-        command: 'PORT=3001 npm run dev',
+        command: 'PORT=3001 npm run dev -- --webpack',
         url: 'http://localhost:3001',
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
